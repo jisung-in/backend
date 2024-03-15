@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public class ApiResponse<T> {
+
     private int code;
     private HttpStatus status;
     private String message;
