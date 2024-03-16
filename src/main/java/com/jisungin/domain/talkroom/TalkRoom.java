@@ -1,9 +1,18 @@
 package com.jisungin.domain.talkroom;
 
+import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.domain.BaseEntity;
-import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
-import jakarta.persistence.*;
+import com.jisungin.domain.user.User;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,19 +32,27 @@ public class TalkRoom extends BaseEntity {
     @JoinColumn(name = "book_id")
     private Book book;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Lob
     @Column(name = "talk_room_content", length = 2000)
     private String content;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "talk_room_reading_status")
-    private ReadingStatus status;
-
     @Builder
-    private TalkRoom(Book book, String content, ReadingStatus status) {
+    private TalkRoom(Book book, User user, String content) {
         this.book = book;
+        this.user = user;
         this.content = content;
-        this.status = status;
+    }
+
+    public static TalkRoom create(TalkRoomCreateServiceRequest request, Book book, User user) {
+        return TalkRoom.builder()
+                .book(book)
+                .user(user)
+                .content(request.getContent())
+                .build();
     }
 
 }
