@@ -21,4 +21,5 @@ public class TalkRoomCreateServiceRequest {
         this.content = content;
         this.readingStatus = readingStatus;
     }
+
 }

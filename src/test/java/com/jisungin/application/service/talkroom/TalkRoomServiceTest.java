@@ -13,6 +13,7 @@ import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
+import com.jisungin.exception.BusinessException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +78,7 @@ class TalkRoomServiceTest {
         List<ReadingStatus> readingStatuses = response.getReadingStatuses();
         assertThat(response)
                 .extracting("id", "content")
-                .contains(1L, "토크방");
+                .contains(books.get(0).getId(), "토크방");
         assertThat(readingStatuses.size()).isEqualTo(2);
     }
 
@@ -101,7 +102,7 @@ class TalkRoomServiceTest {
 
         // when // then
         assertThatThrownBy(() -> talkRoomService.createTalkRoom(request, user.getName()))
-                .isInstanceOf(NullPointerException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("참가 조건은 1개 이상이어야 합니다.");
     }
 
@@ -124,4 +125,5 @@ class TalkRoomServiceTest {
                 .url("www")
                 .build();
     }
+
 }

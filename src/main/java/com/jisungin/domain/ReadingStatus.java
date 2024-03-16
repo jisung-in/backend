@@ -1,5 +1,7 @@
 package com.jisungin.domain;
 
+import com.jisungin.exception.BusinessException;
+import com.jisungin.exception.ErrorCode;
 import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,9 @@ public enum ReadingStatus {
     private final String text;
 
     public static List<ReadingStatus> createReadingStatus(List<String> statusList) {
+        if (statusList == null) {
+            throw new BusinessException(ErrorCode.PARTICIPATION_CONDITION_ERROR);
+        }
         return statusList.stream()
                 .map(value -> {
                     for (ReadingStatus rs : values()) {
@@ -28,4 +33,5 @@ public enum ReadingStatus {
                 })
                 .toList();
     }
+
 }

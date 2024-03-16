@@ -38,4 +38,5 @@ public class TalkRoomCreateRequest {
                 .readingStatus(readingStatus)
                 .build();
     }
+
 }

@@ -46,4 +46,5 @@ public class TalkRoomRole {
                 .readingStatus(status)
                 .build();
     }
+
 }

@@ -11,6 +11,8 @@ import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
+import com.jisungin.exception.BusinessException;
+import com.jisungin.exception.ErrorCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,14 +31,11 @@ public class TalkRoomService {
     // TODO. 토큰 정보를 가져오는 기능을 구현하면 변경할 예정
     @Transactional
     public TalkRoomResponse createTalkRoom(TalkRoomCreateServiceRequest request, String userEmail) {
-        if (request.getReadingStatus() == null) {
-            throw new NullPointerException("참가 조건은 1개 이상이어야 합니다.");
-        }
         User user = userRepository.findByName(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new IllegalArgumentException("책을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
         TalkRoom talkRoom = TalkRoom.create(request, book, user);
         talkRoomRepository.save(talkRoom);
@@ -48,4 +47,5 @@ public class TalkRoomService {
 
         return TalkRoomResponse.of(talkRoom, readingStatus);
     }
+
 }
