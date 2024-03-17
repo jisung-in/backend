@@ -1,6 +1,7 @@
 package com.jisungin.domain.user;
 
 import com.jisungin.domain.BaseEntity;
+import com.jisungin.domain.oauth.OauthId;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -9,7 +10,17 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "users")
+@Table(name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "oauth_id_unique",
+                        columnNames = {
+                                "oauth_id",
+                                "oauth_type"
+                        }
+                ),
+        }
+)
 @Entity
 public class User extends BaseEntity {
 
@@ -18,16 +29,20 @@ public class User extends BaseEntity {
     @Column(name = "user_id")
     private Long id;
 
+    @Embedded
+    private OauthId oauthId;
+
     @Column(name = "user_name")
     private String name;
 
-    @Column(name = "user_profile")
-    private String profile;
+    @Column(name = "user_profile_image")
+    private String profileImage;
 
     @Builder
-    private User(String name, String profile) {
+    public User(OauthId oauthId, String name, String profileImage) {
+        this.oauthId = oauthId;
         this.name = name;
-        this.profile = profile;
+        this.profileImage = profileImage;
     }
 
 }
