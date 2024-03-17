@@ -7,9 +7,11 @@ import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OauthService {
 
     private final AuthCodeRequestUrlProviderComposite authCodeRequestUrlProviderComposite;
@@ -20,6 +22,7 @@ public class OauthService {
         return authCodeRequestUrlProviderComposite.provide(oauthType);
     }
 
+    @Transactional
     public Long login(OauthType oauthType, String authCode) {
         User user = userClientComposite.fetch(oauthType, authCode);
         User savedUser = userRepository.findByOauthId(user.getOauthId())
