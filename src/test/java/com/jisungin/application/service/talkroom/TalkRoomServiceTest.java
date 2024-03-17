@@ -2,6 +2,7 @@ package com.jisungin.application.service.talkroom;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
@@ -75,11 +76,10 @@ class TalkRoomServiceTest {
         TalkRoomResponse response = talkRoomService.createTalkRoom(request, user.getName());
 
         // then
-        List<ReadingStatus> readingStatuses = response.getReadingStatuses();
-        assertThat(response)
-                .extracting("id", "content")
-                .contains(books.get(0).getId(), "토크방");
-        assertThat(readingStatuses.size()).isEqualTo(2);
+        assertThat(response.getId()).isNotNull();
+        assertThat(response.getContent()).isEqualTo("토크방");
+        assertThat(response.getReadingStatuses()).hasSize(2)
+                .contains(ReadingStatus.READ, ReadingStatus.READING);
     }
 
     @Test
@@ -114,11 +114,10 @@ class TalkRoomServiceTest {
     }
 
     private static Book createBook() {
-        String[] authors = {"작가"};
         return Book.builder()
                 .title("제목")
                 .content("내용")
-                .authors(authors)
+                .authors("작가")
                 .isbn("11111")
                 .publisher("publisher")
                 .dateTime(LocalDateTime.now())
