@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
 
-    USER_NOT_FOUND(400, "사용자를 찾을 수 없습니다."),
-    BOOK_NOT_FOUND(400, "책을 찾을 수 없습니다."),
+    USER_NOT_FOUND(404, "사용자를 찾을 수 없습니다."),
+    BOOK_NOT_FOUND(404, "책을 찾을 수 없습니다."),
     BOOK_ALREADY_EXIST(400, "이미 등록된 책 정보 입니다."),
     PARTICIPATION_CONDITION_ERROR(400, "참가 조건은 1개 이상이어야 합니다.");
 
