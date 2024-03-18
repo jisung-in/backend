@@ -2,10 +2,12 @@ package com.jisungin.api.talkroom;
 
 import com.jisungin.api.ApiResponse;
 import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
+import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +24,11 @@ public class TalkRoomController {
     @PostMapping("/talk-room/create")
     public ApiResponse<TalkRoomResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request) {
         return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), "user@gmail.com"));
+    }
+
+    @PatchMapping("/talk-room/edit")
+    public ApiResponse<TalkRoomResponse> editTalkRoom(@Valid @RequestBody TalkRoomEditRequest request) {
+        return ApiResponse.ok(talkRoomService.editTalkRoom(request.toServiceRequest(), "user@gmail.com"));
     }
 
 }

@@ -1,6 +1,7 @@
 package com.jisungin.domain.talkroom;
 
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
+import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.domain.BaseEntity;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.user.User;
@@ -53,6 +54,10 @@ public class TalkRoom extends BaseEntity {
                 .user(user)
                 .content(request.getContent())
                 .build();
+    }
+
+    public void edit(TalkRoomEditServiceRequest request) {
+        this.content = request.getContent() != null ? request.getContent() : content;
     }
 
 }
