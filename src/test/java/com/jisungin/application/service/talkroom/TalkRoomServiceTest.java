@@ -213,6 +213,7 @@ class TalkRoomServiceTest {
                 .content("토크방")
                 .readingStatus(readingStatus)
                 .build();
+
         // when
         TalkRoomResponse response = talkRoomService.editTalkRoom(request, "user@gmail.com");
 
@@ -301,11 +302,10 @@ class TalkRoomServiceTest {
     }
 
     private static Book createBook() {
-        String author = "작가";
         return Book.builder()
                 .title("제목")
                 .content("내용")
-                .authors(author)
+                .authors("작가")
                 .isbn("11111")
                 .publisher("publisher")
                 .dateTime(LocalDateTime.now())

@@ -60,4 +60,8 @@ public class TalkRoom extends BaseEntity {
         this.content = request.getContent() != null ? request.getContent() : content;
     }
 
+    public boolean isTalkRoomOwner(Long userId) {
+        return user.isMe(userId);
+    }
+
 }

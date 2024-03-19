@@ -54,10 +54,9 @@ public class TalkRoomService {
         User user = userRepository.findByName(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        TalkRoom talkRoom = talkRoomRepository.findById(request.getId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
+        TalkRoom talkRoom = talkRoomRepository.findByIdWithUser(request.getId());
 
-        if (!user.getId().equals(talkRoom.getUser().getId())) {
+        if (!talkRoom.isTalkRoomOwner(user.getId())) {
             throw new BusinessException(ErrorCode.ACCESS_PERMISSION_ERROR);
         }
 

@@ -2,7 +2,14 @@ package com.jisungin.domain.user;
 
 import com.jisungin.domain.BaseEntity;
 import com.jisungin.domain.oauth.OauthId;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,4 +52,7 @@ public class User extends BaseEntity {
         this.profileImage = profileImage;
     }
 
+    public boolean isMe(Long userId) {
+        return this.id.equals(userId);
+    }
 }
