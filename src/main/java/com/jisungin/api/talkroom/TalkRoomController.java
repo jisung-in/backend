@@ -21,12 +21,12 @@ public class TalkRoomController {
     private final TalkRoomService talkRoomService;
 
     // TODO. 회원 도메인이 개발되면 변경 예정
-    @PostMapping("/talk-room/create")
+    @PostMapping("/talk-rooms")
     public ApiResponse<TalkRoomResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request) {
         return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), "user@gmail.com"));
     }
 
-    @PatchMapping("/talk-room/edit")
+    @PatchMapping("/talk-rooms")
     public ApiResponse<TalkRoomResponse> editTalkRoom(@Valid @RequestBody TalkRoomEditRequest request) {
         return ApiResponse.ok(talkRoomService.editTalkRoom(request.toServiceRequest(), "user@gmail.com"));
     }

@@ -85,7 +85,7 @@ class TalkRoomControllerTest {
                 .build();
 
         // when // then
-        mockMvc.perform(post("/v1/talk-room/create")
+        mockMvc.perform(post("/v1/talk-rooms")
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
                 )
@@ -115,7 +115,7 @@ class TalkRoomControllerTest {
                 .build();
 
         // when // then
-        mockMvc.perform(post("/v1/talk-room/create")
+        mockMvc.perform(post("/v1/talk-rooms")
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
                 )
@@ -152,7 +152,7 @@ class TalkRoomControllerTest {
                 .build();
 
         // when // then
-        mockMvc.perform(patch("/v1/talk-room/edit")
+        mockMvc.perform(patch("/v1/talk-rooms")
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
                 )
@@ -192,7 +192,7 @@ class TalkRoomControllerTest {
                 .readingStatus(readingStatus)
                 .build();
         // when // then
-        mockMvc.perform(patch("/v1/talk-room/edit")
+        mockMvc.perform(patch("/v1/talk-rooms")
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
                 )
@@ -226,7 +226,7 @@ class TalkRoomControllerTest {
                 .readingStatus(null)
                 .build();
         // when // then
-        mockMvc.perform(patch("/v1/talk-room/edit")
+        mockMvc.perform(patch("/v1/talk-rooms")
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
                 )
@@ -276,7 +276,7 @@ class TalkRoomControllerTest {
                 .build();
 
         // when // then
-        mockMvc.perform(patch("/v1/talk-room/edit")
+        mockMvc.perform(patch("/v1/talk-rooms")
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
                 )
@@ -319,11 +319,10 @@ class TalkRoomControllerTest {
     }
 
     private static Book createBook() {
-        String author = "작가";
         return Book.builder()
                 .title("제목")
                 .content("내용")
-                .authors(author)
+                .authors("작가")
                 .isbn("11111")
                 .publisher("publisher")
                 .dateTime(LocalDateTime.now())
