@@ -1,6 +1,7 @@
 package com.jisungin.application.talkroom;
 
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
+import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -39,6 +40,29 @@ public class TalkRoomService {
 
         TalkRoom talkRoom = TalkRoom.create(request, book, user);
         talkRoomRepository.save(talkRoom);
+
+        List<ReadingStatus> readingStatus = ReadingStatus.createReadingStatus(request.getReadingStatus());
+
+        readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
+                .forEach(talkRoomRoleRepository::save);
+
+        return TalkRoomResponse.of(talkRoom, readingStatus);
+    }
+
+    @Transactional
+    public TalkRoomResponse editTalkRoom(TalkRoomEditServiceRequest request, String userEmail) {
+        User user = userRepository.findByName(userEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        TalkRoom talkRoom = talkRoomRepository.findByIdWithUser(request.getId());
+
+        if (!talkRoom.isTalkRoomOwner(user.getId())) {
+            throw new BusinessException(ErrorCode.ACCESS_PERMISSION_ERROR);
+        }
+
+        talkRoom.edit(request);
+
+        talkRoomRoleRepository.deleteAllByTalkRoom(talkRoom);
 
         List<ReadingStatus> readingStatus = ReadingStatus.createReadingStatus(request.getReadingStatus());
 
