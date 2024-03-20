@@ -25,7 +25,7 @@ public class UserLibrary extends BaseEntity {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id")
+    @JoinColumn(name = "book_isbn")
     private Book book;
 
     @Enumerated(EnumType.STRING)

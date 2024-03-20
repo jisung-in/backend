@@ -30,7 +30,7 @@ public class TalkRoom extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id")
+    @JoinColumn(name = "book_isbn")
     private Book book;
 
     @ManyToOne(fetch = FetchType.LAZY)
