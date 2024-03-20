@@ -4,6 +4,7 @@ import com.jisungin.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,6 +23,7 @@ public class Book extends BaseEntity {
     @Column(name = "book_title")
     private String title;
 
+    @Lob
     @Column(name = "book_content")
     private String content;
 
