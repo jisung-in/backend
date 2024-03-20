@@ -1,6 +1,7 @@
 package com.jisungin.api.book;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -38,6 +39,38 @@ public class BookControllerTest {
     }
 
     @Test
+    @DisplayName("책을 조회한다.")
+    public void getBook() throws Exception {
+        // given
+        Book book = bookRepository.save(create());
+
+        // when // then
+        mockMvc.perform(get("/v1/books/{isbn}", book.getIsbn())
+                        .accept(APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"));
+    }
+
+    @Test
+    @DisplayName("책 조회 시 일치하는 isbn이 존재해야 한다.")
+    public void getBookWithInvalidIsbn() throws Exception {
+        // given
+        String invalidIsbn = "0000000000";
+        Book book = bookRepository.save(create());
+
+        // when // then
+        mockMvc.perform(get("/v1/books/{isbn}", invalidIsbn)
+                        .accept(APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("message").value("책을 찾을 수 없습니다."));
+    }
+
+    @Test
     @DisplayName("신규 도서를 등록한다.")
     public void createBook() throws Exception {
         // given
@@ -65,7 +98,7 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("신규 도서 등록 시 isbn이 다른 책이어야 한다.")
-    void createBookWithDuplicateIsbn() throws Exception {
+    public void createBookWithDuplicateIsbn() throws Exception {
         // given
         Book book = create();
         bookRepository.save(book);
@@ -93,7 +126,7 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("신규 도서 등록 시 책 제목은 필수이어야 한다.")
-    void createBookWithNonTitle() throws Exception {
+    public void createBookWithNonTitle() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .contents("도서 내용")
@@ -117,7 +150,7 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("신규 도서 등록 시 책 내용은 필수이어야 한다.")
-    void createBookWithNonContents() throws Exception {
+    public void createBookWithNonContents() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
@@ -141,7 +174,7 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("신규 도서 등록 시 책 경로는 필수이어야 한다.")
-    void createBookWithNonUrl() throws Exception {
+    public void createBookWithNonUrl() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
@@ -165,7 +198,7 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("신규 도서 등록 시 책 isbn 입력은 필수이어야 한다.")
-    void createBookWithNonIsbn() throws Exception {
+    public void createBookWithNonIsbn() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
@@ -189,7 +222,7 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("신규 도서 등록 시 책 출판일 입력은 필수이어야 한다.")
-    void createBookWithNonDateTime() throws Exception {
+    public void createBookWithNonDateTime() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
@@ -213,7 +246,7 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("신규 도서 등록 시 책 저자 입력은 필수이어야 한다.")
-    void createBookWithAuthors() throws Exception {
+    public void createBookWithAuthors() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
@@ -237,7 +270,7 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("신규 도서 등록 시 책 출판사 입력은 필수이어야 한다.")
-    void createBookWithPublisher() throws Exception {
+    public void createBookWithPublisher() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
@@ -261,7 +294,7 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("신규 도서 등록 시 책 썸네일 입력은 필수이어야 한다.")
-    void createBookWithThumbnail() throws Exception {
+    public void createBookWithThumbnail() throws Exception {
         // given
         Book book = create();
         bookRepository.save(book);
