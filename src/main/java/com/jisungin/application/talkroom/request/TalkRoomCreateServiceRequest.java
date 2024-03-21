@@ -9,15 +9,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TalkRoomCreateServiceRequest {
 
-    private Long bookId;
+    private String bookIsbn;
 
     private String content;
 
     private List<String> readingStatus;
 
     @Builder
-    private TalkRoomCreateServiceRequest(Long bookId, String content, List<String> readingStatus) {
-        this.bookId = bookId;
+    private TalkRoomCreateServiceRequest(String bookIsbn, String content, List<String> readingStatus) {
+        this.bookIsbn = bookIsbn;
         this.content = content;
         this.readingStatus = readingStatus;
     }

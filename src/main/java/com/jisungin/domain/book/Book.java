@@ -3,9 +3,8 @@ package com.jisungin.domain.book;
 import com.jisungin.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -18,21 +17,18 @@ import lombok.NoArgsConstructor;
 public class Book extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "book_id")
-    private Long id;
+    @Column(name = "book_isbn")
+    private String isbn;
 
     @Column(name = "book_title")
     private String title;
 
+    @Lob
     @Column(name = "book_content")
     private String content;
 
     @Column(name = "book_authors")
     private String authors;
-
-    @Column(name = "book_isbn")
-    private String isbn;
 
     @Column(name = "book_publisher")
     private String publisher;
@@ -48,12 +44,12 @@ public class Book extends BaseEntity {
 
 
     @Builder
-    private Book(String title, String content, String authors, String isbn, String publisher, String url,
+    private Book(String isbn, String title, String content, String authors, String publisher, String url,
                  String thumbnail, LocalDateTime dateTime) {
+        this.isbn = isbn;
         this.title = title;
         this.content = content;
         this.authors = authors;
-        this.isbn = isbn;
         this.publisher = publisher;
         this.url = url;
         this.thumbnail = thumbnail;

@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TalkRoomCreateRequest {
 
-    @NotNull(message = "책 ID는 필수입니다.")
-    private Long bookId;
+    @NotNull(message = "책 isbn은 필수입니다.")
+    private String bookIsbn;
 
     @NotEmpty(message = "주제는 필수 입니다.")
     @Size(min = 1, max = 2000, message = "2000자 이하로 작성해야 합니다.")
@@ -25,15 +25,15 @@ public class TalkRoomCreateRequest {
     private List<String> readingStatus = new ArrayList<>();
 
     @Builder
-    private TalkRoomCreateRequest(Long bookId, String content, List<String> readingStatus) {
-        this.bookId = bookId;
+    private TalkRoomCreateRequest(String bookIsbn, String content, List<String> readingStatus) {
+        this.bookIsbn = bookIsbn;
         this.content = content;
         this.readingStatus = readingStatus;
     }
 
     public TalkRoomCreateServiceRequest toServiceRequest() {
         return TalkRoomCreateServiceRequest.builder()
-                .bookId(bookId)
+                .bookIsbn(bookIsbn)
                 .content(content)
                 .readingStatus(readingStatus)
                 .build();

@@ -79,7 +79,7 @@ class TalkRoomControllerTest {
         readingStatus.add("읽음");
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
-                .bookId(books.get(0).getId())
+                .bookIsbn(books.get(0).getIsbn())
                 .content("토크방")
                 .readingStatus(readingStatus)
                 .build();
@@ -109,7 +109,7 @@ class TalkRoomControllerTest {
         List<Book> books = bookRepository.findAll();
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
-                .bookId(books.get(0).getId())
+                .bookIsbn(books.get(0).getIsbn())
                 .content("토크방")
                 .readingStatus(null)
                 .build();

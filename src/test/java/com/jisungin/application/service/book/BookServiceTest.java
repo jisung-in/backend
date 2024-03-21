@@ -31,15 +31,46 @@ public class BookServiceTest {
     }
 
     @Test
+    @DisplayName("책을 조회한다.")
+    public void getBook() {
+        // given
+        Book book = bookRepository.save(create());
+
+        // when
+        BookResponse response = bookService.getBook(book.getIsbn());
+
+        // then
+        assertThat(response.getDateTime()).isEqualTo(book.getDateTime());
+        assertThat(response.getAuthors()).hasSize(2)
+                .contains("도서 저자1", "도서 저자2");
+        assertThat(response)
+                .extracting("title", "content", "isbn", "publisher", "url", "thumbnail")
+                .contains("도서 제목", "도서 내용", "123456789X", "도서 출판사", "도서 URL", "도서 썸네일");
+    }
+
+    @Test
+    @DisplayName("isbn이 일치하는 책이 없는 경우 예외가 발생한다.")
+    public void getBookWithInvalidIsbn() {
+        // given
+        Book book = bookRepository.save(create());
+        String invalidIsbn = "0000000000";
+
+        // when // then
+        assertThatThrownBy(() -> bookService.getBook(invalidIsbn))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("책을 찾을 수 없습니다.");
+    }
+
+    @Test
     @DisplayName("도서 정보에 대한 책을 생성한다.")
-    void createBook() {
+    public void createBook() {
         // given
         LocalDateTime registeredDateTime = LocalDateTime.now();
 
         BookCreateServiceRequest request = BookCreateServiceRequest.builder()
                 .title("도서 제목")
                 .contents("도서 내용")
-                .isbn("도서 isbn")
+                .isbn("123456789X")
                 .dateTime(registeredDateTime)
                 .authors("도서 저자1, 도서 저자2")
                 .publisher("도서 출판사")
@@ -51,18 +82,17 @@ public class BookServiceTest {
         BookResponse response = bookService.createBook(request);
 
         // then
-        assertThat(response.getId()).isNotNull();
         assertThat(response.getDateTime()).isEqualTo(registeredDateTime);
         assertThat(response.getAuthors()).hasSize(2)
                 .contains("도서 저자1", "도서 저자2");
         assertThat(response)
                 .extracting("title", "content", "isbn", "publisher", "url", "thumbnail")
-                .contains("도서 제목", "도서 내용", "도서 isbn", "도서 출판사", "도서 URL", "도서 썸네일");
+                .contains("도서 제목", "도서 내용", "123456789X", "도서 출판사", "도서 URL", "도서 썸네일");
     }
 
     @Test
     @DisplayName("isbn이 일치하는 책을 생성하는 경우 예외가 발생한다.")
-    void createBookDuplicateIsbn() {
+    public void createBookWithDuplicateIsbn() {
         // given
         Book book = create();
         bookRepository.save(book);
@@ -70,7 +100,7 @@ public class BookServiceTest {
         BookCreateServiceRequest request = BookCreateServiceRequest.builder()
                 .title("도서 제목")
                 .contents("도서 내용")
-                .isbn("도서 isbn")
+                .isbn("123456789X")
                 .dateTime(LocalDateTime.now())
                 .authors("도서 저자1, 도서 저자2")
                 .publisher("도서 출판사")
@@ -89,7 +119,7 @@ public class BookServiceTest {
                 .title("도서 제목")
                 .content("도서 내용")
                 .authors("도서 저자1, 도서 저자2")
-                .isbn("도서 isbn")
+                .isbn("123456789X")
                 .dateTime(LocalDateTime.now())
                 .publisher("도서 출판사")
                 .url("도서 URL")

@@ -35,7 +35,7 @@ public class TalkRoomService {
         User user = userRepository.findByName(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        Book book = bookRepository.findById(request.getBookId())
+        Book book = bookRepository.findById(request.getBookIsbn())
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
         TalkRoom talkRoom = TalkRoom.create(request, book, user);

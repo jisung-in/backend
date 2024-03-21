@@ -71,7 +71,7 @@ class TalkRoomServiceTest {
         List<Book> books = bookRepository.findAll();
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
-                .bookId(books.get(0).getId())
+                .bookIsbn(books.get(0).getIsbn())
                 .content("토크방")
                 .readingStatus(readingStatus)
                 .build();
@@ -101,7 +101,7 @@ class TalkRoomServiceTest {
         List<Book> books = bookRepository.findAll();
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
-                .bookId(books.get(0).getId())
+                .bookIsbn(books.get(0).getIsbn())
                 .content("토크방")
                 .readingStatus(null)
                 .build();
