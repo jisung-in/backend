@@ -57,7 +57,7 @@ public class TalkRoomService {
         TalkRoom talkRoom = talkRoomRepository.findByIdWithUser(request.getId());
 
         if (!talkRoom.isTalkRoomOwner(user.getId())) {
-            throw new BusinessException(ErrorCode.ACCESS_PERMISSION_ERROR);
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
         }
 
         talkRoom.edit(request);
