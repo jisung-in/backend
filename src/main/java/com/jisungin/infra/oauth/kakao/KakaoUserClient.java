@@ -30,6 +30,14 @@ public class KakaoUserClient implements UserClient {
         return kakaoUserResponse.toEntity();
     }
 
+    @Override
+    public void logout(String oauthId) {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("target_id_type", "user_id");
+        params.add("target_id", oauthId);
+        kakaoApiClient.logoutUser("KakaoAK " + kakaoOauthConfig.adminKey(), params);
+    }
+
     private MultiValueMap<String, String> tokenRequestParams(String authCode) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");

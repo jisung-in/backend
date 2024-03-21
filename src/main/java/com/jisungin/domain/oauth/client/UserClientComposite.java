@@ -1,5 +1,6 @@
 package com.jisungin.domain.oauth.client;
 
+import com.jisungin.domain.oauth.OauthId;
 import com.jisungin.domain.oauth.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.exception.BusinessException;
@@ -27,6 +28,10 @@ public class UserClientComposite {
 
     public User fetch(OauthType oauthType, String authCode) {
         return getClient(oauthType).fetch(authCode);
+    }
+
+    public void logout(OauthType oauthType, OauthId oauthId) {
+        getClient(oauthType).logout(oauthId.getOauthId());
     }
 
     private UserClient getClient(OauthType oauthType) {

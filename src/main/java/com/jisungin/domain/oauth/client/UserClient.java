@@ -9,4 +9,6 @@ public interface UserClient {
 
     User fetch(String authCode);
 
+    void logout(String oauthId);
+
 }
