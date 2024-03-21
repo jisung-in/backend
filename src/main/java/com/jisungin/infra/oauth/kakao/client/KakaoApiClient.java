@@ -3,6 +3,7 @@ package com.jisungin.infra.oauth.kakao.client;
 import com.jisungin.infra.oauth.kakao.dto.KakaoToken;
 import com.jisungin.infra.oauth.kakao.dto.KakaoUserResponse;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
@@ -17,6 +18,11 @@ public interface KakaoApiClient {
     KakaoToken fetchToken(@RequestParam MultiValueMap<String, String> params);
 
     @GetExchange(url = "https://kapi.kakao.com/v2/user/me")
-    KakaoUserResponse fetchUser (@RequestHeader(name = AUTHORIZATION) String bearerToken);
+    KakaoUserResponse fetchUser(@RequestHeader(name = AUTHORIZATION) String bearerToken);
+
+    @PostExchange(url = "https://kapi.kakao.com/v1/user/logout")
+    void logoutUser(@RequestHeader(name = AUTHORIZATION) String adminKey,
+                    @RequestBody MultiValueMap<String, String> params
+    );
 
 }
