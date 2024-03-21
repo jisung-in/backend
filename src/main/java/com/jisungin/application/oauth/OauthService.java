@@ -5,6 +5,8 @@ import com.jisungin.domain.oauth.authcode.AuthCodeRequestUrlProviderComposite;
 import com.jisungin.domain.oauth.client.UserClientComposite;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
+import com.jisungin.exception.BusinessException;
+import com.jisungin.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,12 @@ public class OauthService {
                 .orElseGet(() -> userRepository.save(user));
         // TODO. 추후에 다른 식별자로 구현할 예정
         return savedUser.getId();
+    }
+
+    public void logout(OauthType oauthType, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        userClientComposite.logout(oauthType, user.getOauthId());
     }
 
 }
