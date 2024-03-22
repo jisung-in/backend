@@ -327,7 +327,7 @@ class TalkRoomControllerTest {
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("OK"))
-                .andExpect(jsonPath("$.data.talkRoomQueryResponses[0].content").value("토론방 102"));
+                .andExpect(jsonPath("$.data.queryResponse[0].content").value("토론방 102"));
     }
 
     @Test
@@ -368,7 +368,7 @@ class TalkRoomControllerTest {
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("OK"))
-                .andExpect(jsonPath("$.data.talkRoomQueryResponses[0].content").value("토론방 102"));
+                .andExpect(jsonPath("$.data.queryResponse[0].content").value("토론방 102"));
     }
 
     @Test
@@ -409,7 +409,7 @@ class TalkRoomControllerTest {
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("OK"))
-                .andExpect(jsonPath("$.data.talkRoomQueryResponses[0].content").value("토론방 102"));
+                .andExpect(jsonPath("$.data.queryResponse[0].content").value("토론방 102"));
     }
 
     @Test

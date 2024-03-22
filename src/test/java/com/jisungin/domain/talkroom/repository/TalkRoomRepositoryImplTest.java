@@ -2,9 +2,10 @@ package com.jisungin.domain.talkroom.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.jisungin.application.response.PageResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
-import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
+import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
@@ -81,13 +82,13 @@ class TalkRoomRepositoryImplTest {
                 .build();
 
         // when
-        TalkRoomPageResponse talkRooms = talkRoomRepository.getTalkRooms(search);
+        PageResponse<TalkRoomQueryResponse> talkRooms = talkRoomRepository.getTalkRooms(search);
 
         // then
-        assertThat(10L).isEqualTo(talkRooms.getTalkRoomQueryResponses().size());
-        assertThat("토론방 19").isEqualTo(talkRooms.getTalkRoomQueryResponses().get(0).getContent());
-        assertThat(2).isEqualTo(talkRooms.getTalkRoomQueryResponses().get(0).getReadingStatuses().size());
-        assertThat(2).isEqualTo(talkRooms.getTotalCount());
+        assertThat(10L).isEqualTo(talkRooms.getQueryResponse().size());
+        assertThat("토론방 19").isEqualTo(talkRooms.getQueryResponse().get(0).getContent());
+        assertThat(2).isEqualTo(talkRooms.getQueryResponse().get(0).getReadingStatuses().size());
+        assertThat(20).isEqualTo(talkRooms.getTotalCount());
     }
 
     private void createTalkRoomRole(TalkRoom talkRoom) {

@@ -5,10 +5,10 @@ import static com.jisungin.domain.talkroom.QTalkRoom.talkRoom;
 import static com.jisungin.domain.talkroom.QTalkRoomRole.talkRoomRole;
 import static com.jisungin.domain.user.QUser.user;
 
+import com.jisungin.application.response.PageResponse;
 import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
 import com.jisungin.application.talkroom.response.QTalkRoomQueryReadingStatus;
 import com.jisungin.application.talkroom.response.QTalkRoomQueryResponse;
-import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryReadingStatus;
 import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.querydsl.core.types.OrderSpecifier;
@@ -22,7 +22,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public TalkRoomPageResponse getTalkRooms(TalkRoomSearchServiceRequest search) {
+    public PageResponse getTalkRooms(TalkRoomSearchServiceRequest search) {
 
         List<TalkRoomQueryResponse> findTalkRoom = findTalkRoom(search);
 
@@ -32,13 +32,12 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
             t.addTalkRoomStatus(talkRoomReadingStatus);
         });
 
-        long totalTalkRoom = getTotalTalkRoomCount();
+        long totalCount = getTotalTalkRoomCount();
 
-        long totalCountPage = TalkRoomPageResponse.addTotalCountPage(totalTalkRoom, search.getSize());
-
-        return TalkRoomPageResponse.builder()
-                .talkRoomQueryResponses(findTalkRoom)
-                .totalCount(totalCountPage)
+        return PageResponse.<TalkRoomQueryResponse>builder()
+                .queryResponse(findTalkRoom)
+                .totalCount(totalCount)
+                .size(search.getSize())
                 .build();
     }
 

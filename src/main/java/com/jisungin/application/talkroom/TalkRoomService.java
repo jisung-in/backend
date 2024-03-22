@@ -1,9 +1,9 @@
 package com.jisungin.application.talkroom;
 
+import com.jisungin.application.response.PageResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
-import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -51,7 +51,7 @@ public class TalkRoomService {
         return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, book.getUrl());
     }
 
-    public TalkRoomPageResponse getTalkRooms(TalkRoomSearchServiceRequest search) {
+    public PageResponse getTalkRooms(TalkRoomSearchServiceRequest search) {
         return talkRoomRepository.getTalkRooms(search);
     }
 

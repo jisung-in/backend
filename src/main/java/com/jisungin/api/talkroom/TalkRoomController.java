@@ -4,8 +4,8 @@ import com.jisungin.api.ApiResponse;
 import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.api.talkroom.request.TalkRoomSearchRequest;
+import com.jisungin.application.response.PageResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
-import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class TalkRoomController {
     }
 
     @GetMapping("talk-rooms")
-    public ApiResponse<TalkRoomPageResponse> getTalkRooms(@ModelAttribute TalkRoomSearchRequest search) {
+    public ApiResponse<PageResponse> getTalkRooms(@ModelAttribute TalkRoomSearchRequest search) {
         return ApiResponse.ok(talkRoomService.getTalkRooms(search.toService()));
     }
 

@@ -3,11 +3,12 @@ package com.jisungin.application.service.talkroom;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.jisungin.application.response.PageResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
-import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
+import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -302,16 +303,16 @@ class TalkRoomServiceTest {
                 .build();
 
         // when
-        TalkRoomPageResponse talkRooms = talkRoomRepository.getTalkRooms(search);
+        PageResponse<TalkRoomQueryResponse> talkRooms = talkRoomRepository.getTalkRooms(search);
 
         // then
-        assertThat(10L).isEqualTo(talkRooms.getTalkRoomQueryResponses().size());
-        assertThat("토론방 19").isEqualTo(talkRooms.getTalkRoomQueryResponses().get(0).getContent());
-        assertThat(2).isEqualTo(talkRooms.getTalkRoomQueryResponses().get(0).getReadingStatuses().size());
+        assertThat(10L).isEqualTo(talkRooms.getQueryResponse().size());
+        assertThat("토론방 19").isEqualTo(talkRooms.getQueryResponse().get(0).getContent());
+        assertThat(2).isEqualTo(talkRooms.getQueryResponse().get(0).getReadingStatuses().size());
     }
 
     @Test
-    @DisplayName("토크방이 총 103개가 생성 됐을 경우 페이지의 수는 11개여야 한다.")
+    @DisplayName("토크방이 총 103개가 생성 됐을 경우 토크방 개수는 총 103개여야 한다.")
     void getTalkRoomsPageTotalCount() {
         // given
         User user = createUser();
@@ -340,10 +341,10 @@ class TalkRoomServiceTest {
                 .build();
 
         // when
-        TalkRoomPageResponse talkRooms = talkRoomRepository.getTalkRooms(search);
+        PageResponse talkRooms = talkRoomRepository.getTalkRooms(search);
 
         // then
-        assertThat(11).isEqualTo(talkRooms.getTotalCount());
+        assertThat(103).isEqualTo(talkRooms.getTotalCount());
     }
 
     @Test
@@ -376,11 +377,11 @@ class TalkRoomServiceTest {
                 .build();
 
         // when
-        TalkRoomPageResponse talkRooms = talkRoomRepository.getTalkRooms(search);
+        PageResponse<TalkRoomQueryResponse> talkRooms = talkRoomRepository.getTalkRooms(search);
 
         // then
-        assertThat(talkRooms.getTalkRoomQueryResponses().size()).isEqualTo(10L);
-        assertThat(talkRooms.getTalkRoomQueryResponses().get(0).getContent()).isEqualTo("토론방 62");
+        assertThat(talkRooms.getQueryResponse().size()).isEqualTo(10L);
+        assertThat(talkRooms.getQueryResponse().get(0).getContent()).isEqualTo("토론방 62");
     }
 
     @Test
@@ -413,11 +414,11 @@ class TalkRoomServiceTest {
                 .build();
 
         // when
-        TalkRoomPageResponse talkRooms = talkRoomRepository.getTalkRooms(search);
+        PageResponse<TalkRoomQueryResponse> talkRooms = talkRoomRepository.getTalkRooms(search);
 
         // then
-        assertThat(talkRooms.getTalkRoomQueryResponses().size()).isEqualTo(3);
-        assertThat(talkRooms.getTalkRoomQueryResponses().get(0).getContent()).isEqualTo("토론방 2");
+        assertThat(talkRooms.getQueryResponse().size()).isEqualTo(3);
+        assertThat(talkRooms.getQueryResponse().get(0).getContent()).isEqualTo("토론방 2");
     }
 
     private void createTalkRoomRole(TalkRoom talkRoom) {
