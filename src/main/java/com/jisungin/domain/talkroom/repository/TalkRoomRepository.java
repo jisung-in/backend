@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TalkRoomRepository extends JpaRepository<TalkRoom, Long> {
+public interface TalkRoomRepository extends JpaRepository<TalkRoom, Long>, TalkRoomRepositoryCustom {
 
     @Query(
             "select t from TalkRoom t join t.user u where t.id = :talkRoomId"

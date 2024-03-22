@@ -1,7 +1,9 @@
 package com.jisungin.application.talkroom;
 
+import com.jisungin.application.response.PageResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
+import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -46,7 +48,11 @@ public class TalkRoomService {
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
 
-        return TalkRoomResponse.of(talkRoom, readingStatus);
+        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, book.getUrl());
+    }
+
+    public PageResponse getTalkRooms(TalkRoomSearchServiceRequest search) {
+        return talkRoomRepository.getTalkRooms(search);
     }
 
     @Transactional
@@ -69,7 +75,7 @@ public class TalkRoomService {
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
 
-        return TalkRoomResponse.of(talkRoom, readingStatus);
+        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, talkRoom.getBook().getUrl());
     }
 
 }

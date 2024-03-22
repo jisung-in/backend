@@ -1,6 +1,7 @@
 package com.jisungin.api.talkroom;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -10,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
+import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
@@ -24,6 +26,7 @@ import com.jisungin.domain.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -284,6 +287,143 @@ class TalkRoomControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("400"))
                 .andExpect(jsonPath("$.message").value("권한이 없는 사용자입니다."));
+    }
+
+    @Test
+    @DisplayName("유저가 토크방 1페이지를 조회하면 최신순으로 10개의 토크방이 조회된다. 첫 번째 토크방의 이름은 토론방 102이다.")
+    void getTalkRooms() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<TalkRoom> talkRoom = IntStream.range(0, 103)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .content("토론방 " + i)
+                        .build())
+                .toList();
+
+        talkRoomRepository.saveAll(talkRoom);
+
+        for (TalkRoom t : talkRoom) {
+            createTalkRoomRole(t);
+        }
+
+        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+                .page(1)
+                .size(10)
+                .build();
+
+        // when // then
+        mockMvc.perform(get("/v1/talk-rooms?page=1&size=10&order=recent")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andExpect(jsonPath("$.data.queryResponse[0].content").value("토론방 102"));
+    }
+
+    @Test
+    @DisplayName("사용자가 토크방을 조회 했을 때 페이지를 -1 값을 보내면 첫 번째 페이지가 조회 되어야 한다. 첫 번째 토크방은 토론방 102이다.")
+    void getTalkRoomWithMinus() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<TalkRoom> talkRoom = IntStream.range(0, 103)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .content("토론방 " + i)
+                        .build())
+                .toList();
+
+        talkRoomRepository.saveAll(talkRoom);
+
+        for (TalkRoom t : talkRoom) {
+            createTalkRoomRole(t);
+        }
+
+        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+                .page(1)
+                .size(10)
+                .build();
+
+        // when // then
+        mockMvc.perform(get("/v1/talk-rooms?page=-1&size=10&order=recent")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andExpect(jsonPath("$.data.queryResponse[0].content").value("토론방 102"));
+    }
+
+    @Test
+    @DisplayName("사용자가 토크방을 조회 했을 때 페이지를 0 값을 보내면 첫 번째 페이지가 조회 되어야 한다. 첫 번째 토크방은 토론방 102이다.")
+    void getTalkRoomsWithZero() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<TalkRoom> talkRoom = IntStream.range(0, 103)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .content("토론방 " + i)
+                        .build())
+                .toList();
+
+        talkRoomRepository.saveAll(talkRoom);
+
+        for (TalkRoom t : talkRoom) {
+            createTalkRoomRole(t);
+        }
+
+        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+                .page(1)
+                .size(10)
+                .build();
+
+        // when // then
+        mockMvc.perform(get("/v1/talk-rooms?page=-1&size=10&order=recent")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andExpect(jsonPath("$.data.queryResponse[0].content").value("토론방 102"));
+    }
+
+    @Test
+    @DisplayName("토크방이 없을 때 토크방 조회 페이지에 들어갔을 때 에러가 발생하면 안된다.")
+    void getTalkRoomsEmpty() throws Exception {
+        // when // then
+        mockMvc.perform(get("/v1/talk-rooms?page=-1&size=10&order=recent")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"));
     }
 
     private void createTalkRoomRole(TalkRoom talkRoom) {
