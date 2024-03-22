@@ -12,13 +12,13 @@ public class TalkRoomQueryReadingStatus {
 
     private Long talkRoomId;
 
-    private ReadingStatus readingStatuses;
+    private ReadingStatus readingStatus;
 
     @Builder
     @QueryProjection
-    public TalkRoomQueryReadingStatus(Long talkRoomId, ReadingStatus readingStatuses) {
+    public TalkRoomQueryReadingStatus(Long talkRoomId, ReadingStatus readingStatus) {
         this.talkRoomId = talkRoomId;
-        this.readingStatuses = readingStatuses;
+        this.readingStatus = readingStatus;
     }
 
 }
