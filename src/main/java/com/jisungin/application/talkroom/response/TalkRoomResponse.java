@@ -2,29 +2,37 @@ package com.jisungin.application.talkroom.response;
 
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.talkroom.TalkRoom;
+import com.querydsl.core.annotations.QueryProjection;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class TalkRoomResponse {
 
-    private Long id;
+    private String userName;
     private String content;
     private List<ReadingStatus> readingStatuses;
+    private String bookImage;
 
     @Builder
-    private TalkRoomResponse(Long id, String content, List<ReadingStatus> readingStatuses) {
-        this.id = id;
+    @QueryProjection
+    public TalkRoomResponse(String userName, String content, List<ReadingStatus> readingStatuses, String bookImage) {
+        this.userName = userName;
         this.content = content;
         this.readingStatuses = readingStatuses;
+        this.bookImage = bookImage;
     }
 
-    public static TalkRoomResponse of(TalkRoom talkRoom, List<ReadingStatus> readingStatuses) {
+    public static TalkRoomResponse of(String userName, TalkRoom talkRoom, List<ReadingStatus> readingStatuses,
+                                      String bookImage) {
         return TalkRoomResponse.builder()
-                .id(talkRoom.getId())
+                .userName(userName)
                 .content(talkRoom.getContent())
                 .readingStatuses(readingStatuses)
+                .bookImage(bookImage)
                 .build();
     }
 
