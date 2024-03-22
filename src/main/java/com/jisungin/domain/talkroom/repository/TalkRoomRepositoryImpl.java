@@ -14,6 +14,8 @@ import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -22,15 +24,16 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public PageResponse getTalkRooms(TalkRoomSearchServiceRequest search) {
+    public PageResponse<TalkRoomQueryResponse> getTalkRooms(TalkRoomSearchServiceRequest search) {
 
+        //루트 조회(toOne 코드를 모두 한번에 조회)
         List<TalkRoomQueryResponse> findTalkRoom = findTalkRoom(search);
 
-        findTalkRoom.forEach(t -> {
-            List<TalkRoomQueryReadingStatus> talkRoomReadingStatus = findTalkRoomReadingStatus(t.getTalkRoomId());
+        //TalkRoomRole 컬렉션을 MAP 한방에 조회
+        Map<Long, List<TalkRoomQueryReadingStatus>> talkRoomRoleMap = findTalkRoomRoleMap(toTalkRoomIds(findTalkRoom));
 
-            t.addTalkRoomStatus(talkRoomReadingStatus);
-        });
+        //루프를 돌면서 컬렉션 추가(추가 쿼리 실행X)
+        findTalkRoom.forEach(t -> t.addTalkRoomStatus(talkRoomRoleMap.get(t.getTalkRoomId())));
 
         long totalCount = getTotalTalkRoomCount();
 
@@ -39,6 +42,26 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .totalCount(totalCount)
                 .size(search.getSize())
                 .build();
+    }
+
+    private List<Long> toTalkRoomIds(List<TalkRoomQueryResponse> findTalkRoom) {
+        return findTalkRoom.stream()
+                .map(t -> t.getTalkRoomId())
+                .collect(Collectors.toList());
+    }
+
+    private Map<Long, List<TalkRoomQueryReadingStatus>> findTalkRoomRoleMap(List<Long> talkRoomIds) {
+        List<TalkRoomQueryReadingStatus> talkRoomRoles = queryFactory.select(new QTalkRoomQueryReadingStatus(
+                        talkRoom.id,
+                        talkRoomRole.readingStatus
+                ))
+                .from(talkRoomRole)
+                .join(talkRoomRole.talkRoom, talkRoom)
+                .where(talkRoomRole.talkRoom.id.in(talkRoomIds))
+                .fetch();
+
+        return talkRoomRoles.stream()
+                .collect(Collectors.groupingBy(TalkRoomQueryReadingStatus::getTalkRoomId));
     }
 
     private long getTotalTalkRoomCount() {
@@ -63,16 +86,6 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .offset(search.getOffset())
                 .limit(search.getSize())
                 .orderBy(condition(search.getOrder()))
-                .fetch();
-    }
-
-    private List<TalkRoomQueryReadingStatus> findTalkRoomReadingStatus(Long talkRoomId) {
-        return queryFactory.select(new QTalkRoomQueryReadingStatus(
-                        talkRoomRole.readingStatus
-                ))
-                .from(talkRoomRole)
-                .join(talkRoomRole.talkRoom, talkRoom)
-                .where(talkRoomRole.talkRoom.id.eq(talkRoomId))
                 .fetch();
     }
 

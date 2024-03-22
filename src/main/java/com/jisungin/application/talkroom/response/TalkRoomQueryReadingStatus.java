@@ -10,11 +10,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TalkRoomQueryReadingStatus {
 
+    private Long talkRoomId;
+
     private ReadingStatus readingStatuses;
 
     @Builder
     @QueryProjection
-    public TalkRoomQueryReadingStatus(ReadingStatus readingStatuses) {
+    public TalkRoomQueryReadingStatus(Long talkRoomId, ReadingStatus readingStatuses) {
+        this.talkRoomId = talkRoomId;
         this.readingStatuses = readingStatuses;
     }
 
