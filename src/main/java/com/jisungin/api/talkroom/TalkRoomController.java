@@ -30,7 +30,7 @@ public class TalkRoomController {
         return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), "user@gmail.com"));
     }
 
-    @GetMapping("talk-rooms")
+    @GetMapping("/talk-rooms")
     public ApiResponse<PageResponse> getTalkRooms(@ModelAttribute TalkRoomSearchRequest search) {
         return ApiResponse.ok(talkRoomService.getTalkRooms(search.toService()));
     }
