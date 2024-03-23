@@ -56,6 +56,9 @@ dependencies {
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
     // ARM Native Library Compatibility
     runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.104.Final:osx-aarch_64'
+    // Jsoup Web Crawling Library
+    implementation 'org.jsoup:jsoup:1.16.2'
+
 }
 
 tasks.named('bootBuildImage') {
