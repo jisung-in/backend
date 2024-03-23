@@ -1,6 +1,7 @@
 package com.jisungin.infra;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -10,7 +11,6 @@ import com.jisungin.infra.crawler.CrawlingBook;
 import com.jisungin.infra.crawler.Yes24Crawler;
 import com.jisungin.infra.crawler.Yes24Fetcher;
 import com.jisungin.infra.crawler.Yes24Parser;
-import org.assertj.core.api.Assertions;
 import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -64,7 +64,7 @@ public class Yes24CrawlerTest {
         when(fetcher.fetchIsbn(isbn)).thenThrow(new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
         // when  then
-        Assertions.assertThatThrownBy(() -> crawler.crawlBook(isbn))
+        assertThatThrownBy(() -> crawler.crawlBook(isbn))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("책을 찾을 수 없습니다.");
     }
