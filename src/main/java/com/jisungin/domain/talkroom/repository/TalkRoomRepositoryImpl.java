@@ -77,7 +77,9 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         return queryFactory.select(new QTalkRoomQueryResponse(
                         talkRoom.id.as("talkRoomId"),
                         user.name.as("userName"),
+                        talkRoom.title,
                         talkRoom.content,
+                        book.title,
                         book.url.as("bookImage")
                 ))
                 .from(talkRoom)

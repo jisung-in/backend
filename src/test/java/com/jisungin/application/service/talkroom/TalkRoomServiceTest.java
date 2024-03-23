@@ -76,7 +76,8 @@ class TalkRoomServiceTest {
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
                 .bookIsbn(books.get(0).getIsbn())
-                .content("토크방")
+                .title("토크방")
+                .content("내용")
                 .readingStatus(readingStatus)
                 .build();
 
@@ -87,8 +88,8 @@ class TalkRoomServiceTest {
         List<ReadingStatus> readingStatuses = response.getReadingStatuses();
         List<TalkRoom> talkRooms = talkRoomRepository.findAll();
         assertThat(response)
-                .extracting("userName", "content")
-                .contains("user@gmail.com", "토크방");
+                .extracting("userName", "title", "content")
+                .contains("user@gmail.com", "토크방", "내용");
         assertThat(readingStatuses.size()).isEqualTo(2);
     }
 
@@ -106,7 +107,8 @@ class TalkRoomServiceTest {
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
                 .bookIsbn(books.get(0).getIsbn())
-                .content("토크방")
+                .title("토크방")
+                .content("내용")
                 .readingStatus(null)
                 .build();
 
@@ -140,16 +142,17 @@ class TalkRoomServiceTest {
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
                 .id(talkRooms.get(0).getId())
-                .content("토크방 수정")
+                .title("토크방 수정")
+                .content("내용 수정")
                 .readingStatus(readingStatus)
                 .build();
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, "user@gmail.com");
+        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getName());
 
         // then
         assertThat(response)
-                .extracting("userName", "content")
-                .contains("user@gmail.com", "토크방 수정");
+                .extracting("userName", "title", "content")
+                .contains("user@gmail.com", "토크방 수정", "내용 수정");
         assertThat(talkRoomRoles.size()).isEqualTo(2);
     }
 
@@ -177,16 +180,17 @@ class TalkRoomServiceTest {
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
                 .id(talkRooms.get(0).getId())
+                .title(null)
                 .content(null)
                 .readingStatus(readingStatus)
                 .build();
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, "user@gmail.com");
+        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getName());
 
         // then
         assertThat(response)
-                .extracting("userName", "content")
-                .contains("user@gmail.com", "토크방");
+                .extracting("userName", "title", "content")
+                .contains("user@gmail.com", "토크방", "내용");
         assertThat(talkRoomRoles.size()).isEqualTo(2);
     }
 
@@ -214,18 +218,19 @@ class TalkRoomServiceTest {
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
                 .id(talkRooms.get(0).getId())
-                .content("토크방")
+                .title("토크방")
+                .content("내용")
                 .readingStatus(readingStatus)
                 .build();
 
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, "user@gmail.com");
+        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getName());
 
         // then
         List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.findAll();
         assertThat(response)
-                .extracting("userName", "content")
-                .contains("user@gmail.com", "토크방");
+                .extracting("userName", "title", "content")
+                .contains("user@gmail.com", "토크방", "내용");
         assertThat(talkRoomRoles.size()).isEqualTo(3);
     }
 
@@ -264,11 +269,12 @@ class TalkRoomServiceTest {
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
                 .id(talkRooms.get(0).getId())
-                .content("토크방")
+                .title("토론방")
+                .content("내용")
                 .readingStatus(readingStatus)
                 .build();
         // when // then
-        assertThatThrownBy(() -> talkRoomService.editTalkRoom(request, "userB@gmail.com"))
+        assertThatThrownBy(() -> talkRoomService.editTalkRoom(request, userB.getName()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
@@ -287,7 +293,8 @@ class TalkRoomServiceTest {
                 .mapToObj(i -> TalkRoom.builder()
                         .user(user)
                         .book(book)
-                        .content("토론방 " + i)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
                         .build())
                 .toList();
 
@@ -307,7 +314,7 @@ class TalkRoomServiceTest {
 
         // then
         assertThat(10L).isEqualTo(talkRooms.getQueryResponse().size());
-        assertThat("토론방 19").isEqualTo(talkRooms.getQueryResponse().get(0).getContent());
+        assertThat("토론방 19").isEqualTo(talkRooms.getQueryResponse().get(0).getTitle());
         assertThat(2).isEqualTo(talkRooms.getQueryResponse().get(0).getReadingStatuses().size());
     }
 
@@ -325,7 +332,8 @@ class TalkRoomServiceTest {
                 .mapToObj(i -> TalkRoom.builder()
                         .user(user)
                         .book(book)
-                        .content("토론방 " + i)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
                         .build())
                 .toList();
 
@@ -341,7 +349,7 @@ class TalkRoomServiceTest {
                 .build();
 
         // when
-        PageResponse talkRooms = talkRoomRepository.getTalkRooms(search);
+        PageResponse<TalkRoomQueryResponse> talkRooms = talkRoomRepository.getTalkRooms(search);
 
         // then
         assertThat(103).isEqualTo(talkRooms.getTotalCount());
@@ -361,7 +369,8 @@ class TalkRoomServiceTest {
                 .mapToObj(i -> TalkRoom.builder()
                         .user(user)
                         .book(book)
-                        .content("토론방 " + i)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
                         .build())
                 .toList();
 
@@ -381,7 +390,8 @@ class TalkRoomServiceTest {
 
         // then
         assertThat(talkRooms.getQueryResponse().size()).isEqualTo(10L);
-        assertThat(talkRooms.getQueryResponse().get(0).getContent()).isEqualTo("토론방 62");
+        assertThat(talkRooms.getQueryResponse().get(0).getTitle()).isEqualTo("토론방 62");
+        assertThat(talkRooms.getQueryResponse().get(0).getContent()).isEqualTo("내용 62");
     }
 
     @Test
@@ -398,7 +408,8 @@ class TalkRoomServiceTest {
                 .mapToObj(i -> TalkRoom.builder()
                         .user(user)
                         .book(book)
-                        .content("토론방 " + i)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
                         .build())
                 .toList();
 
@@ -418,7 +429,8 @@ class TalkRoomServiceTest {
 
         // then
         assertThat(talkRooms.getQueryResponse().size()).isEqualTo(3);
-        assertThat(talkRooms.getQueryResponse().get(0).getContent()).isEqualTo("토론방 2");
+        assertThat(talkRooms.getQueryResponse().get(0).getTitle()).isEqualTo("토론방 2");
+        assertThat(talkRooms.getQueryResponse().get(0).getContent()).isEqualTo("내용 2");
     }
 
     private void createTalkRoomRole(TalkRoom talkRoom) {
@@ -435,7 +447,8 @@ class TalkRoomServiceTest {
     private static TalkRoom createTalkRoom(Book book, User user) {
         return TalkRoom.builder()
                 .book(book)
-                .content("토크방")
+                .title("토크방")
+                .content("내용")
                 .user(user)
                 .build();
     }

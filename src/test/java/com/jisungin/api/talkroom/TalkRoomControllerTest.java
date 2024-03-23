@@ -83,7 +83,8 @@ class TalkRoomControllerTest {
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
                 .bookIsbn(books.get(0).getIsbn())
-                .content("토크방")
+                .title("토크방")
+                .content("내용")
                 .readingStatus(readingStatus)
                 .build();
 
@@ -113,7 +114,8 @@ class TalkRoomControllerTest {
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
                 .bookIsbn(books.get(0).getIsbn())
-                .content("토크방")
+                .title("토크방")
+                .content("내용")
                 .readingStatus(null)
                 .build();
 
@@ -150,7 +152,8 @@ class TalkRoomControllerTest {
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
                 .id(talkRooms.get(0).getId())
-                .content("토크방 수정")
+                .title("토크방 수정")
+                .content("내용 수정")
                 .readingStatus(readingStatus)
                 .build();
 
@@ -191,7 +194,8 @@ class TalkRoomControllerTest {
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
                 .id(talkRooms.get(0).getId())
-                .content("토크방")
+                .title("토크방")
+                .content("내용")
                 .readingStatus(readingStatus)
                 .build();
         // when // then
@@ -225,7 +229,8 @@ class TalkRoomControllerTest {
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
                 .id(talkRooms.get(0).getId())
-                .content("토크방")
+                .title("토크방")
+                .content("내용")
                 .readingStatus(null)
                 .build();
         // when // then
@@ -274,7 +279,8 @@ class TalkRoomControllerTest {
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
                 .id(talkRooms.get(0).getId())
-                .content("토크방")
+                .title("토크방")
+                .content("내용")
                 .readingStatus(readingStatus)
                 .build();
 
@@ -303,7 +309,8 @@ class TalkRoomControllerTest {
                 .mapToObj(i -> TalkRoom.builder()
                         .user(user)
                         .book(book)
-                        .content("토론방 " + i)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
                         .build())
                 .toList();
 
@@ -327,7 +334,8 @@ class TalkRoomControllerTest {
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("OK"))
-                .andExpect(jsonPath("$.data.queryResponse[0].content").value("토론방 102"));
+                .andExpect(jsonPath("$.data.queryResponse[0].title").value("토론방 102"))
+                .andExpect(jsonPath("$.data.queryResponse[0].content").value("내용 102"));
     }
 
     @Test
@@ -344,7 +352,8 @@ class TalkRoomControllerTest {
                 .mapToObj(i -> TalkRoom.builder()
                         .user(user)
                         .book(book)
-                        .content("토론방 " + i)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
                         .build())
                 .toList();
 
@@ -368,7 +377,8 @@ class TalkRoomControllerTest {
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("OK"))
-                .andExpect(jsonPath("$.data.queryResponse[0].content").value("토론방 102"));
+                .andExpect(jsonPath("$.data.queryResponse[0].title").value("토론방 102"))
+                .andExpect(jsonPath("$.data.queryResponse[0].content").value("내용 102"));
     }
 
     @Test
@@ -385,7 +395,8 @@ class TalkRoomControllerTest {
                 .mapToObj(i -> TalkRoom.builder()
                         .user(user)
                         .book(book)
-                        .content("토론방 " + i)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
                         .build())
                 .toList();
 
@@ -409,7 +420,8 @@ class TalkRoomControllerTest {
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("OK"))
-                .andExpect(jsonPath("$.data.queryResponse[0].content").value("토론방 102"));
+                .andExpect(jsonPath("$.data.queryResponse[0].title").value("토론방 102"))
+                .andExpect(jsonPath("$.data.queryResponse[0].content").value("내용 102"));
     }
 
     @Test
@@ -440,7 +452,8 @@ class TalkRoomControllerTest {
     private static TalkRoom createTalkRoom(Book book, User user) {
         return TalkRoom.builder()
                 .book(book)
-                .content("토크방")
+                .title("토크방")
+                .content("내용")
                 .user(user)
                 .build();
     }
