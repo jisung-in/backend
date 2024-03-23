@@ -13,16 +13,21 @@ public class TalkRoomQueryResponse {
 
     private Long talkRoomId;
     private String userName;
+    private String title;
     private String content;
+    private String bookName;
     private String bookImage;
     private List<TalkRoomQueryReadingStatus> readingStatuses = new ArrayList<>();
 
     @Builder
     @QueryProjection
-    public TalkRoomQueryResponse(Long talkRoomId, String userName, String content, String bookImage) {
+    public TalkRoomQueryResponse(Long talkRoomId, String userName, String title, String content, String bookName,
+                                 String bookImage) {
         this.talkRoomId = talkRoomId;
         this.userName = userName;
+        this.title = title;
         this.content = content;
+        this.bookName = bookName;
         this.bookImage = bookImage;
     }
 

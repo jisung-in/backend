@@ -4,6 +4,7 @@ import com.jisungin.application.response.PageResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
+import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -34,6 +35,9 @@ public class TalkRoomService {
     // TODO. 토큰 정보를 가져오는 기능을 구현하면 변경할 예정
     @Transactional
     public TalkRoomResponse createTalkRoom(TalkRoomCreateServiceRequest request, String userEmail) {
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
         User user = userRepository.findByName(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -48,10 +52,10 @@ public class TalkRoomService {
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
 
-        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, book.getUrl());
+        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, book.getUrl(), book.getTitle());
     }
 
-    public PageResponse getTalkRooms(TalkRoomSearchServiceRequest search) {
+    public PageResponse<TalkRoomQueryResponse> getTalkRooms(TalkRoomSearchServiceRequest search) {
         return talkRoomRepository.getTalkRooms(search);
     }
 
@@ -60,7 +64,7 @@ public class TalkRoomService {
         User user = userRepository.findByName(userEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        TalkRoom talkRoom = talkRoomRepository.findByIdWithUser(request.getId());
+        TalkRoom talkRoom = talkRoomRepository.findByIdWithUserAndBook(request.getId());
 
         if (!talkRoom.isTalkRoomOwner(user.getId())) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
@@ -75,7 +79,8 @@ public class TalkRoomService {
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
 
-        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, talkRoom.getBook().getUrl());
+        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, talkRoom.getBook().getUrl(),
+                talkRoom.getBook().getTitle());
     }
 
 }

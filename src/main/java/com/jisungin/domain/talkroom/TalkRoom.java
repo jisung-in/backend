@@ -37,14 +37,18 @@ public class TalkRoom extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "talk_room_title", length = 20)
+    private String title;
+
     @Lob
     @Column(name = "talk_room_content", length = 2000)
     private String content;
 
     @Builder
-    private TalkRoom(Book book, User user, String content) {
+    private TalkRoom(Book book, User user, String title, String content) {
         this.book = book;
         this.user = user;
+        this.title = title;
         this.content = content;
     }
 
@@ -52,11 +56,13 @@ public class TalkRoom extends BaseEntity {
         return TalkRoom.builder()
                 .book(book)
                 .user(user)
+                .title(request.getTitle())
                 .content(request.getContent())
                 .build();
     }
 
     public void edit(TalkRoomEditServiceRequest request) {
+        this.title = request.getTitle() != null ? request.getTitle() : title;
         this.content = request.getContent() != null ? request.getContent() : content;
     }
 

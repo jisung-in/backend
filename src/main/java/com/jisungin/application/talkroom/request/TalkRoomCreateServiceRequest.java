@@ -11,13 +11,16 @@ public class TalkRoomCreateServiceRequest {
 
     private String bookIsbn;
 
+    private String title;
+
     private String content;
 
     private List<String> readingStatus;
 
     @Builder
-    private TalkRoomCreateServiceRequest(String bookIsbn, String content, List<String> readingStatus) {
+    private TalkRoomCreateServiceRequest(String bookIsbn, String title, String content, List<String> readingStatus) {
         this.bookIsbn = bookIsbn;
+        this.title = title;
         this.content = content;
         this.readingStatus = readingStatus;
     }

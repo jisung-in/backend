@@ -13,6 +13,9 @@ public class TalkRoomEditServiceRequest {
 
     private Long id;
 
+    @Size(min = 1, max = 20, message = "20자 이하로 작성해야 합니다.")
+    private String title;
+
     @Size(min = 1, max = 2000, message = "2000자 이하로 작성해야 합니다.")
     private String content;
 
@@ -20,8 +23,9 @@ public class TalkRoomEditServiceRequest {
     private List<String> readingStatus;
 
     @Builder
-    private TalkRoomEditServiceRequest(Long id, String content, List<String> readingStatus) {
+    private TalkRoomEditServiceRequest(Long id, String title, String content, List<String> readingStatus) {
         this.id = id;
+        this.title = title;
         this.content = content;
         this.readingStatus = readingStatus;
     }

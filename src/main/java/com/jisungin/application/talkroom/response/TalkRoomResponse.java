@@ -13,24 +13,31 @@ import lombok.NoArgsConstructor;
 public class TalkRoomResponse {
 
     private String userName;
+    private String title;
+    private String bookName;
     private String content;
     private List<ReadingStatus> readingStatuses;
     private String bookImage;
 
     @Builder
     @QueryProjection
-    public TalkRoomResponse(String userName, String content, List<ReadingStatus> readingStatuses, String bookImage) {
+    public TalkRoomResponse(String userName, String title, String content, String bookName,
+                            List<ReadingStatus> readingStatuses, String bookImage) {
         this.userName = userName;
+        this.title = title;
         this.content = content;
+        this.bookName = bookName;
         this.readingStatuses = readingStatuses;
         this.bookImage = bookImage;
     }
 
     public static TalkRoomResponse of(String userName, TalkRoom talkRoom, List<ReadingStatus> readingStatuses,
-                                      String bookImage) {
+                                      String bookImage, String bookName) {
         return TalkRoomResponse.builder()
                 .userName(userName)
+                .title(talkRoom.getTitle())
                 .content(talkRoom.getContent())
+                .bookName(bookName)
                 .readingStatuses(readingStatuses)
                 .bookImage(bookImage)
                 .build();
