@@ -22,9 +22,6 @@ public class BookCreateRequest {
     @NotBlank(message = "책 내용 입력은 필수 입니다.")
     private String contents;
 
-    @NotBlank(message = "책 경로 입력은 필수 입니다.")
-    private String url;
-
     @NotBlank(message = "책 isbn 입력은 필수 입니다.")
     private String isbn;
 
@@ -42,11 +39,10 @@ public class BookCreateRequest {
     private String thumbnail;
 
     @Builder
-    private BookCreateRequest(String title, String contents, String url, String isbn, String dateTime, String[] authors,
+    private BookCreateRequest(String title, String contents, String isbn, String dateTime, String[] authors,
                               String publisher, String thumbnail) {
         this.title = title;
         this.contents = contents;
-        this.url = url;
         this.isbn = isbn;
         this.dateTime = dateTime;
         this.authors = authors;
@@ -58,7 +54,6 @@ public class BookCreateRequest {
         return BookCreateServiceRequest.builder()
                 .title(title)
                 .contents(contents)
-                .url(url)
                 .isbn(isbn)
                 .dateTime(convertToLocalDateTime(dateTime))
                 .authors(convertToString(authors))

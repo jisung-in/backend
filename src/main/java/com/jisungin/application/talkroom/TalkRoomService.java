@@ -52,7 +52,7 @@ public class TalkRoomService {
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
 
-        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, book.getUrl(), book.getTitle());
+        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, book.getImageUrl(), book.getTitle());
     }
 
     public PageResponse<TalkRoomQueryResponse> getTalkRooms(TalkRoomSearchServiceRequest search) {
@@ -79,7 +79,7 @@ public class TalkRoomService {
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
 
-        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, talkRoom.getBook().getUrl(),
+        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, talkRoom.getBook().getImageUrl(),
                 talkRoom.getBook().getTitle());
     }
 

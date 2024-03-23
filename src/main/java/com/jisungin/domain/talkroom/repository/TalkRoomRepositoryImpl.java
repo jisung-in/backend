@@ -80,7 +80,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         talkRoom.title,
                         talkRoom.content,
                         book.title,
-                        book.url.as("bookImage")
+                        book.imageUrl.as("bookImage")
                 ))
                 .from(talkRoom)
                 .join(talkRoom.user, user)

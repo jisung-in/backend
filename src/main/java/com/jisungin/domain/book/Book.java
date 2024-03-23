@@ -33,8 +33,8 @@ public class Book extends BaseEntity {
     @Column(name = "book_publisher")
     private String publisher;
 
-    @Column(name = "book_url")
-    private String url;
+    @Column(name = "book_image")
+    private String imageUrl;
 
     @Column(name = "book_thumbnail")
     private String thumbnail;
@@ -44,14 +44,14 @@ public class Book extends BaseEntity {
 
 
     @Builder
-    private Book(String isbn, String title, String content, String authors, String publisher, String url,
+    private Book(String isbn, String title, String content, String authors, String publisher, String imageUrl,
                  String thumbnail, LocalDateTime dateTime) {
         this.isbn = isbn;
         this.title = title;
         this.content = content;
         this.authors = authors;
         this.publisher = publisher;
-        this.url = url;
+        this.imageUrl = imageUrl;
         this.thumbnail = thumbnail;
         this.dateTime = dateTime;
     }
