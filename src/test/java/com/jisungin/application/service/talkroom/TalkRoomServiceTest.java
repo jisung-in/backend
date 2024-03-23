@@ -474,7 +474,7 @@ class TalkRoomServiceTest {
                 .isbn("11111")
                 .publisher("publisher")
                 .dateTime(LocalDateTime.now())
-                .url("www")
+                .imageUrl("www")
                 .build();
     }
 

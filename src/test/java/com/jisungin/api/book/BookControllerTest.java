@@ -77,7 +77,6 @@ public class BookControllerTest {
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .url("도서 URL")
                 .isbn("도서 isbn")
                 .dateTime("2024-03-15T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
@@ -106,7 +105,6 @@ public class BookControllerTest {
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .url("도서 URL")
                 .isbn("도서 isbn")
                 .dateTime("2024-03-15T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
@@ -130,7 +128,6 @@ public class BookControllerTest {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .contents("도서 내용")
-                .url("도서 URL")
                 .isbn("도서 isbn")
                 .dateTime("2024-03-15T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
@@ -154,7 +151,6 @@ public class BookControllerTest {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
-                .url("도서 URL")
                 .isbn("도서 isbn")
                 .dateTime("2024-03-15T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
@@ -173,37 +169,12 @@ public class BookControllerTest {
     }
 
     @Test
-    @DisplayName("신규 도서 등록 시 책 경로는 필수이어야 한다.")
-    public void createBookWithNonUrl() throws Exception {
-        // given
-        BookCreateRequest request = BookCreateRequest.builder()
-                .title("도서 정보")
-                .contents("도서 내용")
-                .isbn("도서 isbn")
-                .dateTime("2024-03-15T00:00:00.000+09:00")
-                .authors(new String[]{"도서 저자1", "도서 저자2"})
-                .publisher("도서 출판사")
-                .thumbnail("도서 썸네일")
-                .build();
-
-        // when // then
-        mockMvc.perform(post("/v1/books")
-                        .content(objectMapper.writeValueAsString(request))
-                        .contentType(APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("400"))
-                .andExpect(jsonPath("$.message").value("책 경로 입력은 필수 입니다."));
-    }
-
-    @Test
     @DisplayName("신규 도서 등록 시 책 isbn 입력은 필수이어야 한다.")
     public void createBookWithNonIsbn() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .url("도서 URL")
                 .dateTime("2024-03-15T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
                 .publisher("도서 출판사")
@@ -227,7 +198,6 @@ public class BookControllerTest {
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .url("도서 URL")
                 .isbn("도서 isbn")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
                 .publisher("도서 출판사")
@@ -251,7 +221,6 @@ public class BookControllerTest {
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .url("도서 URL")
                 .isbn("도서 isbn")
                 .dateTime("2024-03-15T00:00:00.000+09:00")
                 .publisher("도서 출판사")
@@ -275,7 +244,6 @@ public class BookControllerTest {
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .url("도서 URL")
                 .isbn("도서 isbn")
                 .dateTime("2024-03-15T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
@@ -302,7 +270,6 @@ public class BookControllerTest {
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .url("도서 URL")
                 .isbn("도서 isbn")
                 .dateTime("2024-03-15T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
@@ -323,7 +290,7 @@ public class BookControllerTest {
         return Book.builder()
                 .title("도서 정보")
                 .content("도서 내용")
-                .url("도서 URL")
+                .imageUrl("도서 URL")
                 .isbn("도서 isbn")
                 .dateTime(LocalDateTime.now())
                 .authors("도서 저자1, 도서 저자2")
