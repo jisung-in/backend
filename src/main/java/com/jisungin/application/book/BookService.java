@@ -7,6 +7,7 @@ import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
+import com.jisungin.infra.crawler.Crawler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BookService {
 
+    private final Crawler crawler;
     private final BookRepository bookRepository;
     private final ReviewRepository reviewRepository;
 
@@ -34,7 +36,9 @@ public class BookService {
             throw new BusinessException(ErrorCode.BOOK_ALREADY_EXIST);
         }
 
-        return BookResponse.of(bookRepository.save(request.toEntity()), 0.0);
+        request.addCrawlingData(crawler.crawlBook(request.getIsbn()));
+
+        return BookResponse.of(bookRepository.save(request.toEntity()));
     }
 
 }

@@ -22,4 +22,8 @@ public class CrawlingBook {
                 .build();
     }
 
+    public boolean isBlankContent() {
+        return this.content.isBlank();
+    }
+
 }
