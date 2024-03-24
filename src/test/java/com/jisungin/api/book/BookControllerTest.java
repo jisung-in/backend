@@ -1,5 +1,7 @@
 package com.jisungin.api.book;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -9,19 +11,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jisungin.api.book.request.BookCreateRequest;
-import com.jisungin.domain.book.Book;
-import com.jisungin.domain.book.repository.BookRepository;
+import com.jisungin.api.oauth.AuthContext;
+import com.jisungin.application.book.BookService;
+import com.jisungin.application.book.response.BookResponse;
 import java.time.LocalDateTime;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(BookController.class)
 public class BookControllerTest {
 
     @Autowired
@@ -30,44 +31,26 @@ public class BookControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private BookRepository bookRepository;
+    @MockBean
+    private BookService bookService;
 
-    @AfterEach
-    void tearDown() {
-        bookRepository.deleteAllInBatch();
-    }
+    @MockBean
+    private AuthContext context;
 
     @Test
     @DisplayName("책을 조회한다.")
     public void getBook() throws Exception {
         // given
-        Book book = bookRepository.save(create());
+        when(bookService.getBook(any(String.class))).thenReturn(createResponse());
 
         // when // then
-        mockMvc.perform(get("/v1/books/{isbn}", book.getIsbn())
+        mockMvc.perform(get("/v1/books/{isbn}", "isbn")
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("OK"));
-    }
-
-    @Test
-    @DisplayName("책 조회 시 일치하는 isbn이 존재해야 한다.")
-    public void getBookWithInvalidIsbn() throws Exception {
-        // given
-        String invalidIsbn = "0000000000";
-        Book book = bookRepository.save(create());
-
-        // when // then
-        mockMvc.perform(get("/v1/books/{isbn}", invalidIsbn)
-                        .accept(APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("404"))
-                .andExpect(jsonPath("message").value("책을 찾을 수 없습니다."));
     }
 
     @Test
@@ -77,12 +60,14 @@ public class BookControllerTest {
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .isbn("도서 isbn")
-                .dateTime("2024-03-15T00:00:00.000+09:00")
+                .isbn("도서 ISBN")
+                .dateTime("2024-01-01T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
                 .publisher("도서 출판사")
                 .thumbnail("도서 썸네일")
                 .build();
+
+        when(bookService.createBook(request.toServiceRequest())).thenReturn(createResponse());
 
         // when // then
         mockMvc.perform(post("/v1/books")
@@ -96,40 +81,13 @@ public class BookControllerTest {
     }
 
     @Test
-    @DisplayName("신규 도서 등록 시 isbn이 다른 책이어야 한다.")
-    public void createBookWithDuplicateIsbn() throws Exception {
-        // given
-        Book book = create();
-        bookRepository.save(book);
-
-        BookCreateRequest request = BookCreateRequest.builder()
-                .title("도서 정보")
-                .contents("도서 내용")
-                .isbn("도서 isbn")
-                .dateTime("2024-03-15T00:00:00.000+09:00")
-                .authors(new String[]{"도서 저자1", "도서 저자2"})
-                .publisher("도서 출판사")
-                .thumbnail("도서 썸네일")
-                .build();
-
-        // when // then
-        mockMvc.perform(post("/v1/books")
-                        .content(objectMapper.writeValueAsString(request))
-                        .contentType(APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("400"))
-                .andExpect(jsonPath("$.message").value("이미 등록된 책 정보 입니다."));
-    }
-
-    @Test
-    @DisplayName("신규 도서 등록 시 책 제목은 필수이어야 한다.")
-    public void createBookWithNonTitle() throws Exception {
+    @DisplayName("신규 책을 등록 시 책 제목 입력은 필수 값이다.")
+    public void createBookWithTitle() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .contents("도서 내용")
-                .isbn("도서 isbn")
-                .dateTime("2024-03-15T00:00:00.000+09:00")
+                .isbn("도서 ISBN")
+                .dateTime("2024-01-01T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
                 .publisher("도서 출판사")
                 .thumbnail("도서 썸네일")
@@ -146,13 +104,13 @@ public class BookControllerTest {
     }
 
     @Test
-    @DisplayName("신규 도서 등록 시 책 내용은 필수이어야 한다.")
-    public void createBookWithNonContents() throws Exception {
+    @DisplayName("신규 책을 등록 시 책 내용 입력은 필수 값이다.")
+    public void createBookWithContent() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
-                .isbn("도서 isbn")
-                .dateTime("2024-03-15T00:00:00.000+09:00")
+                .isbn("도서 ISBN")
+                .dateTime("2024-01-01T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
                 .publisher("도서 출판사")
                 .thumbnail("도서 썸네일")
@@ -169,13 +127,13 @@ public class BookControllerTest {
     }
 
     @Test
-    @DisplayName("신규 도서 등록 시 책 isbn 입력은 필수이어야 한다.")
-    public void createBookWithNonIsbn() throws Exception {
+    @DisplayName("신규 책 등록 시 책 ISBN 입력은 필수 값이다.")
+    public void createBookWithIsbn() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .dateTime("2024-03-15T00:00:00.000+09:00")
+                .dateTime("2024-01-01T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
                 .publisher("도서 출판사")
                 .thumbnail("도서 썸네일")
@@ -189,16 +147,17 @@ public class BookControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("400"))
                 .andExpect(jsonPath("$.message").value("책 isbn 입력은 필수 입니다."));
+
     }
 
     @Test
-    @DisplayName("신규 도서 등록 시 책 출판일 입력은 필수이어야 한다.")
-    public void createBookWithNonDateTime() throws Exception {
+    @DisplayName("신규 책 등록 시 책 출판일 입력은 필수 값이다.")
+    public void createBookWithDateTime() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .isbn("도서 isbn")
+                .isbn("도서 ISBN")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
                 .publisher("도서 출판사")
                 .thumbnail("도서 썸네일")
@@ -212,17 +171,18 @@ public class BookControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("400"))
                 .andExpect(jsonPath("$.message").value("책 출판일 입력은 필수 입니다."));
+
     }
 
     @Test
-    @DisplayName("신규 도서 등록 시 책 저자 입력은 필수이어야 한다.")
+    @DisplayName("신규 책 등록 시 책 저자 입력은 필수 값이다.")
     public void createBookWithAuthors() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .isbn("도서 isbn")
-                .dateTime("2024-03-15T00:00:00.000+09:00")
+                .isbn("도서 ISBN")
+                .dateTime("2024-01-01T00:00:00.000+09:00")
                 .publisher("도서 출판사")
                 .thumbnail("도서 썸네일")
                 .build();
@@ -238,14 +198,14 @@ public class BookControllerTest {
     }
 
     @Test
-    @DisplayName("신규 도서 등록 시 책 출판사 입력은 필수이어야 한다.")
+    @DisplayName("신규 책 등록 시 출판사 입력은 필수 값이다.")
     public void createBookWithPublisher() throws Exception {
         // given
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .isbn("도서 isbn")
-                .dateTime("2024-03-15T00:00:00.000+09:00")
+                .isbn("도서 ISBN")
+                .dateTime("2024-01-01T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
                 .thumbnail("도서 썸네일")
                 .build();
@@ -261,17 +221,14 @@ public class BookControllerTest {
     }
 
     @Test
-    @DisplayName("신규 도서 등록 시 책 썸네일 입력은 필수이어야 한다.")
+    @DisplayName("신규 책 등록 시 썸네일 입력은 필수 값이다.")
     public void createBookWithThumbnail() throws Exception {
         // given
-        Book book = create();
-        bookRepository.save(book);
-
         BookCreateRequest request = BookCreateRequest.builder()
                 .title("도서 정보")
                 .contents("도서 내용")
-                .isbn("도서 isbn")
-                .dateTime("2024-03-15T00:00:00.000+09:00")
+                .isbn("도서 ISBN")
+                .dateTime("2024-01-01T00:00:00.000+09:00")
                 .authors(new String[]{"도서 저자1", "도서 저자2"})
                 .publisher("도서 출판사")
                 .build();
@@ -286,16 +243,17 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.message").value("책 썸네일 입력은 필수 입니다."));
     }
 
-    private static Book create() {
-        return Book.builder()
-                .title("도서 정보")
-                .content("도서 내용")
-                .imageUrl("도서 URL")
-                .isbn("도서 isbn")
-                .dateTime(LocalDateTime.now())
-                .authors("도서 저자1, 도서 저자2")
-                .publisher("도서 출판사")
-                .thumbnail("도서 썸네일")
+    private static BookResponse createResponse() {
+        return BookResponse.builder()
+                .title("책 이름")
+                .content("책 설명")
+                .isbn("1111111111")
+                .authors("책 저자1, 책 저자2")
+                .publisher("책 출판사")
+                .imageUrl("책 이미지 URL")
+                .thumbnail("책 썸네일 URL")
+                .dateTime(LocalDateTime.of(2024, 1, 1, 0, 0))
+                .ratingAverage(0.0)
                 .build();
     }
 
