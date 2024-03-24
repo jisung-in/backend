@@ -1,6 +1,8 @@
 package com.jisungin.api.talkroom;
 
 import com.jisungin.api.ApiResponse;
+import com.jisungin.api.oauth.Auth;
+import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.api.talkroom.request.TalkRoomSearchRequest;
@@ -27,8 +29,9 @@ public class TalkRoomController {
 
     // TODO. 회원 도메인이 개발되면 변경 예정
     @PostMapping("/talk-rooms")
-    public ApiResponse<TalkRoomResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request) {
-        return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), "user@gmail.com"));
+    public ApiResponse<TalkRoomResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request, @Auth
+    AuthContext authContext) {
+        return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), authContext.getUserId()));
     }
 
     @GetMapping("/talk-rooms")
@@ -37,8 +40,9 @@ public class TalkRoomController {
     }
 
     @PatchMapping("/talk-rooms")
-    public ApiResponse<TalkRoomResponse> editTalkRoom(@Valid @RequestBody TalkRoomEditRequest request) {
-        return ApiResponse.ok(talkRoomService.editTalkRoom(request.toServiceRequest(), "user@gmail.com"));
+    public ApiResponse<TalkRoomResponse> editTalkRoom(@Valid @RequestBody TalkRoomEditRequest request,
+                                                      @Auth AuthContext authContext) {
+        return ApiResponse.ok(talkRoomService.editTalkRoom(request.toServiceRequest(), authContext.getUserId()));
     }
 
 }

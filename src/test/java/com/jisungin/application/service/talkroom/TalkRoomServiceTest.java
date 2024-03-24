@@ -3,6 +3,7 @@ package com.jisungin.application.service.talkroom;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.response.PageResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
@@ -30,10 +31,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class TalkRoomServiceTest {
+class TalkRoomServiceTest extends ServiceTestSupport {
 
     @Autowired
     TalkRoomRepository talkRoomRepository;
@@ -82,7 +81,7 @@ class TalkRoomServiceTest {
                 .build();
 
         // when
-        TalkRoomResponse response = talkRoomService.createTalkRoom(request, user.getName());
+        TalkRoomResponse response = talkRoomService.createTalkRoom(request, user.getId());
 
         // then
         List<ReadingStatus> readingStatuses = response.getReadingStatuses();
@@ -113,7 +112,7 @@ class TalkRoomServiceTest {
                 .build();
 
         // when // then
-        assertThatThrownBy(() -> talkRoomService.createTalkRoom(request, user.getName()))
+        assertThatThrownBy(() -> talkRoomService.createTalkRoom(request, user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("참가 조건은 1개 이상이어야 합니다.");
     }
@@ -147,7 +146,7 @@ class TalkRoomServiceTest {
                 .readingStatus(readingStatus)
                 .build();
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getName());
+        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getId());
 
         // then
         assertThat(response)
@@ -185,7 +184,7 @@ class TalkRoomServiceTest {
                 .readingStatus(readingStatus)
                 .build();
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getName());
+        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getId());
 
         // then
         assertThat(response)
@@ -224,7 +223,7 @@ class TalkRoomServiceTest {
                 .build();
 
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getName());
+        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getId());
 
         // then
         List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.findAll();
@@ -274,7 +273,7 @@ class TalkRoomServiceTest {
                 .readingStatus(readingStatus)
                 .build();
         // when // then
-        assertThatThrownBy(() -> talkRoomService.editTalkRoom(request, userB.getName()))
+        assertThatThrownBy(() -> talkRoomService.editTalkRoom(request, userB.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
