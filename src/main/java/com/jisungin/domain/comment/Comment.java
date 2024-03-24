@@ -1,5 +1,6 @@
 package com.jisungin.domain.comment;
 
+import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.domain.BaseEntity;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.user.User;
@@ -36,6 +37,14 @@ public class Comment extends BaseEntity {
         this.user = user;
         this.talkRoom = talkRoom;
         this.content = content;
+    }
+
+    public static Comment create(CommentCreateServiceRequest request, User user, TalkRoom talkRoom) {
+        return Comment.builder()
+                .content(request.getContent())
+                .user(user)
+                .talkRoom(talkRoom)
+                .build();
     }
 
 }
