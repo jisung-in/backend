@@ -1,6 +1,7 @@
 package com.jisungin.api.comment;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -54,7 +55,7 @@ class CommentControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("의견을 작성한 유저가 자신의 의견을 수정할 수 있다.")
+    @DisplayName("의견을 작성한 유저가 자신의 의견을 수정한다.")
     void editComment() throws Exception {
         // given
         CommentEditRequest request = CommentEditRequest.builder()
@@ -64,6 +65,20 @@ class CommentControllerTest extends ControllerTestSupport {
         // when // then
         mockMvc.perform(patch("/v1/talk-rooms/comments/1")
                         .content(objectMapper.writeValueAsString(request))
+                        .contentType(APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"));
+    }
+
+    @Test
+    @DisplayName("의견을 작성한 유저가 자신의 의견을 삭제한다.")
+    void deleteComment() throws Exception {
+        // when // then
+        mockMvc.perform(delete("/v1/talk-rooms/comments/1")
                         .contentType(APPLICATION_JSON)
                 )
                 .andDo(print())

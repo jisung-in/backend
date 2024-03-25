@@ -186,6 +186,68 @@ class CommentServiceTest extends ServiceTestSupport {
                 .hasMessage("권한이 없는 사용자입니다.");
     }
 
+    @Test
+    @DisplayName("의견을 작성한 유저가 의견을 삭제한다.")
+    void deleteComment() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        Comment comment = createComment(user, talkRoom);
+        commentRepository.save(comment);
+
+        // when
+        commentService.deleteComment(comment.getId(), user.getId());
+
+        // then
+        List<Comment> comments = commentRepository.findAll();
+        assertThat(0).isEqualTo(comments.size());
+    }
+
+    @Test
+    @DisplayName("의견을 작성한 유저(userA)가 아닌 다른 유저(userB)가 의견을 삭제할 수 없다.")
+    void deleteCommentWithUserB() {
+        // given
+        User userA = createUser();
+        userRepository.save(userA);
+
+        User userB = User.builder()
+                .name("userB@gmail.com")
+                .profileImage("image")
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId("oauthId2")
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .build();
+        userRepository.save(userB);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, userA);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        Comment comment = createComment(userA, talkRoom);
+        commentRepository.save(comment);
+
+        // when // then
+        assertThatThrownBy(() -> commentService.deleteComment(comment.getId(), userB.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("권한이 없는 사용자입니다.");
+    }
+
     private static Comment createComment(User user, TalkRoom talkRoom) {
         return Comment.builder()
                 .content("의견")
