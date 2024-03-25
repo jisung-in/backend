@@ -38,4 +38,19 @@ public class ReviewService {
         return ReviewResponse.of(savedReview.getBook(), savedReview.getContent(), savedReview.getRating());
     }
 
+    @Transactional
+    public void deleteReview(Long reviewId, Long userId) {
+        Review deleteReview = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new BusinessException(REVIEW_NOT_FOUND));
+
+        User reviewUser = deleteReview.getUser();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        if (!user.isSame(reviewUser.getId())) {
+            throw new BusinessException(UNAUTHORIZED_REQUEST);
+        }
+        reviewRepository.delete(deleteReview);
+    }
+
 }

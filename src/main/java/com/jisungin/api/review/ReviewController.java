@@ -8,10 +8,7 @@ import com.jisungin.application.review.ReviewService;
 import com.jisungin.application.review.response.ReviewResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/v1/reviews")
 @RequiredArgsConstructor
@@ -21,10 +18,16 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
-    public ApiResponse<ReviewResponse> createReview(
-            @Valid @RequestBody ReviewCreateRequest request,
-            @Auth AuthContext authContext) {
+    public ApiResponse<ReviewResponse> createReview(@Valid @RequestBody ReviewCreateRequest request,
+                                                    @Auth AuthContext authContext) {
         return ApiResponse.ok(reviewService.createReview(request.toServiceRequest(), authContext.getUserId()));
+    }
+
+    @DeleteMapping("/{reviewId}")
+    public ApiResponse<Void> deleteReview(@PathVariable Long reviewId,
+                                          @Auth AuthContext authContext) {
+        reviewService.deleteReview(reviewId, authContext.getUserId());
+        return ApiResponse.ok(null);
     }
 
 }

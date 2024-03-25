@@ -15,7 +15,8 @@ public enum ErrorCode {
     OAUTH_TYPE_NOT_FOUND(404, "지원하지 않는 소셜 로그인입니다."),
     TALK_ROOM_NOT_FOUND(400, "토크방을 찾을 수 없습니다."),
     UNAUTHORIZED_REQUEST(400, "권한이 없는 사용자입니다."),
-    COMMENT_NOT_FOUND(404, "의견을 찾을 수 없습니다.");
+    COMMENT_NOT_FOUND(404, "의견을 찾을 수 없습니다."),
+    REVIEW_NOT_FOUND(404, "리뷰를 찾을 수 없습니다.");
 
 
     private final int code;
