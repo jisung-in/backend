@@ -9,6 +9,8 @@ import com.jisungin.application.comment.CommentService;
 import com.jisungin.application.comment.response.CommentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +37,17 @@ public class CommentController {
                                                     @Valid @RequestBody CommentEditRequest request,
                                                     @Auth AuthContext authContext) {
         return ApiResponse.ok(commentService.editComment(commentId, request.toService(), authContext.getUserId()));
+    }
+
+    @DeleteMapping("/talk-rooms/comments/{commentId}")
+    public ApiResponse<Void> deleteComment(@PathVariable Long commentId,
+                                           @Auth AuthContext authContext) {
+        commentService.deleteComment(commentId, authContext.getUserId());
+
+        return ApiResponse.<Void>builder()
+                .message("OK")
+                .status(HttpStatus.OK)
+                .build();
     }
 
 }

@@ -54,4 +54,19 @@ public class CommentService {
 
         return CommentResponse.of(comment.getContent(), user.getName());
     }
+
+    @Transactional
+    public void deleteComment(Long commentId, Long userId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!comment.isCommentOwner(user.getId())) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
+        }
+
+        commentRepository.delete(comment);
+    }
+
 }
