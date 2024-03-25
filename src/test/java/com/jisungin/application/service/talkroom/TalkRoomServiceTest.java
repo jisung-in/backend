@@ -453,11 +453,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         createTalkRoomRole(talkRoom);
 
-        Comment comment = Comment.builder()
-                .talkRoom(talkRoom)
-                .user(user)
-                .content("의견 남기기")
-                .build();
+        Comment comment = createComment(talkRoom, user);
 
         commentRepository.save(comment);
         // when
@@ -468,17 +464,6 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         assertThat(2).isEqualTo(findOneTalkRoomResponse.getReadingStatuses().size());
         assertThat("의견 남기기").isEqualTo(findOneTalkRoomResponse.getComments().get(0).getContent());
         assertThat("user@gmail.com").isEqualTo(findOneTalkRoomResponse.getComments().get(0).getUserName());
-    }
-
-    private void createTalkRoomRole(TalkRoom talkRoom) {
-        List<String> request = new ArrayList<>();
-        request.add("읽는 중");
-        request.add("읽음");
-
-        List<ReadingStatus> readingStatus = ReadingStatus.createReadingStatus(request);
-
-        readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
-                .forEach(talkRoomRoleRepository::save);
     }
 
     @Test
@@ -537,6 +522,111 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         assertThat(20).isEqualTo(findOneTalkRoomResponse.getComments().size());
         assertThat("의견 0").isEqualTo(findOneTalkRoomResponse.getComments().get(0).getContent());
         assertThat("의견 19").isEqualTo(findOneTalkRoomResponse.getComments().get(19).getContent());
+    }
+
+    @Test
+    @DisplayName("토크방을 생성한 유저가 토크방을 삭제한다.")
+    void deleteTalkRoom() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        Comment comment = createComment(talkRoom, user);
+
+        commentRepository.save(comment);
+
+        // when
+        talkRoomService.deleteTalkRoom(talkRoom.getId(), user.getId());
+
+        // then
+        assertThat(0).isEqualTo(talkRoomRepository.findAll().size());
+        assertThat(0).isEqualTo(commentRepository.findAll().size());
+    }
+
+    @Test
+    @DisplayName("토크방을 생성하지 않은 유저(UserB)가 다른 유저(UserA)가 생성한 토크방을 삭제할 수 없다.")
+    void deleteTalkRoomWithUserB() {
+        // given
+        User userA = createUser();
+        userRepository.save(userA);
+
+        User userB = User.builder()
+                .name("userB@gmail.com")
+                .profileImage("image")
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId("oauthId2")
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .build();
+        userRepository.save(userB);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, userA);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        Comment comment = createComment(talkRoom, userA);
+
+        commentRepository.save(comment);
+
+        // when // then
+        assertThatThrownBy(() -> talkRoomService.deleteTalkRoom(talkRoom.getId(), userB.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("권한이 없는 사용자입니다.");
+    }
+
+    @Test
+    @DisplayName("토크방을 삭제할 때 의견이 없어도 정상적으로 삭제가 된다.")
+    void deleteTalkRoomWithComment() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        // when
+        talkRoomService.deleteTalkRoom(talkRoom.getId(), user.getId());
+
+        // then
+        assertThat(0).isEqualTo(talkRoomRepository.findAll().size());
+    }
+
+    private static Comment createComment(TalkRoom talkRoom, User user) {
+        return Comment.builder()
+                .talkRoom(talkRoom)
+                .user(user)
+                .content("의견 남기기")
+                .build();
+    }
+
+    private void createTalkRoomRole(TalkRoom talkRoom) {
+        List<String> request = new ArrayList<>();
+        request.add("읽는 중");
+        request.add("읽음");
+
+        List<ReadingStatus> readingStatus = ReadingStatus.createReadingStatus(request);
+
+        readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
+                .forEach(talkRoomRoleRepository::save);
     }
 
     private static TalkRoom createTalkRoom(Book book, User user) {

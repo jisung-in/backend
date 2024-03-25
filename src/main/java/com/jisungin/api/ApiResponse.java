@@ -1,5 +1,6 @@
 package com.jisungin.api;
 
+import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -11,6 +12,7 @@ public class ApiResponse<T> {
     private String message;
     private T data;
 
+    @Builder
     public ApiResponse(HttpStatus status, String message, T data) {
         this.code = status.value();
         this.status = status;

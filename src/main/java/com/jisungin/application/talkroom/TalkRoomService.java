@@ -10,6 +10,7 @@ import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
+import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
@@ -32,6 +33,7 @@ public class TalkRoomService {
     private final TalkRoomRoleRepository talkRoomRoleRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
     public TalkRoomResponse createTalkRoom(TalkRoomCreateServiceRequest request, Long userId) {
@@ -86,6 +88,23 @@ public class TalkRoomService {
 
         return TalkRoomResponse.of(user.getName(), talkRoom.getTitle(), talkRoom.getContent(), readingStatus,
                 talkRoom.getBook().getImageUrl(), talkRoom.getBook().getTitle());
+    }
+
+    @Transactional
+    public void deleteTalkRoom(Long talkRoomId, Long userId) {
+        TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!talkRoom.isTalkRoomOwner(user.getId())) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
+        }
+
+        commentRepository.findByTalkRoom(talkRoom).ifPresent(commentRepository::delete);
+
+        talkRoomRoleRepository.deleteAllByTalkRoom(talkRoom);
+        talkRoomRepository.delete(talkRoom);
     }
 
 }
