@@ -13,6 +13,8 @@ import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -51,6 +53,16 @@ public class TalkRoomController {
     public ApiResponse<TalkRoomResponse> editTalkRoom(@Valid @RequestBody TalkRoomEditRequest request,
                                                       @Auth AuthContext authContext) {
         return ApiResponse.ok(talkRoomService.editTalkRoom(request.toServiceRequest(), authContext.getUserId()));
+    }
+
+    @DeleteMapping("/talk-rooms/{talkRoomId}")
+    public ApiResponse<Void> deleteTalkRoom(@PathVariable Long talkRoomId, @Auth AuthContext authContext) {
+        talkRoomService.deleteTalkRoom(talkRoomId, authContext.getUserId());
+
+        return ApiResponse.<Void>builder()
+                .message("OK")
+                .status(HttpStatus.OK)
+                .build();
     }
 
 }

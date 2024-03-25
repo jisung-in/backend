@@ -60,7 +60,6 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         findOneTalkRoom.addTalkRoomComments(talkRoomComments);
 
         return findOneTalkRoom;
-
     }
 
     private List<TalkRoomQueryComments> findCommentsByTalkRoomId(Long talkRoomId) {
