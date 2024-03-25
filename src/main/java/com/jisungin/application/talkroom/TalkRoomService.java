@@ -32,19 +32,15 @@ public class TalkRoomService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
 
-    // TODO. 토큰 정보를 가져오는 기능을 구현하면 변경할 예정
     @Transactional
-    public TalkRoomResponse createTalkRoom(TalkRoomCreateServiceRequest request, String userEmail) {
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-        User user = userRepository.findByName(userEmail)
+    public TalkRoomResponse createTalkRoom(TalkRoomCreateServiceRequest request, Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Book book = bookRepository.findById(request.getBookIsbn())
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
-        TalkRoom talkRoom = TalkRoom.create(request, book, user);
+        TalkRoom talkRoom = TalkRoom.create(request.getTitle(), request.getContent(), book, user);
         talkRoomRepository.save(talkRoom);
 
         List<ReadingStatus> readingStatus = ReadingStatus.createReadingStatus(request.getReadingStatus());
@@ -52,7 +48,8 @@ public class TalkRoomService {
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
 
-        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, book.getImageUrl(), book.getTitle());
+        return TalkRoomResponse.of(user.getName(), talkRoom.getTitle(), talkRoom.getContent(), readingStatus,
+                book.getImageUrl(), book.getTitle());
     }
 
     public PageResponse<TalkRoomQueryResponse> getTalkRooms(TalkRoomSearchServiceRequest search) {
@@ -60,10 +57,10 @@ public class TalkRoomService {
     }
 
     @Transactional
-    public TalkRoomResponse editTalkRoom(TalkRoomEditServiceRequest request, String userEmail) {
-        User user = userRepository.findByName(userEmail)
+    public TalkRoomResponse editTalkRoom(TalkRoomEditServiceRequest request, Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
+        
         TalkRoom talkRoom = talkRoomRepository.findByIdWithUserAndBook(request.getId());
 
         if (!talkRoom.isTalkRoomOwner(user.getId())) {
@@ -79,8 +76,8 @@ public class TalkRoomService {
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
 
-        return TalkRoomResponse.of(user.getName(), talkRoom, readingStatus, talkRoom.getBook().getImageUrl(),
-                talkRoom.getBook().getTitle());
+        return TalkRoomResponse.of(user.getName(), talkRoom.getTitle(), talkRoom.getContent(), readingStatus,
+                talkRoom.getBook().getImageUrl(), talkRoom.getBook().getTitle());
     }
 
 }

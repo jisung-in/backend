@@ -2,6 +2,7 @@ package com.jisungin.application.comment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.response.CommentResponse;
 import com.jisungin.domain.ReadingStatus;
@@ -23,10 +24,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class CommentServiceTest {
+class CommentServiceTest extends ServiceTestSupport {
 
     @Autowired
     TalkRoomRepository talkRoomRepository;

@@ -1,7 +1,6 @@
 package com.jisungin.application.talkroom.response;
 
 import com.jisungin.domain.ReadingStatus;
-import com.jisungin.domain.talkroom.TalkRoom;
 import com.querydsl.core.annotations.QueryProjection;
 import java.util.List;
 import lombok.Builder;
@@ -31,12 +30,13 @@ public class TalkRoomResponse {
         this.bookImage = bookImage;
     }
 
-    public static TalkRoomResponse of(String userName, TalkRoom talkRoom, List<ReadingStatus> readingStatuses,
+    public static TalkRoomResponse of(String userName, String title, String content,
+                                      List<ReadingStatus> readingStatuses,
                                       String bookImage, String bookName) {
         return TalkRoomResponse.builder()
                 .userName(userName)
-                .title(talkRoom.getTitle())
-                .content(talkRoom.getContent())
+                .title(title)
+                .content(content)
                 .bookName(bookName)
                 .readingStatuses(readingStatuses)
                 .bookImage(bookImage)
