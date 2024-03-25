@@ -174,49 +174,18 @@ class TalkRoomControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.message").value("OK"));
     }
 
-//    private void createTalkRoomRole(TalkRoom talkRoom) {
-//        List<String> request = new ArrayList<>();
-//        request.add("읽는 중");
-//        request.add("읽음");
-//
-//        List<ReadingStatus> readingStatus = ReadingStatus.createReadingStatus(request);
-//
-//        readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
-//                .forEach(talkRoomRoleRepository::save);
-//    }
-//
-//    private static TalkRoom createTalkRoom(Book book, User user) {
-//        return TalkRoom.builder()
-//                .book(book)
-//                .title("토크방")
-//                .content("내용")
-//                .user(user)
-//                .build();
-//    }
-//
-//    private static User createUser() {
-//        return User.builder()
-//                .name("user@gmail.com")
-//                .profileImage("image")
-//                .oauthId(
-//                        OauthId.builder()
-//                                .oauthId("oauthId")
-//                                .oauthType(OauthType.KAKAO)
-//                                .build()
-//                )
-//                .build();
-//    }
-//
-//    private static Book createBook() {
-//        return Book.builder()
-//                .title("제목")
-//                .content("내용")
-//                .authors("작가")
-//                .isbn("11111")
-//                .publisher("publisher")
-//                .dateTime(LocalDateTime.now())
-//                .imageUrl("www")
-//                .build();
-//    }
+    @Test
+    @DisplayName("토크방 단건 조회를 한다.")
+    void findOneTalkRoom() throws Exception {
+        // when // then
+        mockMvc.perform(get("/v1/talk-room/1")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"));
+    }
 
 }
