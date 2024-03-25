@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class TalkRoomQueryResponse {
+public class TalkRoomFindAllResponse {
 
     private Long talkRoomId;
     private String userName;
@@ -21,8 +21,8 @@ public class TalkRoomQueryResponse {
 
     @Builder
     @QueryProjection
-    public TalkRoomQueryResponse(Long talkRoomId, String userName, String title, String content, String bookName,
-                                 String bookImage) {
+    public TalkRoomFindAllResponse(Long talkRoomId, String userName, String title, String content, String bookName,
+                                   String bookImage) {
         this.talkRoomId = talkRoomId;
         this.userName = userName;
         this.title = title;

@@ -9,11 +9,14 @@ import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
-import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
+import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
+import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
+import com.jisungin.domain.comment.Comment;
+import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.oauth.OauthId;
 import com.jisungin.domain.oauth.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
@@ -49,8 +52,12 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    CommentRepository commentRepository;
+
     @AfterEach
     void tearDown() {
+        commentRepository.deleteAllInBatch();
         talkRoomRoleRepository.deleteAllInBatch();
         talkRoomRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
@@ -309,7 +316,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomQueryResponse> talkRooms = talkRoomRepository.getTalkRooms(search);
+        PageResponse<TalkRoomFindAllResponse> talkRooms = talkRoomRepository.findAllTalkRoom(search);
 
         // then
         assertThat(10L).isEqualTo(talkRooms.getQueryResponse().size());
@@ -348,7 +355,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomQueryResponse> talkRooms = talkRoomRepository.getTalkRooms(search);
+        PageResponse<TalkRoomFindAllResponse> talkRooms = talkRoomRepository.findAllTalkRoom(search);
 
         // then
         assertThat(103).isEqualTo(talkRooms.getTotalCount());
@@ -385,7 +392,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomQueryResponse> talkRooms = talkRoomRepository.getTalkRooms(search);
+        PageResponse<TalkRoomFindAllResponse> talkRooms = talkRoomRepository.findAllTalkRoom(search);
 
         // then
         assertThat(talkRooms.getQueryResponse().size()).isEqualTo(10L);
@@ -424,12 +431,43 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomQueryResponse> talkRooms = talkRoomRepository.getTalkRooms(search);
+        PageResponse<TalkRoomFindAllResponse> talkRooms = talkRoomRepository.findAllTalkRoom(search);
 
         // then
         assertThat(talkRooms.getQueryResponse().size()).isEqualTo(3);
         assertThat(talkRooms.getQueryResponse().get(0).getTitle()).isEqualTo("토론방 2");
         assertThat(talkRooms.getQueryResponse().get(0).getContent()).isEqualTo("내용 2");
+    }
+
+    @Test
+    @DisplayName("토크방을 단건 조회 한다.")
+    void findOneTalkRoom() {
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        Comment comment = Comment.builder()
+                .talkRoom(talkRoom)
+                .user(user)
+                .content("의견 남기기")
+                .build();
+
+        commentRepository.save(comment);
+        // when
+        TalkRoomFindOneResponse findOneTalkRoomResponse = talkRoomService.findOneTalkRoom(talkRoom.getId());
+
+        // then
+        assertThat("토크방").isEqualTo(findOneTalkRoomResponse.getTitle());
+        assertThat(2).isEqualTo(findOneTalkRoomResponse.getReadingStatuses().size());
+        assertThat("의견 남기기").isEqualTo(findOneTalkRoomResponse.getComments().get(0).getContent());
+        assertThat("user@gmail.com").isEqualTo(findOneTalkRoomResponse.getComments().get(0).getUserName());
     }
 
     private void createTalkRoomRole(TalkRoom talkRoom) {
@@ -441,6 +479,64 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
+    }
+
+    @Test
+    @DisplayName("토크방을 단건 조회 했을 때 의견이 담기지 않았아도 조회는 정상적으로 되어야 한다.")
+    void findOneTalkRoomWithCommentNull() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        // when
+        TalkRoomFindOneResponse findOneTalkRoomResponse = talkRoomService.findOneTalkRoom(talkRoom.getId());
+
+        // then
+        assertThat("토크방").isEqualTo(findOneTalkRoomResponse.getTitle());
+        assertThat(2).isEqualTo(findOneTalkRoomResponse.getReadingStatuses().size());
+    }
+
+    @Test
+    @DisplayName("토크방을 단건 조회 했을 때 의견이 여러 개 달려있을 때 의견을 전부 보여줘야 한다.")
+    void findOneTalkRoomWithFindAllComment() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        List<Comment> comments = IntStream.range(0, 20)
+                .mapToObj(i -> Comment.builder()
+                        .talkRoom(talkRoom)
+                        .user(user)
+                        .content("의견 " + i)
+                        .build())
+                .toList();
+
+        commentRepository.saveAll(comments);
+        // when
+        TalkRoomFindOneResponse findOneTalkRoomResponse = talkRoomService.findOneTalkRoom(talkRoom.getId());
+
+        // then
+        assertThat("토크방").isEqualTo(findOneTalkRoomResponse.getTitle());
+        assertThat(2).isEqualTo(findOneTalkRoomResponse.getReadingStatuses().size());
+        assertThat(20).isEqualTo(findOneTalkRoomResponse.getComments().size());
+        assertThat("의견 0").isEqualTo(findOneTalkRoomResponse.getComments().get(0).getContent());
+        assertThat("의견 19").isEqualTo(findOneTalkRoomResponse.getComments().get(19).getContent());
     }
 
     private static TalkRoom createTalkRoom(Book book, User user) {
