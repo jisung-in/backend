@@ -77,7 +77,7 @@ public class TalkRoomService {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
         }
 
-        talkRoom.edit(request);
+        talkRoom.edit(request.getTitle(), request.getContent());
 
         talkRoomRoleRepository.deleteAllByTalkRoom(talkRoom);
 

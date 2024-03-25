@@ -2,12 +2,14 @@ package com.jisungin.api.comment;
 
 import com.jisungin.api.ApiResponse;
 import com.jisungin.api.comment.request.CommentCreateRequest;
+import com.jisungin.api.comment.request.CommentEditRequest;
 import com.jisungin.api.oauth.Auth;
 import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.comment.CommentService;
 import com.jisungin.application.comment.response.CommentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,6 +28,13 @@ public class CommentController {
                                                      @Valid @RequestBody CommentCreateRequest request,
                                                      @Auth AuthContext authContext) {
         return ApiResponse.ok(commentService.writeComment(request.toService(), talkRoomId, authContext.getUserId()));
+    }
+
+    @PatchMapping("/talk-rooms/comments/{commentId}")
+    public ApiResponse<CommentResponse> editComment(@PathVariable Long commentId,
+                                                    @Valid @RequestBody CommentEditRequest request,
+                                                    @Auth AuthContext authContext) {
+        return ApiResponse.ok(commentService.editComment(commentId, request.toService(), authContext.getUserId()));
     }
 
 }

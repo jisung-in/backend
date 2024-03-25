@@ -4,7 +4,15 @@ import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.domain.BaseEntity;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.user.User;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,6 +53,14 @@ public class Comment extends BaseEntity {
                 .user(user)
                 .talkRoom(talkRoom)
                 .build();
+    }
+
+    public boolean isCommentOwner(Long userId) {
+        return user.isMe(userId);
+    }
+
+    public void edit(String requestContent) {
+        this.content = requestContent != null ? requestContent : content;
     }
 
 }
