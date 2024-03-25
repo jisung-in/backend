@@ -94,4 +94,21 @@ class ReviewControllerTest extends ControllerTestSupport {
                 .andDo(print());
     }
 
+    @DisplayName("리뷰를 삭제한다.")
+    @Test
+    void deleteReview() throws Exception {
+        //given
+        Long deleteReviewId = 1L;
+
+        //when //then
+        mockMvc.perform(
+                        delete("/v1/reviews/{reviewId}", deleteReviewId)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
+
 }

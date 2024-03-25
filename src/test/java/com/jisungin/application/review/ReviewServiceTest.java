@@ -47,7 +47,7 @@ class ReviewServiceTest extends ServiceTestSupport {
     @Test
     void createReview() {
         //given
-        User user = createUser();
+        User user = createUser("1");
         userRepository.save(user);
 
         Book book = createBook();
@@ -81,7 +81,7 @@ class ReviewServiceTest extends ServiceTestSupport {
     @Test
     void createReviewWithoutBook() {
         //given
-        User user = createUser();
+        User user = createUser("1");
         userRepository.save(user);
 
         ReviewCreateServiceRequest request = ReviewCreateServiceRequest.builder()
@@ -107,13 +107,58 @@ class ReviewServiceTest extends ServiceTestSupport {
                 .hasMessage("사용자를 찾을 수 없습니다.");
     }
 
-    private static User createUser() {
+    @DisplayName("리뷰를 삭제한다.")
+    @Test
+    void deleteReview() {
+        //given
+        User user = createUser("1");
+        Book book = createBook();
+        Review review = createReview(user, book);
+        userRepository.save(user);
+        bookRepository.save(book);
+        reviewRepository.save(review);
+
+        //when
+        reviewService.deleteReview(review.getId(), user.getId());
+
+        //then
+        assertThat(reviewRepository.findAll()).isEmpty();
+    }
+
+    @DisplayName("다른 유저가 리뷰를 삭제한다.")
+    @Test
+    void deleteReviewWithAnotherUser() {
+        //given
+        User user1 = createUser("1");
+        User user2 = createUser("2");
+        Book book = createBook();
+        Review review = createReview(user1, book);
+        userRepository.saveAll(List.of(user1, user2));
+        bookRepository.save(book);
+        reviewRepository.save(review);
+
+        //when //then
+        assertThatThrownBy(() -> reviewService.deleteReview(review.getId(), user2.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("권한이 없는 사용자입니다.");
+    }
+
+    private static Review createReview(User user, Book book) {
+        return Review.builder()
+                .user(user)
+                .book(book)
+                .content("내용")
+                .rating(4.5)
+                .build();
+    }
+
+    private static User createUser(String oauthId) {
         return User.builder()
                 .name("김도형")
                 .profileImage("image")
                 .oauthId(
                         OauthId.builder()
-                                .oauthId("oauthId")
+                                .oauthId(oauthId)
                                 .oauthType(OauthType.KAKAO)
                                 .build()
                 )
