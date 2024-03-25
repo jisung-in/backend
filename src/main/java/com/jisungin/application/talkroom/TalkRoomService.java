@@ -10,7 +10,6 @@ import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
-import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
@@ -21,7 +20,6 @@ import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,8 +101,7 @@ public class TalkRoomService {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
         }
 
-        Optional<Comment> comment = commentRepository.findByTalkRoom(talkRoom);
-        comment.ifPresent(commentRepository::delete);
+        commentRepository.findByTalkRoom(talkRoom).ifPresent(commentRepository::delete);
 
         talkRoomRoleRepository.deleteAllByTalkRoom(talkRoom);
         talkRoomRepository.delete(talkRoom);
