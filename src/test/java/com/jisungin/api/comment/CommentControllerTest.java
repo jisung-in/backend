@@ -1,6 +1,8 @@
 package com.jisungin.api.comment;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -8,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jisungin.ControllerTestSupport;
 import com.jisungin.api.comment.request.CommentCreateRequest;
+import com.jisungin.api.comment.request.CommentEditRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -49,6 +52,40 @@ class CommentControllerTest extends ControllerTestSupport {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("400"))
                 .andExpect(jsonPath("$.message").value("내용은 필수 입니다."));
+    }
+
+    @Test
+    @DisplayName("의견을 작성한 유저가 자신의 의견을 수정한다.")
+    void editComment() throws Exception {
+        // given
+        CommentEditRequest request = CommentEditRequest.builder()
+                .content("의견 수정")
+                .build();
+
+        // when // then
+        mockMvc.perform(patch("/v1/talk-rooms/comments/1")
+                        .content(objectMapper.writeValueAsString(request))
+                        .contentType(APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"));
+    }
+
+    @Test
+    @DisplayName("의견을 작성한 유저가 자신의 의견을 삭제한다.")
+    void deleteComment() throws Exception {
+        // when // then
+        mockMvc.perform(delete("/v1/talk-rooms/comments/1")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"));
     }
 
 }
