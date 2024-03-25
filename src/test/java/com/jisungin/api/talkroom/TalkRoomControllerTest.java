@@ -1,6 +1,7 @@
 package com.jisungin.api.talkroom;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -179,6 +180,20 @@ class TalkRoomControllerTest extends ControllerTestSupport {
     void findOneTalkRoom() throws Exception {
         // when // then
         mockMvc.perform(get("/v1/talk-room/1")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"));
+    }
+
+    @Test
+    @DisplayName("토크방을 삭제한다.")
+    void deleteTalkRoom() throws Exception {
+        // when // then
+        mockMvc.perform(delete("/v1/talk-rooms/1")
                         .contentType(APPLICATION_JSON)
                 )
                 .andDo(print())
