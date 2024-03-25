@@ -8,13 +8,15 @@ import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.api.talkroom.request.TalkRoomSearchRequest;
 import com.jisungin.application.response.PageResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
-import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
+import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
+import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,8 +37,14 @@ public class TalkRoomController {
     }
 
     @GetMapping("/talk-rooms")
-    public ApiResponse<PageResponse<TalkRoomQueryResponse>> getTalkRooms(@ModelAttribute TalkRoomSearchRequest search) {
-        return ApiResponse.ok(talkRoomService.getTalkRooms(search.toService()));
+    public ApiResponse<PageResponse<TalkRoomFindAllResponse>> findAllTalkRoom(
+            @ModelAttribute TalkRoomSearchRequest search) {
+        return ApiResponse.ok(talkRoomService.findAllTalkRoom(search.toService()));
+    }
+
+    @GetMapping("/talk-room/{talkRoomId}")
+    public ApiResponse<TalkRoomFindOneResponse> findOneTalkRoom(@PathVariable Long talkRoomId) {
+        return ApiResponse.ok(talkRoomService.findOneTalkRoom(talkRoomId));
     }
 
     @PatchMapping("/talk-rooms")

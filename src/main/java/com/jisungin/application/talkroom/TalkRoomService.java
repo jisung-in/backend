@@ -4,7 +4,8 @@ import com.jisungin.application.response.PageResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
-import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
+import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
+import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -52,15 +53,22 @@ public class TalkRoomService {
                 book.getImageUrl(), book.getTitle());
     }
 
-    public PageResponse<TalkRoomQueryResponse> getTalkRooms(TalkRoomSearchServiceRequest search) {
-        return talkRoomRepository.getTalkRooms(search);
+    public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(TalkRoomSearchServiceRequest search) {
+        return talkRoomRepository.findAllTalkRoom(search);
+    }
+
+    public TalkRoomFindOneResponse findOneTalkRoom(Long talkRoomId) {
+        TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
+
+        return talkRoomRepository.findOneTalkRoom(talkRoom.getId());
     }
 
     @Transactional
     public TalkRoomResponse editTalkRoom(TalkRoomEditServiceRequest request, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        
+
         TalkRoom talkRoom = talkRoomRepository.findByIdWithUserAndBook(request.getId());
 
         if (!talkRoom.isTalkRoomOwner(user.getId())) {
