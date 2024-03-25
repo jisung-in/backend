@@ -42,4 +42,13 @@ public class Review extends BaseEntity {
         this.rating = rating;
     }
 
+    public static Review create(User user, Book book, String content, Double rating) {
+        return Review.builder()
+                .user(user)
+                .book(book)
+                .content(content)
+                .rating(rating)
+                .build();
+    }
+
 }
