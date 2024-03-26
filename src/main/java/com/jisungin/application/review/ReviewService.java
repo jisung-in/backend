@@ -47,7 +47,7 @@ public class ReviewService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
-        if (!user.isSame(reviewUser.getId())) {
+        if (!user.isMe(reviewUser.getId())) {
             throw new BusinessException(UNAUTHORIZED_REQUEST);
         }
         reviewRepository.delete(deleteReview);

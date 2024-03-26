@@ -56,8 +56,4 @@ public class User extends BaseEntity {
         return this.id.equals(userId);
     }
 
-    public boolean isSame(Long userId) {
-        return this.id.equals(userId);
-    }
-
 }
