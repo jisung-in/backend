@@ -1,6 +1,5 @@
 package com.jisungin.application.talkroom.response;
 
-import com.jisungin.domain.ReadingStatus;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,17 +7,16 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class TalkRoomQueryReadingStatus {
+public class TalkRoomLikeQueryResponse {
 
     private Long talkRoomId;
-
-    private ReadingStatus readingStatus;
+    private Long likeCount;
 
     @Builder
     @QueryProjection
-    public TalkRoomQueryReadingStatus(Long talkRoomId, ReadingStatus readingStatus) {
+    public TalkRoomLikeQueryResponse(Long talkRoomId, Long likeCount) {
         this.talkRoomId = talkRoomId;
-        this.readingStatus = readingStatus;
+        this.likeCount = likeCount;
     }
 
 }

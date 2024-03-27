@@ -17,7 +17,9 @@ public class TalkRoomFindAllResponse {
     private String content;
     private String bookName;
     private String bookImage;
-    private List<TalkRoomQueryReadingStatus> readingStatuses = new ArrayList<>();
+    private List<TalkRoomQueryReadingStatusResponse> readingStatuses = new ArrayList<>();
+    private List<TalkRoomLikeQueryResponse> likeCounts = new ArrayList<>();
+    private List<TalkRoomLikeUserIdResponse> userIds = new ArrayList<>();
 
     @Builder
     @QueryProjection
@@ -31,8 +33,16 @@ public class TalkRoomFindAllResponse {
         this.bookImage = bookImage;
     }
 
-    public void addTalkRoomStatus(List<TalkRoomQueryReadingStatus> readingStatuses) {
+    public void addTalkRoomStatus(List<TalkRoomQueryReadingStatusResponse> readingStatuses) {
         this.readingStatuses = readingStatuses;
+    }
+
+    public void addTalkRoomLikeUserIds(List<TalkRoomLikeUserIdResponse> userIds) {
+        this.userIds = userIds;
+    }
+
+    public void addLikeCounts(List<TalkRoomLikeQueryResponse> likeCounts) {
+        this.likeCounts = likeCounts;
     }
 
 }

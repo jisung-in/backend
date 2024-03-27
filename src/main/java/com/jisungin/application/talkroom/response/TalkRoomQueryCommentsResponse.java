@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class TalkRoomQueryComments {
+public class TalkRoomQueryCommentsResponse {
 
     private Long commentId;
     private String userName;
@@ -15,7 +15,7 @@ public class TalkRoomQueryComments {
 
     @Builder
     @QueryProjection
-    public TalkRoomQueryComments(Long commentId, String userName, String content) {
+    public TalkRoomQueryCommentsResponse(Long commentId, String userName, String content) {
         this.commentId = commentId;
         this.userName = userName;
         this.content = content;
