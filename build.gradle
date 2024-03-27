@@ -58,7 +58,8 @@ dependencies {
     runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.104.Final:osx-aarch_64'
     // Jsoup Web Crawling Library
     implementation 'org.jsoup:jsoup:1.16.2'
-
+    // JsonPath Parse Json Library
+    implementation 'com.jayway.jsonpath:json-path:2.9.0'
 }
 
 tasks.named('bootBuildImage') {
