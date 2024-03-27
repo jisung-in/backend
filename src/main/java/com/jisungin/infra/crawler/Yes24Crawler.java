@@ -1,5 +1,9 @@
 package com.jisungin.infra.crawler;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +19,21 @@ public class Yes24Crawler implements Crawler {
         String bookId = parser.parseIsbn(fetcher.fetchIsbn(isbn));
 
         return parser.parseBook(fetcher.fetchBook(bookId));
+    }
+
+    @Override
+    public Map<Long, CrawlingBook> crawlBestSellerBook() {
+        Map<Long, String> bestSellerBookIds = parser.parseBestSellerBookId(fetcher.fetchBestSellerBookId());
+        Map<Long, CrawlingBook> bestSellerBooks = new HashMap<>();
+
+        List<CompletableFuture<Void>> futures = bestSellerBookIds.entrySet().stream()
+                .map(entry -> CompletableFuture.supplyAsync(() -> parser.parseBook(fetcher.fetchBook(entry.getValue())))
+                        .thenAccept(crawlingBook -> bestSellerBooks.put(entry.getKey(), crawlingBook)))
+                .toList();
+
+        CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
+
+        return bestSellerBooks;
     }
 
 }

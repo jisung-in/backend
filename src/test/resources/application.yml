@@ -20,3 +20,19 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
+
+crawler:
+  yes24:
+    fetcher:
+      isbnUrl: "https://www.yes24.com/Product/Search?domain=BOOK&query="
+      bookUrl: "https://www.yes24.com/Product/Goods/"
+      bestBookUrl: "https://www.yes24.com/Product/Category/BestSeller?categoryNumber=001&pageNumber=1&pageSize=100"
+      userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36"
+    parser:
+      isbnCss: "ul#yesSchList > li"
+      isbnAttr: "data-goods-no"
+      bookContentCss: "div.infoWrap_txt > div.infoWrap_txtInner"
+      bookJsonCss: "script[type=application/ld+json]"
+      bestRankingCss: "div.img_upper > em.ico.rank"
+      bestIdCss: "ul#yesBestList > li"
+      bestIdAttrs: "data-goods-no"

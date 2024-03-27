@@ -10,4 +10,5 @@ spring:
       prod-env:
         - prod
     include:
-      oauth
+      - oauth
+      - crawler
