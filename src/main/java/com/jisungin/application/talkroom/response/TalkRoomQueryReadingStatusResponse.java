@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class TalkRoomQueryReadingStatus {
+public class TalkRoomQueryReadingStatusResponse {
 
     private Long talkRoomId;
 
@@ -16,7 +16,7 @@ public class TalkRoomQueryReadingStatus {
 
     @Builder
     @QueryProjection
-    public TalkRoomQueryReadingStatus(Long talkRoomId, ReadingStatus readingStatus) {
+    public TalkRoomQueryReadingStatusResponse(Long talkRoomId, ReadingStatus readingStatus) {
         this.talkRoomId = talkRoomId;
         this.readingStatus = readingStatus;
     }

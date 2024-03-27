@@ -6,7 +6,7 @@ import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.api.talkroom.request.TalkRoomSearchRequest;
-import com.jisungin.application.response.PageResponse;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
@@ -31,7 +31,6 @@ public class TalkRoomController {
 
     private final TalkRoomService talkRoomService;
 
-    // TODO. 회원 도메인이 개발되면 변경 예정
     @PostMapping("/talk-rooms")
     public ApiResponse<TalkRoomResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request, @Auth
     AuthContext authContext) {

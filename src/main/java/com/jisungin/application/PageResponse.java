@@ -1,4 +1,4 @@
-package com.jisungin.application.response;
+package com.jisungin.application;
 
 import java.util.ArrayList;
 import java.util.List;
