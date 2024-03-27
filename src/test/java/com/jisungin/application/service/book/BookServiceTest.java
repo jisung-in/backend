@@ -85,7 +85,8 @@ public class BookServiceTest {
                 .build();
 
         when(crawler.crawlBook(request.getIsbn()))
-                .thenReturn(CrawlingBook.of("도서 imageUrl", "도서 내용"));
+                .thenReturn(CrawlingBook.of("도서 제목", "도서 내용", "123456789X", "도서 출판사",
+                        "도서 imageUrl", "도서 썸네일", "도서 저자1, 도서 저자2", registeredDateTime));
 
         // when
         BookResponse response = bookService.createBook(request);
