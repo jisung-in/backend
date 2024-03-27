@@ -3,6 +3,7 @@ package com.jisungin.application.talkroom.request;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
+import com.jisungin.application.OrderType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,13 +18,16 @@ public class TalkRoomSearchServiceRequest {
 
     private Integer size;
 
-    private String order;
+    private OrderType orderType;
+
+    private String search;
 
     @Builder
-    private TalkRoomSearchServiceRequest(Integer page, Integer size, String order) {
+    private TalkRoomSearchServiceRequest(Integer page, Integer size, OrderType orderType, String search) {
         this.page = page;
         this.size = size;
-        this.order = order;
+        this.orderType = orderType;
+        this.search = search;
     }
 
     public long getOffset() {

@@ -6,7 +6,7 @@ import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.api.talkroom.request.TalkRoomSearchRequest;
-import com.jisungin.application.response.PageResponse;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;

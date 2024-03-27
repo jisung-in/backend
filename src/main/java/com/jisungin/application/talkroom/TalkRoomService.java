@@ -1,6 +1,6 @@
 package com.jisungin.application.talkroom;
 
-import com.jisungin.application.response.PageResponse;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;

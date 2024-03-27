@@ -26,13 +26,15 @@ public class TalkRoomFindOneResponse {
     @Builder
     @QueryProjection
     public TalkRoomFindOneResponse(Long talkRoomId, String userName, String title, String content, String bookName,
-                                   String bookImage) {
+                                   String bookImage, Long likeCount, Long commentCount) {
         this.talkRoomId = talkRoomId;
         this.userName = userName;
         this.title = title;
         this.content = content;
         this.bookName = bookName;
         this.bookImage = bookImage;
+        this.likeCount = likeCount;
+        this.commentCount = commentCount;
     }
 
     public void addTalkRoomStatus(List<TalkRoomQueryReadingStatusResponse> readingStatuses) {
@@ -41,10 +43,6 @@ public class TalkRoomFindOneResponse {
 
     public void addTalkRoomComments(List<TalkRoomQueryCommentsResponse> comments) {
         this.comments = comments;
-    }
-
-    public void addLikeCount(Long likeCount) {
-        this.likeCount = likeCount;
     }
 
     public void addCommentCount(Long commentCount) {

@@ -1,5 +1,7 @@
 package com.jisungin.domain.talkroom.repository;
 
+import static com.jisungin.application.OrderType.RECENT;
+import static com.jisungin.application.OrderType.RECOMMEND;
 import static com.jisungin.domain.book.QBook.book;
 import static com.jisungin.domain.comment.QComment.comment;
 import static com.jisungin.domain.talkroom.QTalkRoom.talkRoom;
@@ -7,21 +9,21 @@ import static com.jisungin.domain.talkroom.QTalkRoomRole.talkRoomRole;
 import static com.jisungin.domain.talkroomlike.QTalkRoomLike.talkRoomLike;
 import static com.jisungin.domain.user.QUser.user;
 
-import com.jisungin.application.response.PageResponse;
+import com.jisungin.application.OrderType;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
 import com.jisungin.application.talkroom.response.QTalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomFindOneResponse;
-import com.jisungin.application.talkroom.response.QTalkRoomLikeQueryResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomLikeUserIdResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomQueryCommentsResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomQueryReadingStatusResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
-import com.jisungin.application.talkroom.response.TalkRoomLikeQueryResponse;
 import com.jisungin.application.talkroom.response.TalkRoomLikeUserIdResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryCommentsResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryReadingStatusResponse;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Map;
@@ -37,25 +39,22 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     @Override
     public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(TalkRoomSearchServiceRequest search) {
 
-        //루트 조회(toOne 코드를 모두 한번에 조회)
+        //루트 조회(toOne 코드를 모두 한번에 조회) -> Query 1번 발생
         List<TalkRoomFindAllResponse> findTalkRoom = findTalkRoomBySearch(search);
 
-        //TalkRoomRole 컬렉션을 MAP 한방에 조회
+        //TalkRoomRole 컬렉션을 MAP 한방에 조회 -> Query 1번 발생
         Map<Long, List<TalkRoomQueryReadingStatusResponse>> talkRoomRoleMap = findTalkRoomRoleMap(
                 toTalkRoomIds(findTalkRoom));
 
         //루프를 돌면서 컬렉션 추가(추가 쿼리 실행X)
         findTalkRoom.forEach(t -> t.addTalkRoomStatus(talkRoomRoleMap.get(t.getTalkRoomId())));
 
-        // 좋아요 추가
-        Map<Long, List<TalkRoomLikeQueryResponse>> likeCountMap = talkRoomLikeCount(toTalkRoomIds(findTalkRoom));
-        findTalkRoom.forEach(t -> t.addLikeCounts(likeCountMap.get(t.getTalkRoomId())));
-
-        // 좋아요한 유저 ID 정보들
+        // 좋아요한 유저 ID 정보들 추가 -> Query 1번 발생
         Map<Long, List<TalkRoomLikeUserIdResponse>> talkRoomLikeUserMap = findTalkRoomLikeUserId(
                 toTalkRoomIds(findTalkRoom));
         findTalkRoom.forEach(t -> t.addTalkRoomLikeUserIds(talkRoomLikeUserMap.get(t.getTalkRoomId())));
 
+        // query 1번 발생
         long totalCount = getTotalTalkRoomCount();
 
         return PageResponse.<TalkRoomFindAllResponse>builder()
@@ -76,10 +75,6 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         List<TalkRoomQueryCommentsResponse> talkRoomComments = findCommentsByTalkRoomId(talkRoomId);
         findOneTalkRoom.addTalkRoomComments(talkRoomComments);
 
-        findOneTalkRoom.addLikeCount(findOneTalkRoomLikeCount(talkRoomId));
-
-        findOneTalkRoom.addCommentCount(findOneTalkRoomCommentCount(talkRoomId));
-
         List<TalkRoomLikeUserIdResponse> userIds = findOneTalkRoomLikeUserId(talkRoomId);
         findOneTalkRoom.addUserIds(userIds);
 
@@ -94,15 +89,23 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         talkRoom.title,
                         talkRoom.content,
                         book.title,
-                        book.imageUrl.as("bookImage")
+                        book.imageUrl.as("bookImage"),
+                        talkRoomLike.count().as("likeCount")
                 ))
                 .from(talkRoom)
                 .join(talkRoom.user, user)
                 .join(talkRoom.book, book)
+                .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
+                .groupBy(talkRoom.id)
+                .where(searchQuery(search.getSearch()))
                 .offset(search.getOffset())
                 .limit(search.getSize())
-                .orderBy(condition(search.getOrder()))
+                .orderBy(condition(search.getOrderType()))
                 .fetch();
+    }
+
+    private BooleanExpression searchQuery(String search) {
+        return search != null ? talkRoom.title.contains(search) : null;
     }
 
     // 쿼리에서 가져온 토크룸 ID를 List<Long> 객체에 넣어주는 로직
@@ -128,23 +131,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .collect(Collectors.groupingBy(TalkRoomQueryReadingStatusResponse::getTalkRoomId));
     }
 
-    // 좋아요 총 개수 가져온 후 Map<>에 넣어주는 로직
-    public Map<Long, List<TalkRoomLikeQueryResponse>> talkRoomLikeCount(List<Long> talkRoomId) {
-        List<TalkRoomLikeQueryResponse> likeCount = queryFactory.select(new QTalkRoomLikeQueryResponse(
-                        talkRoom.id.as("talkRoomId"),
-                        talkRoomLike.count().as("likeCount")
-                ))
-                .from(talkRoomLike)
-                .join(talkRoomLike.talkRoom, talkRoom)
-                .where(talkRoomLike.talkRoom.id.in(talkRoomId))
-                .groupBy(talkRoom.id)
-                .fetch();
-
-        return likeCount.stream()
-                .collect(Collectors.groupingBy(TalkRoomLikeQueryResponse::getTalkRoomId));
-    }
-
-    // 토크룸 좋아요 누른 사용자 ID 가져온 후 Map<>에 넣어주는 로직
+    // 페이징 조회 -> 토크룸 좋아요 누른 사용자 ID 가져온 후 Map<>에 넣어주는 로직
     private Map<Long, List<TalkRoomLikeUserIdResponse>> findTalkRoomLikeUserId(List<Long> talkRoomIds) {
         List<TalkRoomLikeUserIdResponse> talkRoomLikeUserIds = queryFactory.select(new QTalkRoomLikeUserIdResponse(
                         talkRoom.id.as("talkRoomId"),
@@ -160,7 +147,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .collect(Collectors.groupingBy(TalkRoomLikeUserIdResponse::getTalkRoomId));
     }
 
-    // 토크룸 좋아요 누른 사용자 ID 가져온 후 Map<>에 넣어주는 로직
+    // 단건 조회 -> 토크룸 좋아요 누른 사용자 ID 가져온 후 Map<>에 넣어주는 로직
     private List<TalkRoomLikeUserIdResponse> findOneTalkRoomLikeUserId(Long talkRoomId) {
         return queryFactory.select(new QTalkRoomLikeUserIdResponse(
                         talkRoom.id.as("talkRoomId"),
@@ -217,39 +204,27 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         talkRoom.title,
                         talkRoom.content,
                         book.title,
-                        book.imageUrl.as("bookImage")
+                        book.imageUrl.as("bookImage"),
+                        talkRoomLike.count().as("likeCount"),
+                        comment.count().as("commentCount")
                 ))
                 .from(talkRoom)
                 .join(talkRoom.user, user)
                 .join(talkRoom.book, book)
+                .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
+                .leftJoin(comment).on(talkRoom.eq(comment.talkRoom))
+                .groupBy(talkRoom.id)
                 .where(talkRoom.id.eq(talkRoomId))
                 .fetchOne();
     }
 
-    // 토크룸 단건 조회 시 좋아요 총 개수 찾아오는 로직
-    private Long findOneTalkRoomLikeCount(Long talkRoomId) {
-        return queryFactory.select(talkRoomLike.count())
-                .from(talkRoomLike)
-                .join(talkRoomLike.talkRoom, talkRoom)
-                .where(talkRoomLike.talkRoom.id.eq(talkRoomId))
-                .fetchOne();
-    }
-
-    // 토크룸 단건 조회 시 의견 총 개수 가져오는 로직
-    private Long findOneTalkRoomCommentCount(Long talkRoomId) {
-        return queryFactory.select(comment.count())
-                .from(comment)
-                .join(comment.talkRoom, talkRoom)
-                .where(comment.talkRoom.id.eq(talkRoomId))
-                .fetchOne();
-    }
-
-    /**
-     * 아직 좋아요 기능이 구현 되지 않아 최신순으로만 정렬
-     */
-    private OrderSpecifier<?> condition(String order) {
-//         if (order.equals("recent"))
-        return talkRoom.id.desc();
+    private OrderSpecifier<?> condition(OrderType orderType) {
+        if (RECENT.equals(orderType)) {
+            return talkRoom.id.desc();
+        } else if (RECOMMEND.equals(orderType)) {
+            return talkRoomLike.count().desc();
+        }
+        return OrderByNull.DEFAULT;
     }
 
 }
