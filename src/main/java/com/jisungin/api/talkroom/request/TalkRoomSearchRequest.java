@@ -33,7 +33,7 @@ public class TalkRoomSearchRequest {
                 .page(page)
                 .size(size)
                 .search(search)
-                .orderType(OrderType.conversionOrderType(order))
+                .orderType(OrderType.convertToOrderType(order))
                 .build();
     }
 

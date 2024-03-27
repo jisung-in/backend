@@ -10,7 +10,7 @@ public enum OrderType {
 
     private final String text;
 
-    public static OrderType conversionOrderType(String order) {
+    public static OrderType convertToOrderType(String order) {
         return switch (order) {
             case "recent" -> RECENT;
             case "recommend" -> RECOMMEND;
