@@ -13,6 +13,8 @@ import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
+import com.jisungin.domain.commentlike.CommentLike;
+import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
 import com.jisungin.domain.oauth.OauthId;
 import com.jisungin.domain.oauth.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
@@ -51,8 +53,12 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
     @Autowired
     TalkRoomLikeRepository talkRoomLikeRepository;
 
+    @Autowired
+    CommentLikeRepository commentLikeRepository;
+
     @AfterEach
     void tearDown() {
+        commentLikeRepository.deleteAllInBatch();
         talkRoomLikeRepository.deleteAllInBatch();
         commentRepository.deleteAllInBatch();
         talkRoomRoleRepository.deleteAllInBatch();
@@ -524,6 +530,42 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         assertThat(talkRoom1.getTitle()).isEqualTo(response.getQueryResponse().get(0).getTitle());
         assertThat(talkRoom2.getTitle()).isEqualTo(response.getQueryResponse().get(1).getTitle());
         assertThat(talkRoom3.getTitle()).isEqualTo(response.getQueryResponse().get(2).getTitle());
+    }
+
+    @Test
+    @DisplayName("querydsl 단건 조회 토크방 의견 좋아요 표시 테스트")
+    void commentLikeCountTest() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        Comment comment = createComment(talkRoom, user);
+        commentRepository.save(comment);
+
+        CommentLike commentLike = CommentLike.builder()
+                .comment(comment)
+                .user(user)
+                .build();
+        commentLikeRepository.save(commentLike);
+
+        // when
+        TalkRoomFindOneResponse findOneTalkRoom = talkRoomRepository.findOneTalkRoom(talkRoom.getId());
+
+        // then
+        assertThat("토론방").isEqualTo(findOneTalkRoom.getTitle());
+        assertThat(2).isEqualTo(findOneTalkRoom.getReadingStatuses().size());
+        assertThat("의견 남기기").isEqualTo(findOneTalkRoom.getComments().get(0).getContent());
+        assertThat("user@gmail.com").isEqualTo(findOneTalkRoom.getComments().get(0).getUserName());
+        assertThat(1L).isEqualTo(findOneTalkRoom.getComments().get(0).getCommentLikeCount());
+        assertThat(user.getId()).isEqualTo(findOneTalkRoom.getComments().get(0).getUserIds().get(0).getUserId());
     }
 
     private static Comment createComment(TalkRoom talkRoom, User user) {

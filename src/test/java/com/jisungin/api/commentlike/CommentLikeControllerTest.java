@@ -40,4 +40,5 @@ class CommentLikeControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("좋아요 취소"));
     }
+
 }
