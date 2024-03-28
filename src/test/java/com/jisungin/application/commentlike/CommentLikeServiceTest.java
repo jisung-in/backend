@@ -161,6 +161,38 @@ class CommentLikeServiceTest extends ServiceTestSupport {
                 .hasMessage("이미 좋아요를 눌렀습니다.");
     }
 
+    @Test
+    @DisplayName("유저가 좋아요를 취소한다.")
+    void unLikeComment() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        Comment comment = createComment(user, talkRoom);
+        commentRepository.save(comment);
+
+        CommentLike commentLike = CommentLike.builder()
+                .comment(comment)
+                .user(user)
+                .build();
+        commentLikeRepository.save(commentLike);
+
+        // when
+        commentLikeService.unLikeComment(comment.getId(), user.getId());
+
+        // then
+        List<CommentLike> likes = commentLikeRepository.findAll();
+        assertThat(0).isEqualTo(likes.size());
+    }
+
     private static Comment createComment(User user, TalkRoom talkRoom) {
         return Comment.builder()
                 .content("의견")
