@@ -1,5 +1,6 @@
 package com.jisungin.application.talkroom.response;
 
+import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.querydsl.core.annotations.QueryProjection;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,7 @@ public class TalkRoomFindOneResponse {
     private String bookName;
     private String bookImage;
     private List<TalkRoomQueryReadingStatusResponse> readingStatuses = new ArrayList<>();
-    private List<TalkRoomQueryCommentsResponse> comments = new ArrayList<>();
+    private List<CommentQueryResponse> comments = new ArrayList<>();
     private Long likeCount;
     private Long commentCount;
     private List<TalkRoomLikeUserIdResponse> userIds = new ArrayList<>();
@@ -41,7 +42,7 @@ public class TalkRoomFindOneResponse {
         this.readingStatuses = readingStatuses;
     }
 
-    public void addTalkRoomComments(List<TalkRoomQueryCommentsResponse> comments) {
+    public void addTalkRoomComments(List<CommentQueryResponse> comments) {
         this.comments = comments;
     }
 
