@@ -31,7 +31,7 @@ public class TalkRoomLikeController {
     }
 
     @DeleteMapping("/talk-rooms/{talkRoomId}/likes")
-    public ApiResponse<Void> nuLikeTalkRoom(@PathVariable Long talkRoomId,
+    public ApiResponse<Void> unLikeTalkRoom(@PathVariable Long talkRoomId,
                                             @Auth AuthContext authContext) {
         talkRoomLikeService.unLikeTalkRoom(talkRoomId, authContext.getUserId());
 

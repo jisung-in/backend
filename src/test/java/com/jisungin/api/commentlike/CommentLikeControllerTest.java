@@ -29,7 +29,7 @@ class CommentLikeControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("유저가 의견에 좋아요를 취소할 수 있다")
-    void nuLikeTalkRoom() throws Exception {
+    void unLikeTalkRoom() throws Exception {
         // when // then
         mockMvc.perform(delete("/v1/comments/1/likes")
                         .contentType(APPLICATION_JSON)
