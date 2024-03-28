@@ -1,4 +1,4 @@
-package com.jisungin.application.talkroom.response;
+package com.jisungin.application.comment.response;
 
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
@@ -7,17 +7,18 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class TalkRoomLikeUserIdResponse {
+public class CommentLikeUserIdResponse {
 
-    private Long talkRoomId;
+    private Long commentId;
 
     private Long userId;
 
     @Builder
     @QueryProjection
-    public TalkRoomLikeUserIdResponse(Long talkRoomId, Long userId) {
-        this.talkRoomId = talkRoomId;
+    public CommentLikeUserIdResponse(Long commentId, Long userId) {
+        this.commentId = commentId;
         this.userId = userId;
     }
 
 }
+

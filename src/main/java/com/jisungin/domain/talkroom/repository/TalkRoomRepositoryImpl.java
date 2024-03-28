@@ -4,6 +4,7 @@ import static com.jisungin.application.OrderType.RECENT;
 import static com.jisungin.application.OrderType.RECOMMEND;
 import static com.jisungin.domain.book.QBook.book;
 import static com.jisungin.domain.comment.QComment.comment;
+import static com.jisungin.domain.commentlike.QCommentLike.commentLike;
 import static com.jisungin.domain.talkroom.QTalkRoom.talkRoom;
 import static com.jisungin.domain.talkroom.QTalkRoomRole.talkRoomRole;
 import static com.jisungin.domain.talkroomlike.QTalkRoomLike.talkRoomLike;
@@ -11,16 +12,18 @@ import static com.jisungin.domain.user.QUser.user;
 
 import com.jisungin.application.OrderType;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.comment.response.CommentLikeUserIdResponse;
+import com.jisungin.application.comment.response.CommentQueryResponse;
+import com.jisungin.application.comment.response.QCommentLikeUserIdResponse;
+import com.jisungin.application.comment.response.QCommentQueryResponse;
 import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
 import com.jisungin.application.talkroom.response.QTalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomLikeUserIdResponse;
-import com.jisungin.application.talkroom.response.QTalkRoomQueryCommentsResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomQueryReadingStatusResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomLikeUserIdResponse;
-import com.jisungin.application.talkroom.response.TalkRoomQueryCommentsResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryReadingStatusResponse;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -50,7 +53,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         findTalkRoom.forEach(t -> t.addTalkRoomStatus(talkRoomRoleMap.get(t.getTalkRoomId())));
 
         // 좋아요한 유저 ID 정보들 추가 -> Query 1번 발생
-        Map<Long, List<TalkRoomLikeUserIdResponse>> talkRoomLikeUserMap = findTalkRoomLikeUserId(
+        Map<Long, List<TalkRoomLikeUserIdResponse>> talkRoomLikeUserMap = findAllTalkRoomLikeUserId(
                 toTalkRoomIds(findTalkRoom));
         findTalkRoom.forEach(t -> t.addTalkRoomLikeUserIds(talkRoomLikeUserMap.get(t.getTalkRoomId())));
 
@@ -72,11 +75,18 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         List<TalkRoomQueryReadingStatusResponse> talkRoomRoles = findTalkRoomRoleByTalkRoomId(talkRoomId);
         findOneTalkRoom.addTalkRoomStatus(talkRoomRoles);
 
-        List<TalkRoomQueryCommentsResponse> talkRoomComments = findCommentsByTalkRoomId(talkRoomId);
+        List<CommentQueryResponse> talkRoomComments = findCommentsByTalkRoomId(talkRoomId);
         findOneTalkRoom.addTalkRoomComments(talkRoomComments);
+
+        List<Long> commentIds = talkRoomComments.stream()
+                .map(CommentQueryResponse::getCommentId)
+                .collect(Collectors.toList());
 
         List<TalkRoomLikeUserIdResponse> userIds = findOneTalkRoomLikeUserId(talkRoomId);
         findOneTalkRoom.addUserIds(userIds);
+
+        Map<Long, List<CommentLikeUserIdResponse>> CommentLikeUserIdMap = findAllCommentLikeUserId(commentIds);
+        talkRoomComments.forEach(c -> c.addLikeUserIds(CommentLikeUserIdMap.get(c.getCommentId())));
 
         return findOneTalkRoom;
     }
@@ -132,7 +142,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     // 페이징 조회 -> 토크룸 좋아요 누른 사용자 ID 가져온 후 Map<>에 넣어주는 로직
-    private Map<Long, List<TalkRoomLikeUserIdResponse>> findTalkRoomLikeUserId(List<Long> talkRoomIds) {
+    private Map<Long, List<TalkRoomLikeUserIdResponse>> findAllTalkRoomLikeUserId(List<Long> talkRoomIds) {
         List<TalkRoomLikeUserIdResponse> talkRoomLikeUserIds = queryFactory.select(new QTalkRoomLikeUserIdResponse(
                         talkRoom.id.as("talkRoomId"),
                         user.id.as("userId")
@@ -173,17 +183,35 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     // 토크룸에 저장된 의견들 가져오는 쿼리
-    private List<TalkRoomQueryCommentsResponse> findCommentsByTalkRoomId(Long talkRoomId) {
-        return queryFactory.select(new QTalkRoomQueryCommentsResponse(
+    private List<CommentQueryResponse> findCommentsByTalkRoomId(Long talkRoomId) {
+        return queryFactory.select(new QCommentQueryResponse(
                         comment.id.as("commentId"),
                         user.name.as("userName"),
-                        comment.content
+                        comment.content,
+                        commentLike.count().as("commentLikeCount")
                 ))
                 .from(comment)
                 .join(comment.talkRoom, talkRoom)
                 .join(comment.user, user)
+                .leftJoin(commentLike).on(comment.eq(commentLike.comment))
+                .groupBy(comment.id)
                 .where(comment.talkRoom.id.eq(talkRoomId))
                 .fetch();
+    }
+
+    private Map<Long, List<CommentLikeUserIdResponse>> findAllCommentLikeUserId(List<Long> commentIds) {
+        List<CommentLikeUserIdResponse> commentLikeUserIds = queryFactory.select(new QCommentLikeUserIdResponse(
+                        comment.id.as("commentId"),
+                        user.id.as("userId")
+                ))
+                .from(commentLike)
+                .join(commentLike.comment, comment)
+                .join(commentLike.user, user)
+                .where(commentLike.comment.id.in(commentIds))
+                .fetch();
+
+        return commentLikeUserIds.stream()
+                .collect(Collectors.groupingBy(CommentLikeUserIdResponse::getCommentId));
     }
 
     // 토크룸 전체 개수 가져오는 쿼리
