@@ -19,7 +19,8 @@ public enum ErrorCode {
     REVIEW_NOT_FOUND(404, "리뷰를 찾을 수 없습니다."),
     TALK_ROOM_LIKE_NOT_FOUND(404, "토크방 좋아요를 찾을 수 없습니다."),
     LIKE_EXIST(400, "이미 좋아요를 눌렀습니다."),
-    REQUEST_TIME_OUT(408, "요청 시간이 만료 되었습니다.");
+    REQUEST_TIME_OUT(408, "요청 시간이 만료 되었습니다."),
+    COMMENT_LIKE_NOT_FOUND(404, "의견 좋아요를 찾을 수 없습니다.");
 
 
     private final int code;

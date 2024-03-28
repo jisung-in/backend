@@ -28,7 +28,7 @@ public class TalkRoomLikeService {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        if (talkRoomLikeRepository.findByTalkRoomIdAndUserId(talkRoomId, userId).isPresent()) {
+        if (talkRoomLikeRepository.findByTalkRoomIdAndUserId(talkRoom.getId(), user.getId()).isPresent()) {
             throw new BusinessException(ErrorCode.LIKE_EXIST);
         }
 

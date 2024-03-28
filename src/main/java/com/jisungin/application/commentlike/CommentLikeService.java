@@ -10,7 +10,9 @@ import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class CommentLikeService {
@@ -21,13 +23,14 @@ public class CommentLikeService {
 
     private final UserRepository userRepository;
 
+    @Transactional
     public void likeComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
         User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        if (commentLikeRepository.findByCommentIdAndUserId(commentId, userId).isPresent()) {
+        if (commentLikeRepository.findByCommentIdAndUserId(comment.getId(), user.getId()).isPresent()) {
             throw new BusinessException(ErrorCode.LIKE_EXIST);
         }
 
@@ -36,4 +39,16 @@ public class CommentLikeService {
         commentLikeRepository.save(commentLike);
     }
 
+    @Transactional
+    public void unLikeComment(Long commentId, Long userId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        CommentLike commentLike = commentLikeRepository.findByCommentIdAndUserId(comment.getId(), user.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_LIKE_NOT_FOUND));
+
+        commentLikeRepository.delete(commentLike);
+    }
 }

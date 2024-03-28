@@ -6,10 +6,7 @@ import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.commentlike.CommentLikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RequestMapping("/v1")
@@ -25,6 +22,17 @@ public class CommentLikeController {
 
         return ApiResponse.<Void>builder()
                 .message("좋아요 성공")
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @DeleteMapping("/comments/{commentId}/likes")
+    public ApiResponse<Void> unLikeComment(@PathVariable Long commentId,
+                                           @Auth AuthContext authContext) {
+        commentLikeService.unLikeComment(commentId, authContext.getUserId());
+
+        return ApiResponse.<Void>builder()
+                .message("좋아요 취소")
                 .status(HttpStatus.OK)
                 .build();
     }
