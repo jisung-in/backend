@@ -248,8 +248,6 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("메시지"),
                                 fieldWithPath("data").type(JsonFieldType.OBJECT)
                                         .description("응답 데이터"),
-                                fieldWithPath("data").type(JsonFieldType.OBJECT)
-                                        .description("조회 데이터"),
                                 fieldWithPath("data.talkRoomId").type(JsonFieldType.NUMBER)
                                         .description("토론방 번호"),
                                 fieldWithPath("data.userName").type(JsonFieldType.STRING)
