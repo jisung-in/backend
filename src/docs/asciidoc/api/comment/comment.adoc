@@ -1,0 +1,35 @@
+=== 신규 의견 작성
+
+==== HTTP Request
+
+include::{snippets}/comment/create/http-request.adoc[]
+include::{snippets}/comment/create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/comment/create/http-response.adoc[]
+include::{snippets}/comment/create/response-fields.adoc[]
+
+=== 의견 수정
+
+==== HTTP Request
+
+include::{snippets}/comment/edit/http-request.adoc[]
+include::{snippets}/comment/edit/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/comment/edit/http-response.adoc[]
+include::{snippets}/comment/edit/response-fields.adoc[]
+
+=== 의견 삭제
+
+==== HTTP Request
+
+include::{snippets}/comment/delete/http-request.adoc[]
+include::{snippets}/comment/delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/comment/delete/http-response.adoc[]
+include::{snippets}/comment/delete/response-fields.adoc[]

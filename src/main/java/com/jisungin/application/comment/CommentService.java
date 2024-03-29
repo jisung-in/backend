@@ -1,5 +1,6 @@
 package com.jisungin.application.comment;
 
+import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.request.CommentEditServiceRequest;
 import com.jisungin.application.comment.response.CommentResponse;
@@ -25,8 +26,8 @@ public class CommentService {
     private final UserRepository userRepository;
 
     @Transactional
-    public CommentResponse writeComment(CommentCreateServiceRequest request, Long talkRoomId, Long userId) {
-        User user = userRepository.findById(userId)
+    public CommentResponse writeComment(CommentCreateServiceRequest request, Long talkRoomId, AuthContext authContext) {
+        User user = userRepository.findById(authContext.getUserId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
@@ -40,11 +41,12 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentResponse editComment(Long commentId, CommentEditServiceRequest request, Long userId) {
+    public CommentResponse editComment(Long commentId, CommentEditServiceRequest request, AuthContext authContext) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(authContext.getUserId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!comment.isCommentOwner(user.getId())) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
@@ -56,11 +58,12 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(Long commentId, Long userId) {
+    public void deleteComment(Long commentId, AuthContext authContext) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(authContext.getUserId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!comment.isCommentOwner(user.getId())) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);

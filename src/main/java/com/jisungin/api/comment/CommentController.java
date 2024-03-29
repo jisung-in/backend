@@ -29,20 +29,20 @@ public class CommentController {
     public ApiResponse<CommentResponse> writeComment(@PathVariable Long talkRoomId,
                                                      @Valid @RequestBody CommentCreateRequest request,
                                                      @Auth AuthContext authContext) {
-        return ApiResponse.ok(commentService.writeComment(request.toService(), talkRoomId, authContext.getUserId()));
+        return ApiResponse.ok(commentService.writeComment(request.toService(), talkRoomId, authContext));
     }
 
     @PatchMapping("/talk-rooms/comments/{commentId}")
     public ApiResponse<CommentResponse> editComment(@PathVariable Long commentId,
                                                     @Valid @RequestBody CommentEditRequest request,
                                                     @Auth AuthContext authContext) {
-        return ApiResponse.ok(commentService.editComment(commentId, request.toService(), authContext.getUserId()));
+        return ApiResponse.ok(commentService.editComment(commentId, request.toService(), authContext));
     }
 
     @DeleteMapping("/talk-rooms/comments/{commentId}")
     public ApiResponse<Void> deleteComment(@PathVariable Long commentId,
                                            @Auth AuthContext authContext) {
-        commentService.deleteComment(commentId, authContext.getUserId());
+        commentService.deleteComment(commentId, authContext);
 
         return ApiResponse.<Void>builder()
                 .message("OK")

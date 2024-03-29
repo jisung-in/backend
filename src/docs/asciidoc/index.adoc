@@ -13,3 +13,8 @@ endif::[]
 == TalkRoom API
 
 include::api/talkroom/talkroom.adoc[]
+
+[[Comment-API]]
+== Comment API
+
+include::api/comment/comment.adoc[]

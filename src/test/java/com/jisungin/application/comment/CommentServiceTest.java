@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
+import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.request.CommentEditServiceRequest;
 import com.jisungin.application.comment.response.CommentResponse;
@@ -49,6 +50,9 @@ class CommentServiceTest extends ServiceTestSupport {
     @Autowired
     CommentRepository commentRepository;
 
+    @Autowired
+    AuthContext authContext;
+
     @AfterEach
     void tearDown() {
         commentRepository.deleteAllInBatch();
@@ -76,8 +80,11 @@ class CommentServiceTest extends ServiceTestSupport {
         CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
                 .content("의견 남기기")
                 .build();
+
+        authContext.setUserId(user.getId());
+
         // when
-        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId());
+        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), authContext);
 
         // then
         assertThat(response)
@@ -107,8 +114,10 @@ class CommentServiceTest extends ServiceTestSupport {
                 .content("의견 수정")
                 .build();
 
+        authContext.setUserId(user.getId());
+
         // when
-        CommentResponse response = commentService.editComment(talkRoom.getId(), request, user.getId());
+        CommentResponse response = commentService.editComment(talkRoom.getId(), request, authContext);
 
         // then
         assertThat(response)
@@ -137,8 +146,10 @@ class CommentServiceTest extends ServiceTestSupport {
         CommentEditServiceRequest request = CommentEditServiceRequest.builder()
                 .build();
 
+        authContext.setUserId(user.getId());
+
         // when
-        CommentResponse response = commentService.editComment(talkRoom.getId(), request, user.getId());
+        CommentResponse response = commentService.editComment(talkRoom.getId(), request, authContext);
 
         // then
         assertThat(response)
@@ -180,8 +191,10 @@ class CommentServiceTest extends ServiceTestSupport {
                 .content("의견 수정")
                 .build();
 
+        authContext.setUserId(userB.getId());
+
         // when // then
-        assertThatThrownBy(() -> commentService.editComment(talkRoom.getId(), request, userB.getId()))
+        assertThatThrownBy(() -> commentService.editComment(talkRoom.getId(), request, authContext))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
@@ -204,8 +217,10 @@ class CommentServiceTest extends ServiceTestSupport {
         Comment comment = createComment(user, talkRoom);
         commentRepository.save(comment);
 
+        authContext.setUserId(user.getId());
+
         // when
-        commentService.deleteComment(comment.getId(), user.getId());
+        commentService.deleteComment(comment.getId(), authContext);
 
         // then
         List<Comment> comments = commentRepository.findAll();
@@ -242,8 +257,10 @@ class CommentServiceTest extends ServiceTestSupport {
         Comment comment = createComment(userA, talkRoom);
         commentRepository.save(comment);
 
+        authContext.setUserId(userB.getId());
+
         // when // then
-        assertThatThrownBy(() -> commentService.deleteComment(comment.getId(), userB.getId()))
+        assertThatThrownBy(() -> commentService.deleteComment(comment.getId(), authContext))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
