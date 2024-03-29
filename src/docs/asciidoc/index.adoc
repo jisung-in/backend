@@ -23,3 +23,8 @@ include::api/comment/comment.adoc[]
 == TalkRoomLike API
 
 include::api/talkroomlike/talkroomlike.adoc[]
+
+[[CommentLike-API]]
+== CommentLike API
+
+include::api/commentlike/commentlike.adoc[]

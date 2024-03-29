@@ -1,0 +1,23 @@
+=== 의견 좋아요 생성
+
+==== HTTP Request
+
+include::{snippets}/commentlike/create/http-request.adoc[]
+include::{snippets}/commentlike/create/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/commentlike/create/http-response.adoc[]
+include::{snippets}/commentlike/create/response-fields.adoc[]
+
+=== 의견 좋아요 삭제
+
+==== HTTP Request
+
+include::{snippets}/commentlike/delete/http-request.adoc[]
+include::{snippets}/commentlike/delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/commentlike/delete/http-response.adoc[]
+include::{snippets}/commentlike/delete/response-fields.adoc[]
