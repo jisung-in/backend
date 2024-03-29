@@ -1,0 +1,23 @@
+=== 토론방 좋아요 생성
+
+==== HTTP Request
+
+include::{snippets}/talkroomlike/create/http-request.adoc[]
+include::{snippets}/talkroomlike/create/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/talkroomlike/create/http-response.adoc[]
+include::{snippets}/talkroomlike/create/response-fields.adoc[]
+
+=== 토론방 좋아요 삭제
+
+==== HTTP Request
+
+include::{snippets}/talkroomlike/delete/http-request.adoc[]
+include::{snippets}/talkroomlike/delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/talkroomlike/delete/http-response.adoc[]
+include::{snippets}/talkroomlike/delete/response-fields.adoc[]

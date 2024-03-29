@@ -22,7 +22,7 @@ public class TalkRoomLikeController {
     @PostMapping("/talk-rooms/{talkRoomId}/likes")
     public ApiResponse<Void> likeTalkRoom(@PathVariable Long talkRoomId,
                                           @Auth AuthContext authContext) {
-        talkRoomLikeService.likeTalkRoom(talkRoomId, authContext.getUserId());
+        talkRoomLikeService.likeTalkRoom(talkRoomId, authContext);
 
         return ApiResponse.<Void>builder()
                 .message("좋아요 성공")
@@ -33,7 +33,7 @@ public class TalkRoomLikeController {
     @DeleteMapping("/talk-rooms/{talkRoomId}/likes")
     public ApiResponse<Void> unLikeTalkRoom(@PathVariable Long talkRoomId,
                                             @Auth AuthContext authContext) {
-        talkRoomLikeService.unLikeTalkRoom(talkRoomId, authContext.getUserId());
+        talkRoomLikeService.unLikeTalkRoom(talkRoomId, authContext);
 
         return ApiResponse.<Void>builder()
                 .message("좋아요 취소")
