@@ -1,16 +1,15 @@
-package com.jisungin.application.talkroom.request;
+package com.jisungin.application;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-import com.jisungin.application.OrderType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class TalkRoomSearchServiceRequest {
+public class SearchServiceRequest {
 
     private static final int MAX_SIZE = 2000;
 
@@ -23,7 +22,7 @@ public class TalkRoomSearchServiceRequest {
     private String search;
 
     @Builder
-    private TalkRoomSearchServiceRequest(Integer page, Integer size, OrderType orderType, String search) {
+    private SearchServiceRequest(Integer page, Integer size, OrderType orderType, String search) {
         this.page = page;
         this.size = size;
         this.orderType = orderType;

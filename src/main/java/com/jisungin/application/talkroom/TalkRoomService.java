@@ -1,9 +1,10 @@
 package com.jisungin.application.talkroom;
 
+import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
-import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
@@ -36,8 +37,8 @@ public class TalkRoomService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public TalkRoomResponse createTalkRoom(TalkRoomCreateServiceRequest request, Long userId) {
-        User user = userRepository.findById(userId)
+    public TalkRoomResponse createTalkRoom(TalkRoomCreateServiceRequest request, AuthContext authContext) {
+        User user = userRepository.findById(authContext.getUserId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Book book = bookRepository.findById(request.getBookIsbn())
@@ -55,7 +56,7 @@ public class TalkRoomService {
                 book.getImageUrl(), book.getTitle());
     }
 
-    public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(TalkRoomSearchServiceRequest search) {
+    public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(SearchServiceRequest search) {
         return talkRoomRepository.findAllTalkRoom(search);
     }
 
@@ -67,8 +68,8 @@ public class TalkRoomService {
     }
 
     @Transactional
-    public TalkRoomResponse editTalkRoom(TalkRoomEditServiceRequest request, Long userId) {
-        User user = userRepository.findById(userId)
+    public TalkRoomResponse editTalkRoom(TalkRoomEditServiceRequest request, AuthContext authContext) {
+        User user = userRepository.findById(authContext.getUserId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         TalkRoom talkRoom = talkRoomRepository.findByIdWithUserAndBook(request.getId());
@@ -91,11 +92,12 @@ public class TalkRoomService {
     }
 
     @Transactional
-    public void deleteTalkRoom(Long talkRoomId, Long userId) {
+    public void deleteTalkRoom(Long talkRoomId, AuthContext authContext) {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(authContext.getUserId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!talkRoom.isTalkRoomOwner(user.getId())) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
