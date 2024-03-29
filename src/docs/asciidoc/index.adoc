@@ -1,0 +1,30 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippets
+endif::[]
+= JinSung-In REST API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+:sectlinks:
+
+[[TalkRoom-API]]
+== TalkRoom API
+
+include::api/talkroom/talkroom.adoc[]
+
+[[Comment-API]]
+== Comment API
+
+include::api/comment/comment.adoc[]
+
+[[TalkRoomLike-API]]
+== TalkRoomLike API
+
+include::api/talkroomlike/talkroomlike.adoc[]
+
+[[CommentLike-API]]
+== CommentLike API
+
+include::api/commentlike/commentlike.adoc[]

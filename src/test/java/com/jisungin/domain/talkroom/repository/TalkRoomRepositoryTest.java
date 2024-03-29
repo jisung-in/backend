@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.jisungin.RepositoryTestSupport;
 import com.jisungin.application.OrderType;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
+import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.domain.ReadingStatus;
@@ -92,7 +92,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
             createTalkRoomRole(t);
         }
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
                 .size(10)
                 .orderType(OrderType.RECENT)
@@ -191,7 +191,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(2)
                 .size(10)
                 .orderType(OrderType.RECENT)
@@ -425,7 +425,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
                 .size(10)
                 .orderType(OrderType.RECOMMEND)
@@ -517,7 +517,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
                 .size(10)
                 .search("검색어")

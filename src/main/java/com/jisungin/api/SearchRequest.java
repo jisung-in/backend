@@ -1,7 +1,7 @@
-package com.jisungin.api.talkroom.request;
+package com.jisungin.api;
 
 import com.jisungin.application.OrderType;
-import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
+import com.jisungin.application.SearchServiceRequest;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class TalkRoomSearchRequest {
+public class SearchRequest {
 
     private Integer page = 1;
 
@@ -21,15 +21,15 @@ public class TalkRoomSearchRequest {
     private String search;
 
     @Builder
-    private TalkRoomSearchRequest(Integer page, Integer size, String order, String search) {
+    private SearchRequest(Integer page, Integer size, String order, String search) {
         this.page = page != null ? page : 1;
         this.size = size != null ? size : 1;
         this.order = order != null ? order : "recent";
         this.search = search;
     }
 
-    public TalkRoomSearchServiceRequest toService() {
-        return TalkRoomSearchServiceRequest.builder()
+    public SearchServiceRequest toService() {
+        return SearchServiceRequest.builder()
                 .page(page)
                 .size(size)
                 .search(search)

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
+import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -50,6 +51,9 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
     @Autowired
     TalkRoomLikeRepository talkRoomLikeRepository;
 
+    @Autowired
+    AuthContext authContext;
+
     @AfterEach
     void tearDown() {
         talkRoomLikeRepository.deleteAllInBatch();
@@ -74,8 +78,10 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
 
         createTalkRoomRole(talkRoom);
 
+        authContext.setUserId(user.getId());
+
         // when
-        talkRoomLikeService.likeTalkRoom(talkRoom.getId(), user.getId());
+        talkRoomLikeService.likeTalkRoom(talkRoom.getId(), authContext);
 
         // then
         List<TalkRoomLike> talkRoomLikes = talkRoomLikeRepository.findAll();
@@ -89,8 +95,10 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
         User user = createUser();
         userRepository.save(user);
 
+        authContext.setUserId(user.getId());
+
         // when // then
-        assertThatThrownBy(() -> talkRoomLikeService.likeTalkRoom(1L, user.getId()))
+        assertThatThrownBy(() -> talkRoomLikeService.likeTalkRoom(1L, authContext))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("토크방을 찾을 수 없습니다.");
     }
@@ -109,8 +117,10 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
         talkRoomRepository.save(talkRoom);
 
         createTalkRoomRole(talkRoom);
+
+        authContext.setUserId(1000L);
         // when // then
-        assertThatThrownBy(() -> talkRoomLikeService.likeTalkRoom(talkRoom.getId(), 100L))
+        assertThatThrownBy(() -> talkRoomLikeService.likeTalkRoom(talkRoom.getId(), authContext))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
     }
@@ -133,8 +143,10 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
         TalkRoomLike talkRoomLike = createTalkRoomLike(talkRoom, user);
         talkRoomLikeRepository.save(talkRoomLike);
 
+        authContext.setUserId(user.getId());
+
         // when
-        talkRoomLikeService.unLikeTalkRoom(talkRoom.getId(), user.getId());
+        talkRoomLikeService.unLikeTalkRoom(talkRoom.getId(), authContext);
 
         // then
         List<TalkRoomLike> talkRoomLikes = talkRoomLikeRepository.findAll();
@@ -171,8 +183,10 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
         TalkRoomLike talkRoomLike = createTalkRoomLike(talkRoom, user);
         talkRoomLikeRepository.save(talkRoomLike);
 
+        authContext.setUserId(userB.getId());
+
         // when // then
-        assertThatThrownBy(() -> talkRoomLikeService.unLikeTalkRoom(talkRoom.getId(), userB.getId()))
+        assertThatThrownBy(() -> talkRoomLikeService.unLikeTalkRoom(talkRoom.getId(), authContext))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("토크방 좋아요를 찾을 수 없습니다.");
     }

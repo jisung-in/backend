@@ -12,11 +12,11 @@ import static com.jisungin.domain.user.QUser.user;
 
 import com.jisungin.application.OrderType;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.comment.response.CommentLikeUserIdResponse;
 import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.jisungin.application.comment.response.QCommentLikeUserIdResponse;
 import com.jisungin.application.comment.response.QCommentQueryResponse;
-import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
 import com.jisungin.application.talkroom.response.QTalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomLikeUserIdResponse;
@@ -40,7 +40,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
 
     // 토크룸 페이징 조회
     @Override
-    public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(TalkRoomSearchServiceRequest search) {
+    public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(SearchServiceRequest search) {
 
         //루트 조회(toOne 코드를 모두 한번에 조회) -> Query 1번 발생
         List<TalkRoomFindAllResponse> findTalkRoom = findTalkRoomBySearch(search);
@@ -92,7 +92,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     // 토크룸 페이징 조회 쿼리
-    private List<TalkRoomFindAllResponse> findTalkRoomBySearch(TalkRoomSearchServiceRequest search) {
+    private List<TalkRoomFindAllResponse> findTalkRoomBySearch(SearchServiceRequest search) {
         return queryFactory.select(new QTalkRoomFindAllResponse(
                         talkRoom.id.as("talkRoomId"),
                         user.name.as("userName"),

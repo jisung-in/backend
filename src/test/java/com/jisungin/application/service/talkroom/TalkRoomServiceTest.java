@@ -4,12 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
+import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.OrderType;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
-import com.jisungin.application.talkroom.request.TalkRoomSearchServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomResponse;
@@ -67,6 +68,9 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     @Autowired
     CommentLikeRepository commentLikeRepository;
 
+    @Autowired
+    AuthContext authContext;
+
     @AfterEach
     void tearDown() {
         commentLikeRepository.deleteAllInBatch();
@@ -101,8 +105,10 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .readingStatus(readingStatus)
                 .build();
 
+        authContext.setUserId(user.getId());
+
         // when
-        TalkRoomResponse response = talkRoomService.createTalkRoom(request, user.getId());
+        TalkRoomResponse response = talkRoomService.createTalkRoom(request, authContext);
 
         // then
         List<ReadingStatus> readingStatuses = response.getReadingStatuses();
@@ -132,8 +138,10 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .readingStatus(null)
                 .build();
 
+        authContext.setUserId(user.getId());
+
         // when // then
-        assertThatThrownBy(() -> talkRoomService.createTalkRoom(request, user.getId()))
+        assertThatThrownBy(() -> talkRoomService.createTalkRoom(request, authContext))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("참가 조건은 1개 이상이어야 합니다.");
     }
@@ -166,8 +174,11 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .content("내용 수정")
                 .readingStatus(readingStatus)
                 .build();
+
+        authContext.setUserId(user.getId());
+
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getId());
+        TalkRoomResponse response = talkRoomService.editTalkRoom(request, authContext);
 
         // then
         assertThat(response)
@@ -204,8 +215,11 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .content(null)
                 .readingStatus(readingStatus)
                 .build();
+
+        authContext.setUserId(user.getId());
+
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getId());
+        TalkRoomResponse response = talkRoomService.editTalkRoom(request, authContext);
 
         // then
         assertThat(response)
@@ -243,8 +257,10 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .readingStatus(readingStatus)
                 .build();
 
+        authContext.setUserId(user.getId());
+
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, user.getId());
+        TalkRoomResponse response = talkRoomService.editTalkRoom(request, authContext);
 
         // then
         List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.findAll();
@@ -293,8 +309,11 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .content("내용")
                 .readingStatus(readingStatus)
                 .build();
+
+        authContext.setUserId(userB.getId());
+
         // when // then
-        assertThatThrownBy(() -> talkRoomService.editTalkRoom(request, userB.getId()))
+        assertThatThrownBy(() -> talkRoomService.editTalkRoom(request, authContext))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
@@ -317,7 +336,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
             createTalkRoomRole(t);
         }
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
                 .size(10)
                 .orderType(OrderType.RECENT)
@@ -350,7 +369,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
             createTalkRoomRole(t);
         }
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
                 .size(10)
                 .build();
@@ -380,7 +399,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
             createTalkRoomRole(t);
         }
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(5)
                 .size(10)
                 .orderType(OrderType.RECENT)
@@ -413,7 +432,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
             createTalkRoomRole(t);
         }
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(11)
                 .size(10)
                 .orderType(OrderType.RECENT)
@@ -532,8 +551,10 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         commentRepository.save(comment);
 
+        authContext.setUserId(user.getId());
+
         // when
-        talkRoomService.deleteTalkRoom(talkRoom.getId(), user.getId());
+        talkRoomService.deleteTalkRoom(talkRoom.getId(), authContext);
 
         // then
         assertThat(0).isEqualTo(talkRoomRepository.findAll().size());
@@ -571,8 +592,10 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         commentRepository.save(comment);
 
+        authContext.setUserId(userB.getId());
+
         // when // then
-        assertThatThrownBy(() -> talkRoomService.deleteTalkRoom(talkRoom.getId(), userB.getId()))
+        assertThatThrownBy(() -> talkRoomService.deleteTalkRoom(talkRoom.getId(), authContext))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
@@ -592,8 +615,10 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         createTalkRoomRole(talkRoom);
 
+        authContext.setUserId(user.getId());
+
         // when
-        talkRoomService.deleteTalkRoom(talkRoom.getId(), user.getId());
+        talkRoomService.deleteTalkRoom(talkRoom.getId(), authContext);
 
         // then
         assertThat(0).isEqualTo(talkRoomRepository.findAll().size());
@@ -626,7 +651,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(2)
                 .size(10)
                 .orderType(OrderType.RECENT)
@@ -676,7 +701,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(2)
                 .size(10)
                 .orderType(OrderType.RECENT)
@@ -838,7 +863,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
                 .size(10)
                 .orderType(OrderType.RECOMMEND)
@@ -913,7 +938,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
-        TalkRoomSearchServiceRequest search = TalkRoomSearchServiceRequest.builder()
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
                 .size(10)
                 .search("검색어")

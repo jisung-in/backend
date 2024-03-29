@@ -1,11 +1,11 @@
 package com.jisungin.api.talkroom;
 
 import com.jisungin.api.ApiResponse;
+import com.jisungin.api.SearchRequest;
 import com.jisungin.api.oauth.Auth;
 import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
-import com.jisungin.api.talkroom.request.TalkRoomSearchRequest;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
@@ -34,12 +34,12 @@ public class TalkRoomController {
     @PostMapping("/talk-rooms")
     public ApiResponse<TalkRoomResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request, @Auth
     AuthContext authContext) {
-        return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), authContext.getUserId()));
+        return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), authContext));
     }
 
     @GetMapping("/talk-rooms")
     public ApiResponse<PageResponse<TalkRoomFindAllResponse>> findAllTalkRoom(
-            @ModelAttribute TalkRoomSearchRequest search) {
+            @ModelAttribute SearchRequest search) {
         return ApiResponse.ok(talkRoomService.findAllTalkRoom(search.toService()));
     }
 
@@ -51,12 +51,12 @@ public class TalkRoomController {
     @PatchMapping("/talk-rooms")
     public ApiResponse<TalkRoomResponse> editTalkRoom(@Valid @RequestBody TalkRoomEditRequest request,
                                                       @Auth AuthContext authContext) {
-        return ApiResponse.ok(talkRoomService.editTalkRoom(request.toServiceRequest(), authContext.getUserId()));
+        return ApiResponse.ok(talkRoomService.editTalkRoom(request.toServiceRequest(), authContext));
     }
 
     @DeleteMapping("/talk-rooms/{talkRoomId}")
     public ApiResponse<Void> deleteTalkRoom(@PathVariable Long talkRoomId, @Auth AuthContext authContext) {
-        talkRoomService.deleteTalkRoom(talkRoomId, authContext.getUserId());
+        talkRoomService.deleteTalkRoom(talkRoomId, authContext);
 
         return ApiResponse.<Void>builder()
                 .message("OK")
