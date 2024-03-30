@@ -7,11 +7,13 @@ import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.api.review.ReviewController;
 import com.jisungin.api.talkroom.TalkRoomController;
 import com.jisungin.api.talkroomlike.TalkRoomLikeController;
+import com.jisungin.api.user.UserController;
 import com.jisungin.application.comment.CommentService;
 import com.jisungin.application.commentlike.CommentLikeService;
 import com.jisungin.application.review.ReviewService;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroomlike.TalkRoomLikeService;
+import com.jisungin.application.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -22,7 +24,8 @@ import org.springframework.test.web.servlet.MockMvc;
         CommentController.class,
         ReviewController.class,
         TalkRoomLikeController.class,
-        CommentLikeController.class
+        CommentLikeController.class,
+        UserController.class
 })
 public abstract class ControllerTestSupport {
 
@@ -49,5 +52,8 @@ public abstract class ControllerTestSupport {
 
     @MockBean
     protected CommentLikeService commentLikeService;
+
+    @MockBean
+    protected UserService userService;
 
 }
