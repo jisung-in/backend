@@ -1,0 +1,34 @@
+package com.jisungin.api.user;
+
+import com.jisungin.api.ApiResponse;
+import com.jisungin.api.oauth.Auth;
+import com.jisungin.api.oauth.AuthContext;
+import com.jisungin.api.user.request.UserRatingGetAllRequest;
+import com.jisungin.application.PageResponse;
+import com.jisungin.application.review.response.RatingFindAllResponse;
+import com.jisungin.application.user.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RequestMapping("/v1/users")
+@RequiredArgsConstructor
+@RestController
+public class UserController {
+
+    private final UserService userService;
+
+    @GetMapping("/ratings")
+    public ApiResponse<PageResponse<RatingFindAllResponse>> getUserRatings(
+            @ModelAttribute UserRatingGetAllRequest request,
+            @Auth AuthContext authContext
+    ) {
+        System.out.println(request.getOrder());
+        PageResponse<RatingFindAllResponse> response = userService.getUserRatings(
+                authContext.getUserId(), request.toService());
+        return ApiResponse.ok(response);
+    }
+
+}
