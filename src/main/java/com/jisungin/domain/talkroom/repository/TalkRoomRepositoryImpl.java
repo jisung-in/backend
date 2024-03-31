@@ -91,6 +91,36 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         return findOneTalkRoom;
     }
 
+    /**
+     * 유저 ID로 유저가 생성한 토론방 찾아오는 메서드
+     */
+    public void findAllUserCreatedTalkRooms(Long userId) {
+        List<TalkRoomFindAllResponse> userTalkRooms = findAllUserTalkRooms(userId);
+
+        Map<Long, List<TalkRoomLikeUserIdResponse>> talkRoomLikeUserMap = findAllTalkRoomLikeUserId(
+                toTalkRoomIds(userTalkRooms));
+        userTalkRooms.forEach(t -> t.addTalkRoomLikeUserIds(talkRoomLikeUserMap.get(t.getTalkRoomId())));
+    }
+
+    private List<TalkRoomFindAllResponse> findAllUserTalkRooms(Long userId) {
+        return queryFactory.select(new QTalkRoomFindAllResponse(
+                        talkRoom.id.as("talkRoomId"),
+                        user.name.as("userName"),
+                        talkRoom.title,
+                        talkRoom.content,
+                        book.title,
+                        book.imageUrl,
+                        talkRoomLike.count().as("likeCount")
+                ))
+                .from(talkRoom)
+                .leftJoin(talkRoom.user, user).on(user.eq(talkRoom.user))
+                .leftJoin(talkRoom.book, book).on(book.eq(talkRoom.book))
+                .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
+                .groupBy(talkRoom.id)
+                .where(talkRoom.user.id.eq(userId))
+                .fetch();
+    }
+
     // 토크룸 페이징 조회 쿼리
     private List<TalkRoomFindAllResponse> findTalkRoomBySearch(SearchServiceRequest search) {
         return queryFactory.select(new QTalkRoomFindAllResponse(
