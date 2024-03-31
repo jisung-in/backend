@@ -16,7 +16,7 @@ class UserControllerTest extends ControllerTestSupport {
     void getUserRatingAll() throws Exception {
         //given
         //when //then
-        mockMvc.perform(get("/v1/users/ratings?page=1&size=4&order=rating_asc")
+        mockMvc.perform(get("/v1/users/ratings?page=1&size=4&order=rating_asc&rating=")
                         .contentType(APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())

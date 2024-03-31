@@ -5,6 +5,7 @@ import com.jisungin.application.review.response.QRatingFindAllResponse;
 import com.jisungin.application.review.response.RatingFindAllResponse;
 import com.jisungin.domain.review.RatingOrderType;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,25 +24,26 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
     @Override
     public PageResponse<RatingFindAllResponse> findAllRatingOrderBy(
-            Long userId, RatingOrderType ratingSortType, int size, int offset) {
+            Long userId, RatingOrderType ratingSortType, Double rating, int size, int offset) {
         log.info("--------------start--------------");
         // 리뷰 조회, 쿼리 1회
-        List<RatingFindAllResponse> ratings = getRatings(userId, ratingSortType, size, offset);
+        List<RatingFindAllResponse> ratings = getRatings(userId, ratingSortType, rating, size, offset);
 
         return PageResponse.<RatingFindAllResponse>builder()
                 .queryResponse(ratings)
-                .totalCount(getTotalCount(userId)) // 해당 유저의 리뷰 총 개수, 쿼리 1회
+                .totalCount(getTotalCount(userId, rating)) // 해당 유저의 리뷰 총 개수, 쿼리 1회
                 .size(size)
                 .build();
     }
 
-    private List<RatingFindAllResponse> getRatings(Long userId, RatingOrderType ratingSortType, int size, int offset) {
+    private List<RatingFindAllResponse> getRatings(
+            Long userId, RatingOrderType ratingSortType, Double rating, int size, int offset) {
         return queryFactory
                 .select(new QRatingFindAllResponse(
                         review.book.isbn, review.book.title, review.book.imageUrl, review.rating))
                 .from(review)
                 .leftJoin(book).on(review.book.eq(book))
-                .where(review.user.id.eq(userId))
+                .where(review.user.id.eq(userId), ratingCondition(rating))
                 .groupBy(review.book.isbn)
                 .orderBy(createSpecifier(ratingSortType), review.id.asc())
                 .offset(offset)
@@ -49,11 +51,11 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .fetch();
     }
 
-    private long getTotalCount(Long userId) {
+    private long getTotalCount(Long userId, Double rating) {
         return queryFactory
                 .select(review.count())
                 .from(review)
-                .where(review.user.id.eq(userId))
+                .where(review.user.id.eq(userId), ratingCondition(rating))
                 .fetchOne();
     }
 
@@ -72,6 +74,15 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         }
 
         return review.createDateTime.desc();
+    }
+
+    // 만약 별점 필터링 조건이 존재하면 해당하는 별점만 가져온다.
+    private BooleanExpression ratingCondition(Double rating) {
+        if (rating == null) {
+            return null;
+        }
+
+        return review.rating.eq(rating);
     }
 
 }

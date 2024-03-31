@@ -55,7 +55,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
 
         //when
         PageResponse<RatingFindAllResponse> result = reviewRepository.findAllRatingOrderBy(
-                user.getId(), RatingOrderType.RATING_ASC, 4, 8); // 1점 4개, 2점 4개 이후에 3점 리뷰 4개가 나와야 함.
+                user.getId(), RatingOrderType.RATING_ASC, null, 4, 8); // 1점 4개, 2점 4개 이후에 3점 리뷰 4개가 나와야 함.
 
         //then
         assertThat(result.getTotalCount()).isEqualTo(20);
@@ -84,7 +84,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
 
         //when
         PageResponse<RatingFindAllResponse> result = reviewRepository.findAllRatingOrderBy(
-                user.getId(), RatingOrderType.RATING_DESC, 4, 0); // 별점이 높은 순이기 때문에 5점 4개가 나와야 함.
+                user.getId(), RatingOrderType.RATING_DESC, null, 4, 0); // 별점이 높은 순이기 때문에 5점 4개가 나와야 함.
 
         //then
         assertThat(result.getTotalCount()).isEqualTo(20);
@@ -117,7 +117,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
 
         //when
         PageResponse<RatingFindAllResponse> result = reviewRepository.findAllRatingOrderBy(
-                user1.getId(), RatingOrderType.RATING_AVG_ASC, 4, 0); // 각 유저가 똑같은 점수로 리뷰를 했기 때문에 1점 4개가 나와야 함.
+                user1.getId(), RatingOrderType.RATING_AVG_ASC, null, 4, 0); // 각 유저가 똑같은 점수로 리뷰를 했기 때문에 1점 4개가 나와야 함.
 
         //then
         assertThat(result.getTotalCount()).isEqualTo(20);
@@ -150,7 +150,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
 
         //when
         PageResponse<RatingFindAllResponse> result = reviewRepository.findAllRatingOrderBy(
-                user1.getId(), RatingOrderType.RATING_AVG_DESC, 4, 0); // 각 유저가 똑같은 점수로 리뷰를 했기 때문에 5점 4개가 나와야 함.
+                user1.getId(), RatingOrderType.RATING_AVG_DESC, null, 4, 0); // 각 유저가 똑같은 점수로 리뷰를 했기 때문에 5점 4개가 나와야 함.
 
         //then
         assertThat(result.getTotalCount()).isEqualTo(20);
@@ -163,6 +163,35 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
                         tuple("15", "제목", "image", 5.0),
                         tuple("20", "제목", "image", 5.0)
                 );
+    }
+
+    @DisplayName("별점이 3점인 리뷰만 조회한다.")
+    @Test
+    void getRatingsOrderByRatingAscOnlyThree() {
+        User user = createUser("1");
+        userRepository.save(user);
+
+        List<Book> books = createBooks();
+        List<Review> reviews = createReviews(user, books);
+        bookRepository.saveAll(books);
+        reviewRepository.saveAll(reviews);
+
+        //when
+        PageResponse<RatingFindAllResponse> result = reviewRepository.findAllRatingOrderBy(
+                user.getId(), RatingOrderType.RATING_ASC, 3.0, 4, 0); // 1점 4개, 2점 4개 이후에 3점 리뷰 4개가 나와야 함.
+
+        //then
+        assertThat(result.getTotalCount()).isEqualTo(4);
+        assertThat(result.getQueryResponse().size()).isEqualTo(4);
+        assertThat(result.getQueryResponse())
+                .extracting("isbn", "title", "image", "rating")
+                .containsExactly(
+                        tuple("3", "제목", "image", 3.0),
+                        tuple("8", "제목", "image", 3.0),
+                        tuple("13", "제목", "image", 3.0),
+                        tuple("18", "제목", "image", 3.0)
+                );
+
     }
 
     private static List<Book> createBooks() {

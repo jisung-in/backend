@@ -25,7 +25,6 @@ public class UserController {
             @ModelAttribute UserRatingGetAllRequest request,
             @Auth AuthContext authContext
     ) {
-        System.out.println(request.getOrder());
         PageResponse<RatingFindAllResponse> response = userService.getUserRatings(
                 authContext.getUserId(), request.toService());
         return ApiResponse.ok(response);

@@ -19,11 +19,14 @@ public class UserRatingGetAllServiceRequest {
 
     private RatingOrderType orderType;
 
+    private Double rating;
+
     @Builder
-    public UserRatingGetAllServiceRequest(Integer page, Integer size, RatingOrderType orderType) {
+    public UserRatingGetAllServiceRequest(Integer page, Integer size, RatingOrderType orderType, Double rating) {
         this.page = page;
         this.size = size;
         this.orderType = orderType;
+        this.rating = rating;
     }
 
     public int getOffset() {

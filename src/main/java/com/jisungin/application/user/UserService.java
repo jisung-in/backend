@@ -26,7 +26,8 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
-        return reviewRepository.findAllRatingOrderBy(user.getId(), request.getOrderType(), request.getSize(), request.getOffset());
+        return reviewRepository.findAllRatingOrderBy(
+                user.getId(), request.getOrderType(), request.getRating(), request.getSize(), request.getOffset());
     }
 
 }

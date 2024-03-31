@@ -15,11 +15,14 @@ public class UserRatingGetAllRequest {
 
     private String order;
 
+    private Double rating;
+
     @Builder
-    public UserRatingGetAllRequest(Integer page, Integer size, String order) {
+    public UserRatingGetAllRequest(Integer page, Integer size, String order, String rating) {
         this.page = page != null ? page : 1;
         this.size = size != null ? size : 10;
         this.order = order != null ? order : "date";
+        this.rating = rating != null ? Double.parseDouble(rating) : null;
     }
 
     public UserRatingGetAllServiceRequest toService() {
@@ -27,6 +30,7 @@ public class UserRatingGetAllRequest {
                 .page(page)
                 .size(size)
                 .orderType(RatingOrderType.fromName(order))
+                .rating(rating)
                 .build();
     }
 

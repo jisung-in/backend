@@ -6,6 +6,7 @@ import com.jisungin.domain.review.RatingOrderType;
 
 public interface ReviewRepositoryCustom {
 
-    PageResponse<RatingFindAllResponse> findAllRatingOrderBy(Long userId, RatingOrderType ratingSortType, int size, int offset);
+    PageResponse<RatingFindAllResponse> findAllRatingOrderBy(
+            Long userId, RatingOrderType ratingSortType, Double rating, int size, int offset);
 
 }
