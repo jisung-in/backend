@@ -4,10 +4,12 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.book.BookService;
 import com.jisungin.application.book.request.BookCreateServiceRequest;
 import com.jisungin.application.book.response.BookResponse;
 import com.jisungin.domain.book.Book;
+import com.jisungin.domain.book.repository.BestSellerRepository;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.infra.crawler.Crawler;
@@ -17,17 +19,18 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-@SpringBootTest
-public class BookServiceTest {
+public class BookServiceTest extends ServiceTestSupport {
 
     @Autowired
     private BookService bookService;
 
     @Autowired
     private BookRepository bookRepository;
+
+    @MockBean
+    private BestSellerRepository bestSellerRepository;
 
     @MockBean
     private Crawler crawler;
@@ -78,7 +81,7 @@ public class BookServiceTest {
                 .contents("도서 내용")
                 .isbn("123456789X")
                 .dateTime(registeredDateTime)
-                .authors("도서 저자1, 도서 저자2")
+                .authors("도서 작가1, 도서 작가2")
                 .publisher("도서 출판사")
                 .imageUrl("도서 imageUrl")
                 .thumbnail("도서 썸네일")
@@ -86,7 +89,7 @@ public class BookServiceTest {
 
         when(crawler.crawlBook(request.getIsbn()))
                 .thenReturn(CrawlingBook.of("도서 제목", "도서 내용", "123456789X", "도서 출판사",
-                        "도서 imageUrl", "도서 썸네일", "도서 저자1, 도서 저자2", registeredDateTime));
+                        "도서 imageUrl", "도서 썸네일", "도서 작가1,도서 작가2", registeredDateTime));
 
         // when
         BookResponse response = bookService.createBook(request);
@@ -94,7 +97,7 @@ public class BookServiceTest {
         // then
         assertThat(response.getDateTime()).isEqualTo(request.getDateTime());
         assertThat(response.getAuthors()).hasSize(2)
-                .contains("도서 저자1", "도서 저자2");
+                .contains("도서 작가1", "도서 작가2");
         assertThat(response)
                 .extracting("title", "content", "isbn", "publisher", "imageUrl", "thumbnail")
                 .contains("도서 제목", "도서 내용", "123456789X", "도서 출판사", "도서 imageUrl", "도서 썸네일");
@@ -128,7 +131,7 @@ public class BookServiceTest {
         return Book.builder()
                 .title("도서 제목")
                 .content("도서 내용")
-                .authors("도서 저자1, 도서 저자2")
+                .authors("도서 저자1,도서 저자2")
                 .isbn("123456789X")
                 .dateTime(LocalDateTime.of(2024, 1, 1, 0, 0))
                 .publisher("도서 출판사")

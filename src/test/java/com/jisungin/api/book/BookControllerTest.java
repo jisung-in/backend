@@ -9,33 +9,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jisungin.ControllerTestSupport;
 import com.jisungin.api.book.request.BookCreateRequest;
-import com.jisungin.api.oauth.AuthContext;
-import com.jisungin.application.book.BookService;
+import com.jisungin.application.book.response.BestSellerResponse;
 import com.jisungin.application.book.response.BookResponse;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(BookController.class)
-public class BookControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
-    private BookService bookService;
-
-    @MockBean
-    private AuthContext context;
+public class BookControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("책을 조회한다.")
@@ -45,6 +29,19 @@ public class BookControllerTest {
 
         // when // then
         mockMvc.perform(get("/v1/books/{isbn}", "isbn")
+                        .accept(APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"));
+    }
+
+    @Test
+    @DisplayName("베스트 셀러 도서를 조회한다.")
+    public void getBestSellers() throws Exception {
+        // when // then
+        mockMvc.perform(get("/v1/books/best-seller?page=1&size=5")
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -255,6 +252,20 @@ public class BookControllerTest {
                 .dateTime(LocalDateTime.of(2024, 1, 1, 0, 0))
                 .ratingAverage(0.0)
                 .build();
+    }
+
+    private static List<BestSellerResponse> createBestSellers() {
+        return IntStream.rangeClosed(1, 5)
+                .mapToObj(i -> BestSellerResponse.builder()
+                        .ranking((long) i)
+                        .title("title" + i)
+                        .isbn("isbn" + i)
+                        .publisher("publisher" + i)
+                        .authors(new String[]{"author" + i})
+                        .thumbnail("thumbnail" + i)
+                        .dateTime(LocalDateTime.of(2024, 1, 1, 0, 0))
+                        .build())
+                .toList();
     }
 
 }
