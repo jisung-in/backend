@@ -7,7 +7,6 @@ import jakarta.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -67,7 +66,7 @@ public class BookCreateRequest {
     }
 
     private String convertToString(String[] authors) {
-        return Arrays.toString(authors);
+        return String.join(", ", authors);
     }
 
 }

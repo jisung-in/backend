@@ -43,7 +43,7 @@ public class Yes24Parser implements Parser {
         String imageUrl = parseJsonToString(json, "$.image");
         String publisher = parseJsonToString(json, "$.publisher.name");
         String authors = parseJsonToString(json, "$.author.name");
-        String thumbnail = imageUrl.replace("XL", "M");
+        String thumbnail = imageUrl.replace("XL", "L");
         String content = Jsoup.clean(doc.select(bookContentCss).text(), Safelist.none());
         LocalDateTime dateTime = parseDate(parseJsonToString(json, "$.workExample[0].datePublished"));
 

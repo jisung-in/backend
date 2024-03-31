@@ -1,12 +1,11 @@
 package com.jisungin.infra.crawler;
 
+import com.jisungin.application.book.request.BookCreateServiceRequest;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
 
 @Getter
-@ToString
 public class CrawlingBook {
 
     private String title;
@@ -20,14 +19,14 @@ public class CrawlingBook {
 
     @Builder
     private CrawlingBook(String title, String content, String isbn, String publisher, String imageUrl, String thumbnail,
-                        String authors, LocalDateTime dateTime) {
+                         String authors, LocalDateTime dateTime) {
         this.title = title;
         this.content = content;
         this.isbn = isbn;
         this.publisher = publisher;
         this.imageUrl = imageUrl;
         this.thumbnail = thumbnail;
-        this.authors = parseAuthorsToArr(authors);
+        this.authors = convertAuthorsToArr(authors);
         this.dateTime = dateTime;
     }
 
@@ -45,12 +44,25 @@ public class CrawlingBook {
                 .build();
     }
 
-    public boolean isBlankContent() {
-        return this.content.isBlank();
+    public BookCreateServiceRequest toServiceRequest() {
+        return BookCreateServiceRequest.builder()
+                .title(title)
+                .contents(content)
+                .isbn(isbn)
+                .publisher(publisher)
+                .imageUrl(imageUrl)
+                .thumbnail(thumbnail)
+                .authors(convertAuthorsToString())
+                .dateTime(dateTime)
+                .build();
     }
 
-    private String[] parseAuthorsToArr(String authors) {
-        return authors.split(" 저| 공저| 글| 편저| 원저")[0].split(",");
+    private String[] convertAuthorsToArr(String authors) {
+        return authors.split(" 저| 공저| 글| 편저| 원저| 기획|&")[0].split(",");
+    }
+
+    private String convertAuthorsToString() {
+        return String.join(",", authors);
     }
 
 }
