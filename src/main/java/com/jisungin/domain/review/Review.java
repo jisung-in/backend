@@ -27,7 +27,6 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "book_isbn")
     private Book book;
 
-    @Lob
     @Column(name = "review_content", length = 1000)
     private String content;
 
