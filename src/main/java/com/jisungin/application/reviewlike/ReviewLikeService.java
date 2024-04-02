@@ -25,7 +25,7 @@ public class ReviewLikeService {
     private final ReviewRepository reviewRepository;
 
     @Transactional
-    public void createReviewLike(Long userId, Long reviewId) {
+    public void likeReview(Long userId, Long reviewId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
@@ -40,6 +40,20 @@ public class ReviewLikeService {
         // 없는 경우, 리뷰 좋아요 저장
         ReviewLike reviewLike = ReviewLike.likeReview(user, review);
         reviewLikeRepository.save(reviewLike);
+    }
+
+    @Transactional
+    public void unlikeReview(Long userId, Long reviewId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new BusinessException(REVIEW_NOT_FOUND));
+
+        ReviewLike reviewLike = reviewLikeRepository.findByUserAndReview(user, review)
+                .orElseThrow(() -> new BusinessException(REVIEW_LIKE_NOT_FOUND));
+
+        reviewLikeRepository.delete(reviewLike);
     }
 
 }
