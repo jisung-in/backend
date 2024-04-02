@@ -26,4 +26,19 @@ class ReviewLikeControllerTest extends ControllerTestSupport {
                 .andDo(print());
     }
 
+    @DisplayName("유저가 리뷰 좋아요를 취소한다.")
+    @Test
+    void unlikeReview() throws Exception {
+        //given
+        Long reviewId = 1L;
+
+        //when //then
+        mockMvc.perform(delete("/v1/reviews/{reviewId}/likes", reviewId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
+
 }

@@ -56,7 +56,7 @@ class ReviewLikeServiceTest extends ServiceTestSupport {
         Review review = reviewRepository.save(createReview(user, book));
 
         //when
-        reviewLikeService.createReviewLike(user.getId(), review.getId());
+        reviewLikeService.likeReview(user.getId(), review.getId());
 
         //then
         List<ReviewLike> reviewLike = reviewLikeRepository.findAll();
@@ -66,7 +66,7 @@ class ReviewLikeServiceTest extends ServiceTestSupport {
         assertThat(reviewLike.get(0).getReview().getId()).isEqualTo(review.getId());
     }
 
-    @DisplayName("좋아요가 중복되면 예외 처리한다.")
+    @DisplayName("리뷰 좋아요가 중복되면 예외가 발생한다.")
     @Test
     void likeReviewWithReLike() {
         //given
@@ -76,9 +76,42 @@ class ReviewLikeServiceTest extends ServiceTestSupport {
         ReviewLike reviewLike = reviewLikeRepository.save(createReviewLike(user, review));
 
         //when //then
-        assertThatThrownBy(() -> reviewLikeService.createReviewLike(user.getId(), review.getId()))
+        assertThatThrownBy(() -> reviewLikeService.likeReview(user.getId(), review.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 좋아요를 눌렀습니다.");
+
+    }
+
+    @DisplayName("사용자가 리뷰 좋아요를 취소한다.")
+    @Test
+    void unlikeReview() {
+        //given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook());
+        Review review = reviewRepository.save(createReview(user, book));
+        ReviewLike reviewLike = reviewLikeRepository.save(createReviewLike(user, review));
+
+        //when
+        reviewLikeService.unlikeReview(user.getId(), review.getId());
+
+        //then
+        List<ReviewLike> reviewLikes = reviewLikeRepository.findAll();
+
+        assertThat(reviewLikes).isEmpty();
+    }
+
+    @DisplayName("존재하지 않는 리뷰 좋아요를 취소하면 예외가 발생한다.")
+    @Test
+    void unlikeReviewWithNotExist() {
+        //given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook());
+        Review review = reviewRepository.save(createReview(user, book));
+
+        //when //then
+        assertThatThrownBy(() -> reviewLikeService.unlikeReview(user.getId(), review.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("리뷰 좋아요를 찾을 수 없습니다.");
 
     }
 
