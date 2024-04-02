@@ -7,6 +7,8 @@ import lombok.Setter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,6 +22,7 @@ public class Yes24Fetcher implements Fetcher {
     private String userAgent;
 
     @Override
+    @Retryable(retryFor = BusinessException.class, maxAttempts = 5, backoff = @Backoff(delay = 1000))
     public Document fetchIsbn(String isbn) {
         try {
             return Jsoup.connect(getIsbnUrl(isbn))
@@ -35,6 +38,7 @@ public class Yes24Fetcher implements Fetcher {
     }
 
     @Override
+    @Retryable(retryFor = BusinessException.class, maxAttempts = 5, backoff = @Backoff(delay = 1000))
     public Document fetchBook(String bookId) {
         try {
             return Jsoup.connect(getBookUrl(bookId))
@@ -50,10 +54,11 @@ public class Yes24Fetcher implements Fetcher {
     }
 
     @Override
+    @Retryable(retryFor = BusinessException.class, maxAttempts = 5, backoff = @Backoff(delay = 1000))
     public Document fetchBestSellerBookId() {
         try {
             return Jsoup.connect(bestBookUrl)
-                    .timeout(5000)
+                    .timeout(7000)
                     .userAgent(userAgent)
                     .ignoreContentType(true)
                     .get();

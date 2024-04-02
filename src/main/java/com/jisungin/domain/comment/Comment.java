@@ -36,8 +36,7 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "talk_room_id")
     private TalkRoom talkRoom;
 
-    @Lob
-    @Column(name = "comment_content")
+    @Column(name = "comment_content", length = 2000)
     private String content;
 
     @Builder

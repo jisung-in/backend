@@ -38,7 +38,6 @@ public class TalkRoom extends BaseEntity {
     @Column(name = "talk_room_title", length = 20)
     private String title;
 
-    @Lob
     @Column(name = "talk_room_content", length = 2000)
     private String content;
 

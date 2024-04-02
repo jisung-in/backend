@@ -46,9 +46,4 @@ public class BookCreateServiceRequest {
                 .build();
     }
 
-    public void addCrawlingData(CrawlingBook crawlingBook) {
-        this.imageUrl = crawlingBook.getImageUrl();
-        this.contents = crawlingBook.isBlankContent() ? this.contents : crawlingBook.getContent();
-    }
-
 }

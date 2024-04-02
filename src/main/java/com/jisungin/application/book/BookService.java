@@ -8,6 +8,7 @@ import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
 import com.jisungin.infra.crawler.Crawler;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,9 +37,17 @@ public class BookService {
             throw new BusinessException(ErrorCode.BOOK_ALREADY_EXIST);
         }
 
-        request.addCrawlingData(crawler.crawlBook(request.getIsbn()));
+        BookCreateServiceRequest newServiceRequest = crawler.crawlBook(request.getIsbn()).toServiceRequest();
 
-        return BookResponse.of(bookRepository.save(request.toEntity()));
+        return BookResponse.of(bookRepository.save(newServiceRequest.toEntity()));
+    }
+
+    @Transactional
+    public void addNewBooks(List<BookCreateServiceRequest> requests) {
+        requests.stream()
+                .filter(request -> !bookRepository.existsBookByIsbn(request.getIsbn()))
+                .map(BookCreateServiceRequest::toEntity)
+                .forEach(bookRepository::save);
     }
 
 }

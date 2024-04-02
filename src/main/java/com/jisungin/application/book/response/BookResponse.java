@@ -29,7 +29,7 @@ public class BookResponse {
         this.publisher = publisher;
         this.imageUrl = imageUrl;
         this.thumbnail = thumbnail;
-        this.authors = convertAuthorsToString(authors);
+        this.authors = convertAuthorsToArr(authors);
         this.ratingAverage = parseRatingAverage(ratingAverage);
         this.dateTime = dateTime;
     }
@@ -62,8 +62,8 @@ public class BookResponse {
                 .build();
     }
 
-    private String[] convertAuthorsToString(String authors) {
-        return authors.split(", ");
+    private String[] convertAuthorsToArr(String authors) {
+        return authors.split(",");
     }
 
     private Double parseRatingAverage(Double ratingAverage) {

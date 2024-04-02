@@ -11,6 +11,17 @@ services:
     networks:
       - my_network
 
+  redis:
+    image: redis
+    container_name: redis-cache
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--port", "6379"]
+    ports:
+      - 6379:6379
+    networks:
+      - my_network
+
 networks:
   my_network:
     driver: bridge

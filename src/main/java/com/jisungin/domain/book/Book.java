@@ -24,7 +24,7 @@ public class Book extends BaseEntity {
     private String title;
 
     @Lob
-    @Column(name = "book_content")
+    @Column(name = "book_content", length = 3000)
     private String content;
 
     @Column(name = "book_authors")
