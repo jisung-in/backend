@@ -114,6 +114,8 @@ jobs:
       # SSH Key로 서버에 접속하고 docker-compose image를 pull 받고 실행하기
       - name: Access Server with SSH Key, pull and execute docker-compose image
         uses: appleboy/ssh-action@v0.1.6
+        env:
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
@@ -121,6 +123,7 @@ jobs:
           port: 22
           script: |
             cd jisungin
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" > .env
             sudo docker-compose down
             sudo docker-compose pull
             sudo docker-compose up -d
