@@ -1,0 +1,123 @@
+package com.jisungin.application.reviewlike;
+
+import com.jisungin.ServiceTestSupport;
+import com.jisungin.domain.book.Book;
+import com.jisungin.domain.book.repository.BookRepository;
+import com.jisungin.domain.oauth.OauthId;
+import com.jisungin.domain.oauth.OauthType;
+import com.jisungin.domain.review.Review;
+import com.jisungin.domain.review.repository.ReviewRepository;
+import com.jisungin.domain.reviewlike.ReviewLike;
+import com.jisungin.domain.reviewlike.repository.ReviewLikeRepository;
+import com.jisungin.domain.user.User;
+import com.jisungin.domain.user.repository.UserRepository;
+import com.jisungin.exception.BusinessException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.*;
+
+class ReviewLikeServiceTest extends ServiceTestSupport {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private BookRepository bookRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
+
+    @Autowired
+    private ReviewLikeRepository reviewLikeRepository;
+
+    @Autowired
+    private ReviewLikeService reviewLikeService;
+
+    @AfterEach
+    void tearDown() {
+        reviewLikeRepository.deleteAllInBatch();
+        reviewRepository.deleteAllInBatch();
+        bookRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+    }
+
+    @DisplayName("사용자가 리뷰 좋아요를 누른다.")
+    @Test
+    void likeReview() {
+        //given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook());
+        Review review = reviewRepository.save(createReview(user, book));
+
+        //when
+        reviewLikeService.createReviewLike(user.getId(), review.getId());
+
+        //then
+        List<ReviewLike> reviewLike = reviewLikeRepository.findAll();
+
+        assertThat(reviewLike).hasSize(1);
+        assertThat(reviewLike.get(0).getUser().getId()).isEqualTo(user.getId());
+        assertThat(reviewLike.get(0).getReview().getId()).isEqualTo(review.getId());
+    }
+
+    @DisplayName("좋아요가 중복되면 예외 처리한다.")
+    @Test
+    void likeReviewWithReLike() {
+        //given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook());
+        Review review = reviewRepository.save(createReview(user, book));
+        ReviewLike reviewLike = reviewLikeRepository.save(createReviewLike(user, review));
+
+        //when //then
+        assertThatThrownBy(() -> reviewLikeService.createReviewLike(user.getId(), review.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("이미 좋아요를 눌렀습니다.");
+
+    }
+
+    private static ReviewLike createReviewLike(User user, Review review) {
+        return ReviewLike.likeReview(user, review);
+    }
+
+    private static User createUser(String oauthId) {
+        return User.builder()
+                .name("김도형")
+                .profileImage("image")
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId(oauthId)
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .build();
+    }
+
+    private static Book createBook() {
+        return Book.builder()
+                .title("제목")
+                .content("내용")
+                .authors("김도형")
+                .isbn("123456")
+                .publisher("지성인")
+                .dateTime(LocalDateTime.of(2024, 1, 1, 0, 0))
+                .imageUrl("image")
+                .build();
+    }
+
+    private static Review createReview(User user, Book book) {
+        return Review.builder()
+                .user(user)
+                .book(book)
+                .content("내용")
+                .rating(4.5)
+                .build();
+    }
+
+}
