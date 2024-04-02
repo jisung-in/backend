@@ -1,7 +1,9 @@
 package com.jisungin.infra.s3;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.util.IOUtils;
@@ -10,6 +12,10 @@ import com.jisungin.exception.ErrorCode;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -33,6 +39,29 @@ public class S3FileManager {
         validateMultipartFile(multipartFiles);
 
         return this.uploadImage(multipartFiles, dirName);
+    }
+
+    public void removeFile(String fileName) {
+        String key = getKeyFromImage(fileName);
+        try {
+            amazonS3.deleteObject(new DeleteObjectRequest(bucket, key));
+        } catch (SdkClientException e) {
+            throw new BusinessException(ErrorCode.IMAGE_NOT_FOUND);
+        }
+    }
+
+    private String getKeyFromImage(String fileName) {
+        try {
+            URL url = new URL(fileName);
+            String path = url.getPath();
+            String desiredPart = path.replaceFirst("^/[^/]*/[^/]*/", "");
+            if (desiredPart.startsWith("/")) { // 맨 앞이 "/"로 시작하는 경우 첫 번째 문자를 제거
+                desiredPart = desiredPart.substring(1);
+            }
+            return URLDecoder.decode(desiredPart, "UTF-8");
+        } catch (MalformedURLException | UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void validateMultipartFile(MultipartFile multipartFile) {

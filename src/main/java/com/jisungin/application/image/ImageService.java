@@ -18,5 +18,9 @@ public class ImageService {
                 .map(multipartFile -> s3FileManager.upload(multipartFile, dirName))
                 .collect(Collectors.toList());
     }
-    
+
+    public void removeFile(String fileName) {
+        s3FileManager.removeFile(fileName);
+    }
+
 }
