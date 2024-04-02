@@ -12,3 +12,4 @@ spring:
     include:
       - oauth
       - crawler
+      - s3
