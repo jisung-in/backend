@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.book.request.BookServicePageRequest;
 import com.jisungin.application.book.response.BestSellerResponse;
+import com.jisungin.exception.BusinessException;
+import com.jisungin.exception.ErrorCode;
 import com.jisungin.infra.crawler.CrawlingBook;
 import java.util.Comparator;
 import java.util.List;
@@ -58,7 +60,7 @@ public class BestSellerRedisRepository implements BestSellerRepository {
         try {
             return om.readValue((String) value, BestSellerResponse.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new BusinessException(ErrorCode.BOOK_INVALID_INFO);
         }
     }
 
@@ -68,7 +70,7 @@ public class BestSellerRedisRepository implements BestSellerRepository {
                     BestSellerResponse.of(key, book.getIsbn(), book.getTitle(), book.getPublisher(),
                             book.getThumbnail(), book.getAuthors(), book.getDateTime()));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new BusinessException(ErrorCode.BOOK_INVALID_INFO);
         }
     }
 
