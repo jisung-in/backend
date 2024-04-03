@@ -17,6 +17,7 @@ import com.jisungin.domain.book.repository.BestSellerRedisRepository;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.infra.crawler.Crawler;
 import com.jisungin.infra.crawler.CrawlingBook;
+import com.jisungin.infra.s3.S3FileManager;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,9 @@ public class BestSellerServiceTest extends RedisTestContainer {
 
     @MockBean
     private Crawler crawler;
+
+    @MockBean
+    private S3FileManager s3FileManager;
 
     @AfterEach
     public void tearDown() {

@@ -42,16 +42,3 @@ crawler:
       bestRankingCss: "div.img_upper > em.ico.rank"
       bestIdCss: "ul#yesBestList > li"
       bestIdAttrs: "data-goods-no"
-
-cloud:
-  aws:
-    credentials:
-      access-key: AKIAYS2NTQWYEAO33I44
-      secret-key: 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
-    s3:
-      bucket: jisungin-bucket
-    region:
-      static: ap-northeast-2
-      auto: false
-    stack:
-      auto: false
