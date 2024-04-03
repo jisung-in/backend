@@ -20,13 +20,14 @@ public class ImageController {
 
     private final ImageService imageService;
 
-    @PostMapping("/s3/upload")
-    public ApiResponse<List<String>> upload(@RequestPart List<MultipartFile> files, @RequestParam String dirName) {
+    @PostMapping("/s3")
+    public ApiResponse<List<String>> upload(@RequestPart List<MultipartFile> files,
+                                            @RequestParam("dirName") String dirName) {
         return ApiResponse.ok(imageService.upload(files, dirName));
     }
 
-    @DeleteMapping("/s3/remove")
-    public ApiResponse<Void> removeFile(@RequestParam String fileName) {
+    @DeleteMapping("/s3")
+    public ApiResponse<Void> removeFile(@RequestParam("fileName") String fileName) {
         imageService.removeFile(fileName);
 
         return ApiResponse.<Void>builder()
