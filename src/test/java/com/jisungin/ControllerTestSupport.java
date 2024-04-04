@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jisungin.api.book.BookController;
 import com.jisungin.api.comment.CommentController;
 import com.jisungin.api.commentlike.CommentLikeController;
+import com.jisungin.api.image.ImageController;
 import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.api.review.ReviewController;
 import com.jisungin.api.reviewlike.ReviewLikeController;
@@ -14,6 +15,7 @@ import com.jisungin.application.book.BestSellerService;
 import com.jisungin.application.book.BookService;
 import com.jisungin.application.comment.CommentService;
 import com.jisungin.application.commentlike.CommentLikeService;
+import com.jisungin.application.image.ImageService;
 import com.jisungin.application.review.ReviewService;
 import com.jisungin.application.reviewlike.ReviewLikeService;
 import com.jisungin.application.talkroom.TalkRoomService;
@@ -32,7 +34,8 @@ import org.springframework.test.web.servlet.MockMvc;
         CommentLikeController.class,
         UserController.class,
         BookController.class,
-        ReviewLikeController.class
+        ReviewLikeController.class,
+        ImageController.class
 })
 public abstract class ControllerTestSupport {
 
@@ -71,5 +74,8 @@ public abstract class ControllerTestSupport {
 
     @MockBean
     protected ReviewLikeService reviewLikeService;
+
+    @MockBean
+    protected ImageService imageService;
 
 }

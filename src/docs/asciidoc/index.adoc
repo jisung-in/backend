@@ -28,3 +28,8 @@ include::api/talkroomlike/talkroomlike.adoc[]
 == CommentLike API
 
 include::api/commentlike/commentlike.adoc[]
+
+[[Image-API]]
+== Image API
+
+include::api/image/image.adoc[]

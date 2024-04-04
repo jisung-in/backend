@@ -1,0 +1,26 @@
+[[image-upload]]
+=== 이미지 업로드
+
+==== HTTP Request
+
+include::{snippets}/image/upload/http-request.adoc[]
+include::{snippets}/image/upload/request-parts.adoc[]
+include::{snippets}/image/upload/form-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/image/upload/http-response.adoc[]
+include::{snippets}/image/upload/response-fields.adoc[]
+
+[[image-remove]]
+=== 이미지 제거
+
+==== HTTP Request
+
+include::{snippets}/image/delete/http-request.adoc[]
+include::{snippets}/image/delete/form-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/image/delete/http-response.adoc[]
+include::{snippets}/image/delete/response-fields.adoc[]

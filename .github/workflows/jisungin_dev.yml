@@ -56,6 +56,14 @@ jobs:
           DEV_SECRET_DIR_FILE_NAME: application-crawler.yml
         run: echo $DEV_SECRET | base64 --decode >> $DEV_SECRET_DIR/$DEV_SECRET_DIR_FILE_NAME
 
+        # application-s3.yml
+      - name: Copy s3 Secret
+        env:
+          DEV_SECRET: ${{ secrets.APPLICATION_S3_YML }}
+          DEV_SECRET_DIR: src/main/resources
+          DEV_SECRET_DIR_FILE_NAME: application-s3.yml
+        run: echo $DEV_SECRET | base64 --decode >> $DEV_SECRET_DIR/$DEV_SECRET_DIR_FILE_NAME
+
       # application-jwt.yml
       # - name: Copy jwt Secret
       #   env:

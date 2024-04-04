@@ -42,3 +42,4 @@ application-prod.yml
 application-jwt.yml
 application-oauth.yml
 application-crawler.yml
+application-s3.yml

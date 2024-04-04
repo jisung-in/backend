@@ -22,7 +22,10 @@ public enum ErrorCode {
     LIKE_EXIST(400, "이미 좋아요를 눌렀습니다."),
     REQUEST_TIME_OUT(408, "요청 시간이 만료 되었습니다."),
     COMMENT_LIKE_NOT_FOUND(404, "의견 좋아요를 찾을 수 없습니다."),
-    REVIEW_LIKE_NOT_FOUND(404, "리뷰 좋아요를 찾을 수 없습니다.");
+    REVIEW_LIKE_NOT_FOUND(404, "리뷰 좋아요를 찾을 수 없습니다."),
+    IMAGE_NOT_FOUND(400, "파일이 없습니다."),
+    S3_UPLOAD_FAIL(400, "이미지 업로드가 실패되었습니다."),
+    NOT_IMAGE(400, "이미지 파일이 아닙니다.");
 
 
     private final int code;
