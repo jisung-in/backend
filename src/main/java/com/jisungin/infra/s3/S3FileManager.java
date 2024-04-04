@@ -60,7 +60,7 @@ public class S3FileManager {
             }
             return URLDecoder.decode(desiredPart, "UTF-8");
         } catch (MalformedURLException | UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+            throw new BusinessException(ErrorCode.NOT_IMAGE);
         }
     }
 
