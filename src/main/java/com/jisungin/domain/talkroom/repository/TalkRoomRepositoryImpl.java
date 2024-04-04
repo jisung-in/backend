@@ -1,18 +1,16 @@
 package com.jisungin.domain.talkroom.repository;
 
-import static com.jisungin.application.OrderType.RECENT;
-import static com.jisungin.application.OrderType.RECOMMEND;
 import static com.jisungin.domain.book.QBook.book;
 import static com.jisungin.domain.comment.QComment.comment;
 import static com.jisungin.domain.commentlike.QCommentLike.commentLike;
 import static com.jisungin.domain.talkroom.QTalkRoom.talkRoom;
 import static com.jisungin.domain.talkroom.QTalkRoomRole.talkRoomRole;
+import static com.jisungin.domain.talkroom.repository.OrderType.RECENT;
+import static com.jisungin.domain.talkroom.repository.OrderType.RECOMMEND;
 import static com.jisungin.domain.talkroomlike.QTalkRoomLike.talkRoomLike;
 import static com.jisungin.domain.user.QUser.user;
 
-import com.jisungin.application.OrderType;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.comment.response.CommentLikeUserIdResponse;
 import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.jisungin.application.comment.response.QCommentLikeUserIdResponse;
@@ -40,10 +38,10 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
 
     // 토크룸 페이징 조회
     @Override
-    public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(SearchServiceRequest search) {
+    public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(long offset, int size, String order, String query) {
 
         //루트 조회(toOne 코드를 모두 한번에 조회) -> Query 1번 발생
-        List<TalkRoomFindAllResponse> findTalkRoom = findTalkRoomBySearch(search);
+        List<TalkRoomFindAllResponse> findTalkRoom = findTalkRoomBySearch(offset, size, order, query);
 
         //TalkRoomRole 컬렉션을 MAP 한방에 조회 -> Query 1번 발생
         Map<Long, List<TalkRoomQueryReadingStatusResponse>> talkRoomRoleMap = findTalkRoomRoleMap(
@@ -63,7 +61,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         return PageResponse.<TalkRoomFindAllResponse>builder()
                 .queryResponse(findTalkRoom)
                 .totalCount(totalCount)
-                .size(search.getSize())
+                .size(size)
                 .build();
     }
 
@@ -113,8 +111,8 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         talkRoomLike.count().as("likeCount")
                 ))
                 .from(talkRoom)
-                .leftJoin(talkRoom.user, user).on(user.eq(talkRoom.user))
-                .leftJoin(talkRoom.book, book).on(book.eq(talkRoom.book))
+                .join(talkRoom.user, user)
+                .join(talkRoom.book, book)
                 .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
                 .groupBy(talkRoom.id)
                 .where(talkRoom.user.id.eq(userId))
@@ -122,7 +120,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     // 토크룸 페이징 조회 쿼리
-    private List<TalkRoomFindAllResponse> findTalkRoomBySearch(SearchServiceRequest search) {
+    private List<TalkRoomFindAllResponse> findTalkRoomBySearch(long offset, int size, String order, String query) {
         return queryFactory.select(new QTalkRoomFindAllResponse(
                         talkRoom.id.as("talkRoomId"),
                         user.name.as("userName"),
@@ -137,10 +135,10 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .join(talkRoom.book, book)
                 .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
                 .groupBy(talkRoom.id)
-                .where(searchQuery(search.getSearch()))
-                .offset(search.getOffset())
-                .limit(search.getSize())
-                .orderBy(condition(search.getOrderType()))
+                .where(searchQuery(query))
+                .offset(offset)
+                .limit(size)
+                .orderBy(condition(OrderType.convertToOrderType(order)))
                 .fetch();
     }
 
@@ -278,7 +276,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
 
     private OrderSpecifier<?> condition(OrderType orderType) {
         if (RECENT.equals(orderType)) {
-            return talkRoom.id.desc();
+            return talkRoom.createDateTime.desc();
         } else if (RECOMMEND.equals(orderType)) {
             return talkRoomLike.count().desc();
         }

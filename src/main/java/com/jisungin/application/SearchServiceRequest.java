@@ -17,16 +17,16 @@ public class SearchServiceRequest {
 
     private Integer size;
 
-    private OrderType orderType;
+    private String order;
 
-    private String search;
+    private String query;
 
     @Builder
-    private SearchServiceRequest(Integer page, Integer size, OrderType orderType, String search) {
+    private SearchServiceRequest(Integer page, Integer size, String order, String query) {
         this.page = page;
         this.size = size;
-        this.orderType = orderType;
-        this.search = search;
+        this.order = order;
+        this.query = query;
     }
 
     public long getOffset() {
