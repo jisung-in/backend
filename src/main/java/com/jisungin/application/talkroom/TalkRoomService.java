@@ -16,6 +16,8 @@ import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
+import com.jisungin.domain.talkroomimage.TalkRoomImage;
+import com.jisungin.domain.talkroomimage.repository.TalkRoomImageRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
@@ -35,6 +37,7 @@ public class TalkRoomService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final TalkRoomImageRepository talkRoomImageRepository;
 
     @Transactional
     public TalkRoomResponse createTalkRoom(TalkRoomCreateServiceRequest request, AuthContext authContext) {
@@ -52,12 +55,27 @@ public class TalkRoomService {
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
 
-        return TalkRoomResponse.of(user.getName(), talkRoom.getTitle(), talkRoom.getContent(), readingStatus,
+        TalkRoomResponse response = TalkRoomResponse.of(user.getName(), talkRoom.getTitle(),
+                talkRoom.getContent(), readingStatus,
                 book.getImageUrl(), book.getTitle());
+
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            request.getImageUrls().stream()
+                    .map(url -> TalkRoomImage.createImages(talkRoom, url))
+                    .forEach(talkRoomImageRepository::save);
+
+            List<String> imageUrls = talkRoomImageRepository.findByTalkRoomIdWithImageUrl(
+                    talkRoom.getId());
+
+            response.addTalkRoomImages(imageUrls);
+        }
+
+        return response;
     }
 
     public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(SearchServiceRequest search) {
-        return talkRoomRepository.findAllTalkRoom(search);
+        return talkRoomRepository.findAllTalkRoom(search.getOffset(), search.getSize(), search.getOrder(),
+                search.getQuery());
     }
 
     public TalkRoomFindOneResponse findOneTalkRoom(Long talkRoomId) {
@@ -87,8 +105,24 @@ public class TalkRoomService {
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
 
-        return TalkRoomResponse.of(user.getName(), talkRoom.getTitle(), talkRoom.getContent(), readingStatus,
+        if (request.getNewImage() != null && !request.getNewImage().isEmpty()) {
+            request.getNewImage().stream().map(url -> TalkRoomImage.createImages(talkRoom, url))
+                    .forEach(talkRoomImageRepository::save);
+        }
+
+        if (request.getRemoveImage() != null && !request.getRemoveImage().isEmpty()) {
+            request.getRemoveImage().stream().map(s -> talkRoomImageRepository.findByTalkRoomAndImageUrl(talkRoom, s))
+                    .forEach(talkRoomImageRepository::deleteAll);
+        }
+
+        TalkRoomResponse response = TalkRoomResponse.of(user.getName(), talkRoom.getTitle(),
+                talkRoom.getContent(), readingStatus,
                 talkRoom.getBook().getImageUrl(), talkRoom.getBook().getTitle());
+
+        List<String> images = talkRoomImageRepository.findByTalkRoomIdWithImageUrl(talkRoom.getId());
+        response.addTalkRoomImages(images);
+
+        return response;
     }
 
     @Transactional
@@ -105,6 +139,10 @@ public class TalkRoomService {
 
         commentRepository.findByTalkRoom(talkRoom).ifPresent(commentRepository::delete);
 
+        List<TalkRoomImage> images = talkRoomImageRepository.findByTalkRoom(talkRoom);
+        if (images != null) {
+            talkRoomImageRepository.deleteAll(images);
+        }
         talkRoomRoleRepository.deleteAllByTalkRoom(talkRoom);
         talkRoomRepository.delete(talkRoom);
     }

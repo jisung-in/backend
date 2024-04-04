@@ -19,6 +19,7 @@ import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
+import com.jisungin.domain.talkroomimage.repository.TalkRoomImageRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
@@ -51,11 +52,15 @@ class CommentServiceTest extends ServiceTestSupport {
     CommentRepository commentRepository;
 
     @Autowired
+    TalkRoomImageRepository talkRoomImageRepository;
+
+    @Autowired
     AuthContext authContext;
 
     @AfterEach
     void tearDown() {
         commentRepository.deleteAllInBatch();
+        talkRoomImageRepository.deleteAllInBatch();
         talkRoomRoleRepository.deleteAllInBatch();
         talkRoomRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();

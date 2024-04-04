@@ -29,12 +29,16 @@ public class TalkRoomCreateRequest {
     @NotEmpty(message = "참가 조건은 1개 이상 체크해야합니다.")
     private List<String> readingStatus = new ArrayList<>();
 
+    private List<String> imageUrls = new ArrayList<>();
+
     @Builder
-    private TalkRoomCreateRequest(String bookIsbn, String title, String content, List<String> readingStatus) {
+    private TalkRoomCreateRequest(String bookIsbn, String title, String content, List<String> readingStatus,
+                                  List<String> imageUrls) {
         this.bookIsbn = bookIsbn;
         this.title = title;
         this.content = content;
         this.readingStatus = readingStatus;
+        this.imageUrls = imageUrls;
     }
 
     public TalkRoomCreateServiceRequest toServiceRequest() {
@@ -43,6 +47,7 @@ public class TalkRoomCreateRequest {
                 .title(title)
                 .content(content)
                 .readingStatus(readingStatus)
+                .imageUrls(imageUrls)
                 .build();
     }
 

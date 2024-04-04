@@ -3,7 +3,6 @@ package com.jisungin.domain.talkroom.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.jisungin.RepositoryTestSupport;
-import com.jisungin.application.OrderType;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
@@ -95,11 +94,12 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
                 .size(10)
-                .orderType(OrderType.RECENT)
+                .order("recent")
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> talkRooms = talkRoomRepository.findAllTalkRoom(search);
+        PageResponse<TalkRoomFindAllResponse> talkRooms = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+                search.getSize(), search.getOrder(), search.getQuery());
 
         // then
         assertThat(10L).isEqualTo(talkRooms.getQueryResponse().size());
@@ -194,11 +194,12 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(2)
                 .size(10)
-                .orderType(OrderType.RECENT)
+                .order("recent")
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> response = talkRoomRepository.findAllTalkRoom(search);
+        PageResponse<TalkRoomFindAllResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+                search.getSize(), search.getOrder(), search.getQuery());
 
         // then
         assertThat(5L).isEqualTo(response.getQueryResponse().get(9).getLikeCount());
@@ -428,11 +429,12 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
                 .size(10)
-                .orderType(OrderType.RECOMMEND)
+                .order("recommend")
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> response = talkRoomRepository.findAllTalkRoom(search);
+        PageResponse<TalkRoomFindAllResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+                search.getSize(), search.getOrder(), search.getQuery());
 
         // then
         assertThat(10L).isEqualTo(response.getQueryResponse().get(0).getLikeCount());
@@ -520,11 +522,12 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
                 .size(10)
-                .search("검색어")
+                .query("검색어")
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> response = talkRoomRepository.findAllTalkRoom(search);
+        PageResponse<TalkRoomFindAllResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+                search.getSize(), search.getOrder(), search.getQuery());
 
         // then
         assertThat(talkRoom1.getTitle()).isEqualTo(response.getQueryResponse().get(0).getTitle());

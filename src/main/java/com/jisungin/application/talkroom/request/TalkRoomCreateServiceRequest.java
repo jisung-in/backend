@@ -17,12 +17,16 @@ public class TalkRoomCreateServiceRequest {
 
     private List<String> readingStatus;
 
+    private List<String> imageUrls;
+
     @Builder
-    private TalkRoomCreateServiceRequest(String bookIsbn, String title, String content, List<String> readingStatus) {
+    private TalkRoomCreateServiceRequest(String bookIsbn, String title, String content, List<String> readingStatus,
+                                         List<String> imageUrls) {
         this.bookIsbn = bookIsbn;
         this.title = title;
         this.content = content;
         this.readingStatus = readingStatus;
+        this.imageUrls = imageUrls;
     }
 
 }

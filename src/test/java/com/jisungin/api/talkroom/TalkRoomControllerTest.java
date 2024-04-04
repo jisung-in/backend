@@ -147,6 +147,20 @@ class TalkRoomControllerTest extends ControllerTestSupport {
     }
 
     @Test
+    @DisplayName("사용자가 토크방을 10개씩 조회할 수 있다.")
+    void getTalkRooms() throws Exception {
+        // when // then
+        mockMvc.perform(get("/v1/talk-rooms?page=1&size=10&order=recent")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"));
+    }
+
+    @Test
     @DisplayName("사용자가 토크방을 조회 했을 때 페이지를 -1 값을 보내면 첫 번째 페이지가 조회 되어야 한다.")
     void getTalkRoomWithMinus() throws Exception {
 
