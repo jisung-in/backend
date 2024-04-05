@@ -18,6 +18,7 @@ import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.talkroomimage.TalkRoomImage;
 import com.jisungin.domain.talkroomimage.repository.TalkRoomImageRepository;
+import com.jisungin.domain.talkroomlike.repository.TalkRoomLikeRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
@@ -38,6 +39,7 @@ public class TalkRoomService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final TalkRoomImageRepository talkRoomImageRepository;
+    private final TalkRoomLikeRepository talkRoomLikeRepository;
 
     @Transactional
     public TalkRoomResponse createTalkRoom(TalkRoomCreateServiceRequest request, AuthContext authContext) {
@@ -54,7 +56,7 @@ public class TalkRoomService {
 
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
-
+        
         TalkRoomResponse response = TalkRoomResponse.of(user.getName(), talkRoom.getTitle(),
                 talkRoom.getContent(), readingStatus,
                 book.getImageUrl(), book.getTitle());
@@ -73,16 +75,30 @@ public class TalkRoomService {
         return response;
     }
 
-    public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(SearchServiceRequest search) {
-        return talkRoomRepository.findAllTalkRoom(search.getOffset(), search.getSize(), search.getOrder(),
+    public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(SearchServiceRequest search, AuthContext authContext) {
+        PageResponse<TalkRoomFindAllResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+                search.getSize(), search.getOrder(),
                 search.getQuery());
+
+        if (authContext.getUserId() != null) {
+            List<Long> talkRoomIds = talkRoomLikeRepository.userLikeTalkRooms(authContext.getUserId());
+            response.addContents(talkRoomIds);
+        }
+
+        return response;
     }
 
-    public TalkRoomFindOneResponse findOneTalkRoom(Long talkRoomId) {
+    public TalkRoomFindOneResponse findOneTalkRoom(Long talkRoomId, AuthContext authContext) {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        return talkRoomRepository.findOneTalkRoom(talkRoom.getId());
+        TalkRoomFindOneResponse response = talkRoomRepository.findOneTalkRoom(talkRoom.getId());
+
+        if (authContext.getUserId() != null) {
+            Long likeTalkRoom = talkRoomLikeRepository.userLikeTalkRoom(talkRoomId, authContext.getUserId());
+            response.addTalkRoomLikeId(likeTalkRoom);
+        }
+        return response;
     }
 
     @Transactional

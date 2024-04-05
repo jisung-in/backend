@@ -2,6 +2,7 @@ package com.jisungin.api.comment;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -25,7 +26,7 @@ class CommentControllerTest extends ControllerTestSupport {
                 .build();
 
         // when // then
-        mockMvc.perform(post("/v1/talk-rooms/1/comments")
+        mockMvc.perform(post("/v1/1/comments")
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
                 )
@@ -44,7 +45,7 @@ class CommentControllerTest extends ControllerTestSupport {
                 .build();
 
         // when // then
-        mockMvc.perform(post("/v1/talk-rooms/1/comments")
+        mockMvc.perform(post("/v1/1/comments")
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
                 )
@@ -63,7 +64,7 @@ class CommentControllerTest extends ControllerTestSupport {
                 .build();
 
         // when // then
-        mockMvc.perform(patch("/v1/talk-rooms/comments/1")
+        mockMvc.perform(patch("/v1/comments/1")
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
                 )
@@ -78,7 +79,21 @@ class CommentControllerTest extends ControllerTestSupport {
     @DisplayName("의견을 작성한 유저가 자신의 의견을 삭제한다.")
     void deleteComment() throws Exception {
         // when // then
-        mockMvc.perform(delete("/v1/talk-rooms/comments/1")
+        mockMvc.perform(delete("/v1/comments/1")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"));
+    }
+
+    @Test
+    @DisplayName("의견을 조회한다.")
+    void getComments() throws Exception {
+        // when // then
+        mockMvc.perform(get("/v1/1/comments")
                         .contentType(APPLICATION_JSON)
                 )
                 .andDo(print())

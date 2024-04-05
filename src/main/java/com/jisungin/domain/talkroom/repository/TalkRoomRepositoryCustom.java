@@ -9,4 +9,5 @@ public interface TalkRoomRepositoryCustom {
     PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(long offset, int size, String order, String query);
 
     TalkRoomFindOneResponse findOneTalkRoom(Long talkRoomId);
+
 }
