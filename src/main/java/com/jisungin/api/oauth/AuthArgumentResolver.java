@@ -34,10 +34,10 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
             NativeWebRequest webRequest,
             WebDataBinderFactory binderFactory
     ) throws Exception {
-        if (authContext.getUserId() == null) {
+//        if (authContext.getUserId() == null) {
             // TODO. 추후에 인증과 관련된 예외처리를 적용할 예정
-            throw new BusinessException(UNAUTHORIZED_REQUEST);
-        }
+//            throw new BusinessException(UNAUTHORIZED_REQUEST);
+//        }
         return authContext.getUserId();
     }
 
