@@ -39,13 +39,14 @@ public class TalkRoomController {
 
     @GetMapping("/talk-rooms")
     public ApiResponse<PageResponse<TalkRoomFindAllResponse>> findAllTalkRoom(
-            @ModelAttribute SearchRequest search) {
-        return ApiResponse.ok(talkRoomService.findAllTalkRoom(search.toService()));
+            @ModelAttribute SearchRequest search, @Auth AuthContext authContext) {
+        return ApiResponse.ok(talkRoomService.findAllTalkRoom(search.toService(), authContext));
     }
 
     @GetMapping("/talk-room/{talkRoomId}")
-    public ApiResponse<TalkRoomFindOneResponse> findOneTalkRoom(@PathVariable Long talkRoomId) {
-        return ApiResponse.ok(talkRoomService.findOneTalkRoom(talkRoomId));
+    public ApiResponse<TalkRoomFindOneResponse> findOneTalkRoom(@PathVariable Long talkRoomId,
+                                                                @Auth AuthContext authContext) {
+        return ApiResponse.ok(talkRoomService.findOneTalkRoom(talkRoomId, authContext));
     }
 
     @PatchMapping("/talk-rooms")

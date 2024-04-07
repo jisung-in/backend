@@ -5,26 +5,33 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.api.oauth.AuthContext;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.request.CommentEditServiceRequest;
+import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.jisungin.application.comment.response.CommentResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
+import com.jisungin.domain.commentlike.CommentLike;
+import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
 import com.jisungin.domain.oauth.OauthId;
 import com.jisungin.domain.oauth.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
+import com.jisungin.domain.talkroomimage.repository.TalkRoomImageRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,11 +58,19 @@ class CommentServiceTest extends ServiceTestSupport {
     CommentRepository commentRepository;
 
     @Autowired
+    TalkRoomImageRepository talkRoomImageRepository;
+
+    @Autowired
+    CommentLikeRepository commentLikeRepository;
+
+    @Autowired
     AuthContext authContext;
 
     @AfterEach
     void tearDown() {
+        commentLikeRepository.deleteAllInBatch();
         commentRepository.deleteAllInBatch();
+        talkRoomImageRepository.deleteAllInBatch();
         talkRoomRoleRepository.deleteAllInBatch();
         talkRoomRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
@@ -117,7 +132,7 @@ class CommentServiceTest extends ServiceTestSupport {
         authContext.setUserId(user.getId());
 
         // when
-        CommentResponse response = commentService.editComment(talkRoom.getId(), request, authContext);
+        CommentResponse response = commentService.editComment(comment.getId(), request, authContext);
 
         // then
         assertThat(response)
@@ -149,7 +164,7 @@ class CommentServiceTest extends ServiceTestSupport {
         authContext.setUserId(user.getId());
 
         // when
-        CommentResponse response = commentService.editComment(talkRoom.getId(), request, authContext);
+        CommentResponse response = commentService.editComment(comment.getId(), request, authContext);
 
         // then
         assertThat(response)
@@ -194,7 +209,7 @@ class CommentServiceTest extends ServiceTestSupport {
         authContext.setUserId(userB.getId());
 
         // when // then
-        assertThatThrownBy(() -> commentService.editComment(talkRoom.getId(), request, authContext))
+        assertThatThrownBy(() -> commentService.editComment(comment.getId(), request, authContext))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
@@ -263,6 +278,94 @@ class CommentServiceTest extends ServiceTestSupport {
         assertThatThrownBy(() -> commentService.deleteComment(comment.getId(), authContext))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
+    }
+
+    @Test
+    @DisplayName("의견을 조회한다.")
+    void findAllComments() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        List<Comment> comments = IntStream.range(1, 6)
+                .mapToObj(i -> Comment.builder()
+                        .talkRoom(talkRoom)
+                        .user(user)
+                        .content("의견 " + i)
+                        .build())
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < 5; i++) {
+            commentRepository.save(comments.get(i));
+        }
+
+        AuthContext authContext = new AuthContext();
+        // when
+        PageResponse<CommentQueryResponse> response = commentService.findAllComments(talkRoom.getId(), authContext);
+
+        // then
+        assertThat(5L).isEqualTo(response.getTotalCount());
+        assertThat("의견 5").isEqualTo(response.getQueryResponse().get(0).getContent());
+        assertThat("의견 4").isEqualTo(response.getQueryResponse().get(1).getContent());
+        assertThat("의견 3").isEqualTo(response.getQueryResponse().get(2).getContent());
+        assertThat("의견 2").isEqualTo(response.getQueryResponse().get(3).getContent());
+        assertThat("의견 1").isEqualTo(response.getQueryResponse().get(4).getContent());
+    }
+
+    @Test
+    @DisplayName("유저가 로그인을 한 상태에서 의견을 조회하면 본인이 좋아요한 의견을 확인할 수 있다.")
+    void findAllCommentsWithLike() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        List<Comment> comments = IntStream.range(1, 6)
+                .mapToObj(i -> Comment.builder()
+                        .talkRoom(talkRoom)
+                        .user(user)
+                        .content("의견 " + i)
+                        .build())
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < 5; i++) {
+            commentRepository.save(comments.get(i));
+        }
+
+        CommentLike.builder().build();
+        List<CommentLike> likes = IntStream.range(0, 5).mapToObj(i -> CommentLike.builder()
+                .user(user)
+                .comment(comments.get(i))
+                .build()).collect(Collectors.toList());
+
+        commentLikeRepository.saveAll(likes);
+
+        authContext.setUserId(user.getId());
+
+        // when
+        PageResponse<CommentQueryResponse> response = commentService.findAllComments(talkRoom.getId(), authContext);
+
+        // then
+        assertThat(comments.get(0).getId()).isEqualTo(response.getLikeContents().get(0));
+        assertThat(comments.get(1).getId()).isEqualTo(response.getLikeContents().get(1));
+        assertThat(comments.get(2).getId()).isEqualTo(response.getLikeContents().get(2));
+        assertThat(comments.get(3).getId()).isEqualTo(response.getLikeContents().get(3));
+        assertThat(comments.get(4).getId()).isEqualTo(response.getLikeContents().get(4));
     }
 
     private static Comment createComment(User user, TalkRoom talkRoom) {

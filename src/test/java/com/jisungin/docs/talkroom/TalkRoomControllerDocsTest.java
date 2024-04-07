@@ -6,9 +6,11 @@ import static com.jisungin.domain.ReadingStatus.READING;
 import static com.jisungin.domain.ReadingStatus.STOP;
 import static com.jisungin.domain.ReadingStatus.WANT;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
@@ -18,7 +20,6 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -31,8 +32,6 @@ import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.SearchServiceRequest;
-import com.jisungin.application.comment.response.CommentLikeUserIdResponse;
-import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
@@ -66,18 +65,23 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .bookIsbn("1111111")
                 .title("토론방")
                 .content("내용")
-                .readingStatus(List.of("WANT", "READING", "READ", "PAUSE", "STOP"))
+                .readingStatus(List.of("읽고 싶은", "읽는 중", "읽음", "잠시 멈춤", "중단"))
+                .imageUrls(List.of("이미지 URL"))
                 .build();
 
+        TalkRoomResponse response = TalkRoomResponse.builder()
+                .userName("user@mail.com")
+                .title("토론방 제목")
+                .bookName("책 제목")
+                .content("토론방 내용")
+                .readingStatuses(List.of(WANT, READING, READ, PAUSE, STOP))
+                .bookImage("책 이미지 URL")
+                .build();
+
+        response.addTalkRoomImages(List.of("이미지 URL"));
+
         given(talkRoomService.createTalkRoom(any(TalkRoomCreateServiceRequest.class), any(AuthContext.class)))
-                .willReturn(TalkRoomResponse.builder()
-                        .userName("user@mail.com")
-                        .title("토론방")
-                        .bookName("책 제목")
-                        .content("내용")
-                        .readingStatuses(List.of(WANT, READING, READ, PAUSE, STOP))
-                        .bookImage("책 이미지 URL")
-                        .build());
+                .willReturn(response);
 
         mockMvc.perform(
                         post("/v1/talk-rooms")
@@ -97,7 +101,9 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("content").type(JsonFieldType.STRING)
                                         .description("내용"),
                                 fieldWithPath("readingStatus").type(JsonFieldType.ARRAY)
-                                        .description("참가 조건")
+                                        .description("참가 조건 -> { 읽고 싶은, 읽는 중, 읽음, 잠시 멈춤, 중단 }"),
+                                fieldWithPath("imageUrls").type(JsonFieldType.ARRAY)
+                                        .description("이미지 URL").optional()
                         ),
                         responseFields(
                                 fieldWithPath("code").type(JsonFieldType.NUMBER)
@@ -116,6 +122,8 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("책 제목"),
                                 fieldWithPath("data.content").type(JsonFieldType.STRING)
                                         .description("토론방 본문"),
+                                fieldWithPath("data.imageUrls").type(JsonFieldType.ARRAY)
+                                        .description("이미지 URL 리스트"),
                                 fieldWithPath("data.readingStatuses").type(JsonFieldType.ARRAY)
                                         .description("참가 조건"),
                                 fieldWithPath("data.bookImage").type(JsonFieldType.STRING)
@@ -133,21 +141,26 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .page(1)
                 .size(10)
                 .order("RECENT")
-                .search(null)
+                .query(null)
                 .build();
-        given(talkRoomService.findAllTalkRoom(any(SearchServiceRequest.class)))
-                .willReturn(PageResponse.<TalkRoomFindAllResponse>builder()
-                        .queryResponse(talkRoomFindAllResponses)
-                        .totalCount(10L)
-                        .size(10)
-                        .build());
+
+        PageResponse<TalkRoomFindAllResponse> response = PageResponse.<TalkRoomFindAllResponse>builder()
+                .queryResponse(talkRoomFindAllResponses)
+                .totalCount(10L)
+                .size(10)
+                .build();
+
+        response.addContents(List.of(1L));
+
+        given(talkRoomService.findAllTalkRoom(any(SearchServiceRequest.class), any(AuthContext.class)))
+                .willReturn(response);
 
         mockMvc.perform(
                         get("/v1/talk-rooms")
                                 .param("page", String.valueOf(request.getPage()))
                                 .param("size", String.valueOf(request.getSize()))
                                 .param("order", request.getOrder())
-                                .param("search", request.getSearch())
+                                .param("search", request.getQuery())
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())
@@ -200,15 +213,10 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("data.queryResponse[].readingStatuses[].readingStatus").type(
                                                 JsonFieldType.STRING)
                                         .description("참가 조건"),
-                                fieldWithPath("data.queryResponse[].userIds").type(JsonFieldType.ARRAY)
-                                        .description("좋아요한 사용자 ID와 좋아요가 눌린 토론방 ID").optional(),
-                                fieldWithPath("data.queryResponse[].userIds[].talkRoomId").type(JsonFieldType.NUMBER)
-                                        .description("좋아요가 눌린 토론방 ID"),
-                                fieldWithPath("data.queryResponse[].userIds[].userId")
-                                        .description("좋아요를 누른 사용자 ID"),
                                 fieldWithPath("data.queryResponse[].likeCount").type(JsonFieldType.NUMBER)
-                                        .description("좋아요 총 개수")
-
+                                        .description("좋아요 총 개수"),
+                                fieldWithPath("data.likeContents").type(JsonFieldType.ARRAY)
+                                        .description("로그인한 유저가 좋아요한 토론방 ID들").optional()
                         )
                 ));
 
@@ -217,17 +225,16 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
     @Test
     @DisplayName("토론방을 단건 조회하는 API")
     void findOneTalkRoom() throws Exception {
-        TalkRoomFindOneResponse talkRoomFindOneResponse = createFindOneTalkRoom(1L, 1L);
+        TalkRoomFindOneResponse talkRoomFindOneResponse = createFindOneTalkRoom(1L);
         talkRoomFindOneResponse.addTalkRoomStatus(createReadingStatuses(1));
-        talkRoomFindOneResponse.addTalkRoomComments(createComments());
-        talkRoomFindOneResponse.addUserIds(createTalkRoomLikeUserIdResponses());
+        talkRoomFindOneResponse.addTalkRoomLikeId(1L);
 
-        given(talkRoomService.findOneTalkRoom(any(Long.class)))
+        given(talkRoomService.findOneTalkRoom(anyLong(), any(AuthContext.class)))
                 .willReturn(talkRoomFindOneResponse);
         Long request = 1L;
 
         mockMvc.perform(
-                        RestDocumentationRequestBuilders.get("/v1/talk-room/{talkRoomId}", request)
+                        get("/v1/talk-room/{talkRoomId}", request)
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())
@@ -268,32 +275,10 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("data.readingStatuses[].readingStatus").type(
                                                 JsonFieldType.STRING)
                                         .description("참가 조건"),
-                                fieldWithPath("data.comments").type(JsonFieldType.ARRAY)
-                                        .description("토론방의 달린 의견 데이터"),
-                                fieldWithPath("data.comments[].commentId").type(JsonFieldType.NUMBER)
-                                        .description("의견 ID"),
-                                fieldWithPath("data.comments[].userName").type(JsonFieldType.STRING)
-                                        .description("의견 생성자 이름"),
-                                fieldWithPath("data.comments[].content").type(JsonFieldType.STRING)
-                                        .description("의견 내용"),
-                                fieldWithPath("data.comments[].commentLikeCount").type(JsonFieldType.NUMBER)
-                                        .description("의견 좋아요 총 개수"),
-                                fieldWithPath("data.comments[].userIds").type(JsonFieldType.ARRAY)
-                                        .description("의견에 좋아요한 사용자 ID와 해당 의견 ID"),
-                                fieldWithPath("data.comments[].userIds[].commentId").type(JsonFieldType.NUMBER)
-                                        .description("좋아요가 눌린 의견 ID"),
-                                fieldWithPath("data.comments[].userIds[].userId").type(JsonFieldType.NUMBER)
-                                        .description("좋아요를 누른 사용자 ID"),
                                 fieldWithPath("data.likeCount").type(JsonFieldType.NUMBER)
                                         .description("토론방 좋아요 총 개수"),
-                                fieldWithPath("data.commentCount").type(JsonFieldType.NUMBER)
-                                        .description("의견이 달린 개수"),
-                                fieldWithPath("data.userIds").type(JsonFieldType.ARRAY)
-                                        .description("좋아요한 사용자 ID와 좋아요가 눌린 토론방 ID").optional(),
-                                fieldWithPath("data.userIds[].talkRoomId").type(JsonFieldType.NUMBER)
-                                        .description("좋아요가 눌린 토론방 ID"),
-                                fieldWithPath("data.userIds[].userId")
-                                        .description("좋아요를 누른 사용자 ID")
+                                fieldWithPath("data.likeTalkRoomId").type(JsonFieldType.NUMBER)
+                                        .description("사용자가 좋아요한 토론방 ID").optional()
                         )
                 ));
     }
@@ -306,17 +291,23 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .title("토론방 제목 수정")
                 .content("토론방 본문 수정")
                 .readingStatus(List.of("READ"))
+                .newImage(List.of("새로운 이미지"))
+                .removeImage(List.of("기존에 있던 이미지"))
                 .build();
 
+        TalkRoomResponse response = TalkRoomResponse.builder()
+                .userName("user@mail.com")
+                .title("토론방 제목")
+                .bookName("책 제목")
+                .content("토론방 내용")
+                .readingStatuses(List.of(WANT, READING, READ, PAUSE, STOP))
+                .bookImage("책 이미지 URL")
+                .build();
+
+        response.addTalkRoomImages(List.of("이미지 URL"));
+
         given(talkRoomService.editTalkRoom(any(TalkRoomEditServiceRequest.class), any(AuthContext.class)))
-                .willReturn(TalkRoomResponse.builder()
-                        .userName("user")
-                        .title("토론방 제목 수정")
-                        .bookName("책 제목")
-                        .content("토론방 본문 수정")
-                        .readingStatuses(List.of(READ))
-                        .bookImage("책 이미지 URL")
-                        .build());
+                .willReturn(response);
 
         mockMvc.perform(
                         patch("/v1/talk-rooms")
@@ -335,6 +326,10 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("제목").optional(),
                                 fieldWithPath("content").type(JsonFieldType.STRING)
                                         .description("내용").optional(),
+                                fieldWithPath("newImage").type(JsonFieldType.ARRAY)
+                                        .description("새로운 이미지 URL 저장"),
+                                fieldWithPath("removeImage").type(JsonFieldType.ARRAY)
+                                        .description("기존의 있던 이미지 URL 삭제"),
                                 fieldWithPath("readingStatus").type(JsonFieldType.ARRAY)
                                         .description("참가 조건")
                         ),
@@ -355,6 +350,8 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("책 제목"),
                                 fieldWithPath("data.content").type(JsonFieldType.STRING)
                                         .description("토론방 본문"),
+                                fieldWithPath("data.imageUrls").type(JsonFieldType.ARRAY)
+                                        .description("이미지 URL"),
                                 fieldWithPath("data.readingStatuses").type(JsonFieldType.ARRAY)
                                         .description("참가 조건"),
                                 fieldWithPath("data.bookImage").type(JsonFieldType.STRING)
@@ -392,31 +389,6 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 ));
     }
 
-    private List<CommentQueryResponse> createComments() {
-        List<CommentQueryResponse> comments = new ArrayList<>();
-        comments.add(
-                CommentQueryResponse.builder()
-                        .commentId(1L)
-                        .userName("user")
-                        .content("의견 내용")
-                        .commentLikeCount(1L)
-                        .build()
-        );
-        comments.get(0).addLikeUserIds(createCommentLikeUserIdResponses());
-        return comments;
-    }
-
-    private List<CommentLikeUserIdResponse> createCommentLikeUserIdResponses() {
-        List<CommentLikeUserIdResponse> commentLikeUserIdResponses = new ArrayList<>();
-        commentLikeUserIdResponses.add(
-                CommentLikeUserIdResponse.builder()
-                        .commentId(1L)
-                        .userId(1L)
-                        .build()
-        );
-        return commentLikeUserIdResponses;
-    }
-
     private List<TalkRoomLikeUserIdResponse> createTalkRoomLikeUserIdResponses() {
         List<TalkRoomLikeUserIdResponse> talkRoomLikeUserIdResponses = new ArrayList<>();
         talkRoomLikeUserIdResponses.add(
@@ -428,16 +400,15 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
         return talkRoomLikeUserIdResponses;
     }
 
-    private static TalkRoomFindOneResponse createFindOneTalkRoom(Long likeCount, Long commentCount) {
+    private static TalkRoomFindOneResponse createFindOneTalkRoom(Long likeCount) {
         return TalkRoomFindOneResponse.builder()
                 .talkRoomId(1L)
-                .userName("user")
-                .title("토론방")
+                .userName("유저 이름")
+                .title("토론방 제목")
                 .content("토론방 본문")
                 .bookName("책 제목")
                 .bookImage("책 이미지 URL")
                 .likeCount(likeCount)
-                .commentCount(commentCount)
                 .build();
     }
 
@@ -459,7 +430,6 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                     .build();
 
             roomResponse.addTalkRoomStatus(readingStatuses);
-            roomResponse.addTalkRoomLikeUserIds(userIds);
 
             talkRoomFindAllResponses.add(roomResponse);
         }

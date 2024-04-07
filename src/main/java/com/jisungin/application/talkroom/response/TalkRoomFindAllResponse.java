@@ -18,7 +18,6 @@ public class TalkRoomFindAllResponse {
     private String bookName;
     private String bookImage;
     private List<TalkRoomQueryReadingStatusResponse> readingStatuses = new ArrayList<>();
-    private List<TalkRoomLikeUserIdResponse> userIds = new ArrayList<>();
     private Long likeCount;
 
     @Builder
@@ -36,10 +35,6 @@ public class TalkRoomFindAllResponse {
 
     public void addTalkRoomStatus(List<TalkRoomQueryReadingStatusResponse> readingStatuses) {
         this.readingStatuses = readingStatuses;
-    }
-
-    public void addTalkRoomLikeUserIds(List<TalkRoomLikeUserIdResponse> userIds) {
-        this.userIds = userIds;
     }
 
 }

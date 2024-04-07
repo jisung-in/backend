@@ -1,4 +1,4 @@
-package com.jisungin.application;
+package com.jisungin.domain.talkroom.repository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -11,6 +11,10 @@ public enum OrderType {
     private final String text;
 
     public static OrderType convertToOrderType(String order) {
+        if (order == null) {
+            return null;
+        }
+
         return switch (order) {
             case "recent" -> RECENT;
             case "recommend" -> RECOMMEND;

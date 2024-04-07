@@ -17,6 +17,7 @@ public class TalkRoomResponse {
     private String content;
     private List<ReadingStatus> readingStatuses;
     private String bookImage;
+    private List<String> imageUrls;
 
     @Builder
     @QueryProjection
@@ -41,6 +42,10 @@ public class TalkRoomResponse {
                 .readingStatuses(readingStatuses)
                 .bookImage(bookImage)
                 .build();
+    }
+
+    public void addTalkRoomImages(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
     }
 
 }

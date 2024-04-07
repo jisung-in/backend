@@ -16,11 +16,17 @@ public class PageResponse<T> {
 
     private int size;
 
+    private List<Long> likeContents;
+
     @Builder
     private PageResponse(List<T> queryResponse, long totalCount, int size) {
         this.queryResponse = queryResponse;
         this.totalCount = totalCount;
         this.size = size;
+    }
+
+    public void addContents(List<Long> contents) {
+        this.likeContents = contents;
     }
 
 }

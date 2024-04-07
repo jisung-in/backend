@@ -2,6 +2,7 @@ package com.jisungin.application.talkroom.request;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,12 +23,19 @@ public class TalkRoomEditServiceRequest {
     @NotEmpty(message = "참가 조건은 1개 이상 체크해야합니다.")
     private List<String> readingStatus;
 
+    private List<String> newImage = new ArrayList<>();
+
+    private List<String> removeImage = new ArrayList<>();
+
     @Builder
-    private TalkRoomEditServiceRequest(Long id, String title, String content, List<String> readingStatus) {
+    private TalkRoomEditServiceRequest(Long id, String title, String content, List<String> readingStatus,
+                                       List<String> newImage, List<String> removeImage) {
         this.id = id;
         this.title = title;
         this.content = content;
         this.readingStatus = readingStatus;
+        this.newImage = newImage;
+        this.removeImage = removeImage;
     }
 
 }
