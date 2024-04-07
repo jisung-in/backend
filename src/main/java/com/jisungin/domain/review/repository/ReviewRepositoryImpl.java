@@ -2,7 +2,9 @@ package com.jisungin.domain.review.repository;
 
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.review.response.QRatingFindAllResponse;
+import com.jisungin.application.review.response.QReviewContentResponse;
 import com.jisungin.application.review.response.RatingFindAllResponse;
+import com.jisungin.application.review.response.ReviewContentResponse;
 import com.jisungin.domain.review.RatingOrderType;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -15,6 +17,7 @@ import java.util.List;
 import static com.jisungin.domain.book.QBook.book;
 import static com.jisungin.domain.review.QReview.review;
 import static com.jisungin.domain.review.RatingOrderType.*;
+import static com.jisungin.domain.user.QUser.user;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,6 +37,37 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .totalCount(getTotalCount(userId, rating)) // 해당 유저의 리뷰 총 개수, 쿼리 1회
                 .size(size)
                 .build();
+    }
+
+    @Override
+    public PageResponse<ReviewContentResponse> findAllReviewContentOrderBy(
+            Long userId, RatingOrderType orderType, int size, int offset) {
+        log.info("--------------start--------------");
+        // 리뷰 내용을 가져온다. 쿼리 1회
+        List<ReviewContentResponse> reviewContents = getReviewContents(userId, orderType, size, offset);
+
+        return PageResponse.<ReviewContentResponse>builder()
+                .queryResponse(reviewContents)
+                .totalCount(getTotalCount(userId, null)) // 리뷰 전체 개수, 쿼리 1회
+                .size(size)
+                .build();
+    }
+
+    private List<ReviewContentResponse> getReviewContents(
+            Long userId, RatingOrderType orderType, int size, int offset) {
+        return queryFactory
+                .select(new QReviewContentResponse(
+                        review.id, user.profileImage, user.name, review.rating, review.content,
+                        book.isbn, book.title, book.imageUrl
+                ))
+                .from(review)
+                .leftJoin(book).on(review.book.eq(book))
+                .leftJoin(book).on(review.user.eq(user))
+                .where(review.user.id.eq(userId))
+                .orderBy(createSpecifier(orderType), review.id.asc())
+                .offset(offset)
+                .limit(size)
+                .fetch();
     }
 
     private List<RatingFindAllResponse> getRatings(

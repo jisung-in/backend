@@ -13,10 +13,25 @@ class UserControllerTest extends ControllerTestSupport {
 
     @DisplayName("사용자의 모든 리뷰 별점을 조회한다.")
     @Test
-    void getUserRatingAll() throws Exception {
+    void getUserRatings() throws Exception {
         //given
         //when //then
         mockMvc.perform(get("/v1/users/ratings?page=1&size=4&order=rating_asc&rating=")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
+
+    @DisplayName("사용자의 모든 리뷰 내용을 조회한다.")
+    @Test
+    void getReviewContents() throws Exception {
+        //given
+        //when //then
+        mockMvc.perform(get("/v1/users/reviews?page=1&size=4&order=rating_asc")
                         .contentType(APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())

@@ -3,9 +3,11 @@ package com.jisungin.api.user;
 import com.jisungin.api.ApiResponse;
 import com.jisungin.api.oauth.Auth;
 import com.jisungin.api.oauth.AuthContext;
+import com.jisungin.api.user.request.ReviewContentGetAllRequest;
 import com.jisungin.api.user.request.UserRatingGetAllRequest;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.review.response.RatingFindAllResponse;
+import com.jisungin.application.review.response.ReviewContentGetAllResponse;
 import com.jisungin.application.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +28,16 @@ public class UserController {
             @Auth AuthContext authContext
     ) {
         PageResponse<RatingFindAllResponse> response = userService.getUserRatings(
+                authContext.getUserId(), request.toService());
+        return ApiResponse.ok(response);
+    }
+
+    @GetMapping("/reviews")
+    public ApiResponse<ReviewContentGetAllResponse> getReviewContents(
+            @ModelAttribute ReviewContentGetAllRequest request,
+            @Auth AuthContext authContext
+    ) {
+        ReviewContentGetAllResponse response = userService.getReviewContents(
                 authContext.getUserId(), request.toService());
         return ApiResponse.ok(response);
     }
