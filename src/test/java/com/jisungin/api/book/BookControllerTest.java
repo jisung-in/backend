@@ -1,6 +1,8 @@
 package com.jisungin.api.book;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,11 +13,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jisungin.ControllerTestSupport;
 import com.jisungin.api.book.request.BookCreateRequest;
+import com.jisungin.application.PageResponse;
+import com.jisungin.application.book.request.BookServicePageRequest;
 import com.jisungin.application.book.response.BestSellerResponse;
+import com.jisungin.application.book.response.BookRelatedTalkRoomPageResponse;
+import com.jisungin.application.book.response.BookRelatedTalkRoomResponse;
 import com.jisungin.application.book.response.BookResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +55,19 @@ public class BookControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("OK"));
+    }
+
+    @Test
+    @DisplayName("책과 연관된 토크룸을 조회한다.")
+    public void getTalkRoomsRelatedBook() throws Exception {
+        // when // then
+        mockMvc.perform(get("/v1/books/00001/talk-rooms?page=1&size=10")
+                        .accept(APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
     }
 
     @Test
