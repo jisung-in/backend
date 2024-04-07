@@ -13,14 +13,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.jisungin.domain.book.QBook.book;
 import static com.jisungin.domain.review.QReview.review;
 import static com.jisungin.domain.review.RatingOrderType.*;
-import static com.jisungin.domain.reviewlike.QReviewLike.reviewLike;
 import static com.jisungin.domain.user.QUser.user;
 
 @Slf4j
@@ -49,34 +45,12 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         log.info("--------------start--------------");
         // 리뷰 내용을 가져온다. 쿼리 1회
         List<ReviewContentResponse> reviewContents = getReviewContents(userId, orderType, size, offset);
-        // review_id를 Key로 해당 리뷰를 좋아요한 users를 가져온다. 쿼리 1회
-        Map<Long, List<Long>> reviewLikeUsers = getReviewLikeUsers();
-
-        reviewLikeUsers.forEach((reviewId, users) -> {
-            Optional<ReviewContentResponse> optionalReviewContents = reviewContents.stream()
-                    .filter(content -> content.getReviewId().equals(reviewId))
-                    .findFirst();
-
-            optionalReviewContents.ifPresent(reviewContent -> reviewContent.addUsers(users));
-        });
 
         return PageResponse.<ReviewContentResponse>builder()
                 .queryResponse(reviewContents)
                 .totalCount(getTotalCount(userId, null)) // 리뷰 전체 개수, 쿼리 1회
                 .size(size)
                 .build();
-    }
-
-    private Map<Long, List<Long>> getReviewLikeUsers() {
-        return queryFactory
-                .select(reviewLike.review.id, reviewLike.user.id)
-                .from(reviewLike)
-                .fetch()
-                .stream()
-                .collect(Collectors.groupingBy(
-                        tuple -> tuple.get(0, Long.class), // reviewId
-                        Collectors.mapping(tuple -> tuple.get(1, Long.class), Collectors.toList()) // List<Long> 유저 ID 리스트
-                ));
     }
 
     private List<ReviewContentResponse> getReviewContents(

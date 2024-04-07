@@ -220,16 +220,12 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
         assertThat(result.getTotalCount()).isEqualTo(20);
         assertThat(result.getQueryResponse()).hasSize(4)
                 .extracting(
-                        "userImage", "userName", "rating", "content", "isbn", "title", "bookImage", "users")
+                        "userImage", "userName", "rating", "content", "isbn", "title", "bookImage")
                 .containsExactly(
-                        tuple("userImage", "김도형", 1.0, "리뷰 내용1", "1", "제목1", "bookImage",
-                                List.of(user1.getId(), user2.getId())),
-                        tuple("userImage", "김도형", 1.0, "리뷰 내용6", "6", "제목6", "bookImage",
-                                List.of(user1.getId(), user2.getId())),
-                        tuple("userImage", "김도형", 1.0, "리뷰 내용11", "11", "제목11", "bookImage",
-                                List.of(user1.getId(), user2.getId())),
-                        tuple("userImage", "김도형", 1.0, "리뷰 내용16", "16", "제목16", "bookImage",
-                                List.of(user1.getId(), user2.getId()))
+                        tuple("userImage", "김도형", 1.0, "리뷰 내용1", "1", "제목1", "bookImage"),
+                        tuple("userImage", "김도형", 1.0, "리뷰 내용6", "6", "제목6", "bookImage"),
+                        tuple("userImage", "김도형", 1.0, "리뷰 내용11", "11", "제목11", "bookImage"),
+                        tuple("userImage", "김도형", 1.0, "리뷰 내용16", "16", "제목16", "bookImage")
                 );
     }
 

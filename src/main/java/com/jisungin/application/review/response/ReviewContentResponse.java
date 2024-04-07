@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Getter
 @NoArgsConstructor
 public class ReviewContentResponse {
@@ -27,8 +25,6 @@ public class ReviewContentResponse {
 
     private String bookImage;
 
-    private List<Long> users;
-
     @Builder
     @QueryProjection
     public ReviewContentResponse(
@@ -42,10 +38,6 @@ public class ReviewContentResponse {
         this.isbn = isbn;
         this.title = title;
         this.bookImage = bookImage;
-    }
-
-    public void addUsers(List<Long> users) {
-        this.users = users;
     }
 
 }
