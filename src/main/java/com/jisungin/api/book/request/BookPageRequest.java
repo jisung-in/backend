@@ -11,8 +11,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class BookPageRequest {
 
-    Integer page;
-    Integer size;
+    private Integer page;
+    private Integer size;
 
     @Builder
     private BookPageRequest(Integer page, Integer size) {
@@ -20,7 +20,7 @@ public class BookPageRequest {
         this.size = size != null ? size : 5;
     }
 
-    public BookServicePageRequest toServiceRequest() {
+    public BookServicePageRequest toService() {
         return BookServicePageRequest.builder()
                 .page(page)
                 .size(size)

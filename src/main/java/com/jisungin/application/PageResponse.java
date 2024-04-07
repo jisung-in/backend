@@ -29,4 +29,12 @@ public class PageResponse<T> {
         this.likeContents = contents;
     }
 
+    public static <T> PageResponse <T> of(int size, long totalCount, List<T> queryResponse) {
+        return PageResponse.<T>builder()
+                .size(size)
+                .totalCount(totalCount)
+                .queryResponse(queryResponse)
+                .build();
+    }
+
 }

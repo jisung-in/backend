@@ -23,4 +23,8 @@ public class BookServicePageRequest {
         return page * size;
     }
 
+    public long getOffset() {
+        return (long) (Math.max(1, this.page) - 1) * Math.min(this.size, 2000);
+    }
+
 }
