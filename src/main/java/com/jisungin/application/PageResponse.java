@@ -16,8 +16,6 @@ public class PageResponse<T> {
 
     private int size;
 
-    private List<Long> likeContents;
-
     @Builder
     private PageResponse(List<T> queryResponse, long totalCount, int size) {
         this.queryResponse = queryResponse;
@@ -25,11 +23,7 @@ public class PageResponse<T> {
         this.size = size;
     }
 
-    public void addContents(List<Long> contents) {
-        this.likeContents = contents;
-    }
-
-    public static <T> PageResponse <T> of(int size, long totalCount, List<T> queryResponse) {
+    public static <T> PageResponse<T> of(int size, long totalCount, List<T> queryResponse) {
         return PageResponse.<T>builder()
                 .size(size)
                 .totalCount(totalCount)

@@ -7,7 +7,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface TalkRoomImageRepository extends JpaRepository<TalkRoomImage, Long> {
+public interface TalkRoomImageRepository extends JpaRepository<TalkRoomImage, Long>, TalkRoomImageRepositoryCustom {
     List<TalkRoomImage> findByTalkRoom(TalkRoom talkRoom);
 
     @Query(

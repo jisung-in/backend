@@ -8,4 +8,5 @@ public interface TalkRoomRoleRepositoryCustom {
 
     Map<Long, List<ReadingStatus>> findTalkRoomRoleByIds(List<Long> talkRoomIds);
 
+    List<ReadingStatus> findTalkRoomRoleByTalkRoomId(Long talkRoomId);
 }

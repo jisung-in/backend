@@ -1,6 +1,8 @@
 package com.jisungin.application.talkroom.response;
 
+import com.jisungin.domain.ReadingStatus;
 import com.querydsl.core.annotations.QueryProjection;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
@@ -11,35 +13,81 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TalkRoomFindOneResponse {
 
-    private Long talkRoomId;
-    private String userName;
+    private Long id;
+    private String profileImage;
+    private String username;
     private String title;
     private String content;
     private String bookName;
-    private String bookImage;
-    private List<TalkRoomQueryReadingStatusResponse> readingStatuses = new ArrayList<>();
+    private String bookThumbnail;
     private Long likeCount;
-    private Long likeTalkRoomId;
+    private List<String> readingStatuses = new ArrayList<>();
+    private LocalDateTime createTime;
+    private List<String> images = new ArrayList<>();
+    private boolean likeTalkRoom;
 
     @Builder
     @QueryProjection
-    public TalkRoomFindOneResponse(Long talkRoomId, String userName, String title, String content, String bookName,
-                                   String bookImage, Long likeCount) {
-        this.talkRoomId = talkRoomId;
-        this.userName = userName;
+    public TalkRoomFindOneResponse(Long id, String profileImage, String username, String title, String content,
+                                   String bookName, String bookThumbnail, Long likeCount, List<String> readingStatuses,
+                                   LocalDateTime createTime, List<String> images, boolean likeTalkRoom) {
+        this.id = id;
+        this.profileImage = profileImage;
+        this.username = username;
         this.title = title;
         this.content = content;
         this.bookName = bookName;
-        this.bookImage = bookImage;
+        this.bookThumbnail = bookThumbnail;
         this.likeCount = likeCount;
-    }
-
-    public void addTalkRoomStatus(List<TalkRoomQueryReadingStatusResponse> readingStatuses) {
         this.readingStatuses = readingStatuses;
+        this.createTime = createTime;
+        this.images = images;
+        this.likeTalkRoom = likeTalkRoom;
     }
 
-    public void addTalkRoomLikeId(Long talkRoomId) {
-        this.likeTalkRoomId = talkRoomId;
+    public static TalkRoomFindOneResponse create(TalkRoomQueryResponse talkRoom,
+                                                 List<ReadingStatus> readingStatuses, List<String> images,
+                                                 boolean exists) {
+        return TalkRoomFindOneResponse.builder()
+                .id(talkRoom.getId())
+                .profileImage(talkRoom.getProfileImage())
+                .username(talkRoom.getUsername())
+                .title(talkRoom.getTitle())
+                .content(talkRoom.getContent())
+                .bookName(talkRoom.getBookName())
+                .bookThumbnail(talkRoom.getBookThumbnail())
+                .likeCount(talkRoom.getLikeCount())
+                .readingStatuses(extractReadingStatuses(readingStatuses))
+                .createTime(talkRoom.getCreateTime())
+                .images(images)
+                .likeTalkRoom(exists)
+                .build();
+    }
+
+    public static TalkRoomFindOneResponse create(Long id, String profileImage, String username, String title,
+                                                 String content, String bookName, String bookThumbnail,
+                                                 List<ReadingStatus> readingStatuses, LocalDateTime createTime,
+                                                 List<String> images) {
+        return TalkRoomFindOneResponse.builder()
+                .id(id)
+                .profileImage(profileImage)
+                .username(username)
+                .title(title)
+                .content(content)
+                .bookName(bookName)
+                .bookThumbnail(bookThumbnail)
+                .likeCount(0L)
+                .readingStatuses(extractReadingStatuses(readingStatuses))
+                .createTime(createTime)
+                .images(images)
+                .likeTalkRoom(false)
+                .build();
+    }
+
+    private static List<String> extractReadingStatuses(List<ReadingStatus> readingStatuses) {
+        return readingStatuses.stream()
+                .map(ReadingStatus::getText)
+                .toList();
     }
 
 }

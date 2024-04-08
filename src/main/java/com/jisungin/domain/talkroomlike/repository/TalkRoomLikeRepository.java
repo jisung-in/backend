@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TalkRoomLikeRepository extends JpaRepository<TalkRoomLike, Long> {
+public interface TalkRoomLikeRepository extends JpaRepository<TalkRoomLike, Long>, TalkRoomLikeRepositoryCustom {
 
     Optional<TalkRoomLike> findByTalkRoomIdAndUserId(Long talkRoomId, Long userId);
 

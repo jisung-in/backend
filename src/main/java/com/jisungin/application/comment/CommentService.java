@@ -50,7 +50,6 @@ public class CommentService {
 
         if (authContext.getUserId() != null) {
             List<Long> likeComments = commentLikeRepository.userLikeComments(authContext.getUserId());
-            response.addContents(likeComments);
         }
 
         return response;

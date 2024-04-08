@@ -1,5 +1,6 @@
 package com.jisungin.domain.talkroom.repository;
 
+import static com.jisungin.domain.talkroom.QTalkRoom.talkRoom;
 import static com.jisungin.domain.talkroom.QTalkRoomRole.talkRoomRole;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
@@ -21,6 +22,15 @@ public class TalkRoomRoleRepositoryImpl implements TalkRoomRoleRepositoryCustom 
                 .from(talkRoomRole)
                 .where(talkRoomRole.talkRoom.id.in(talkRoomIds))
                 .transform(groupBy(talkRoomRole.talkRoom.id).as(list(talkRoomRole.readingStatus)));
+    }
+
+    @Override
+    public List<ReadingStatus> findTalkRoomRoleByTalkRoomId(Long talkRoomId) {
+        return queryFactory.select(talkRoomRole.readingStatus)
+                .from(talkRoomRole)
+                .join(talkRoomRole.talkRoom, talkRoom)
+                .where(talkRoomRole.talkRoom.id.eq(talkRoomId))
+                .fetch();
     }
 
 }
