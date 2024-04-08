@@ -5,13 +5,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.api.oauth.AuthContext;
-import com.jisungin.application.PageResponse;
 import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
-import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
-import com.jisungin.application.talkroom.response.TalkRoomResponse;
+import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
@@ -24,7 +22,6 @@ import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
-import com.jisungin.domain.talkroomimage.TalkRoomImage;
 import com.jisungin.domain.talkroomimage.repository.TalkRoomImageRepository;
 import com.jisungin.domain.talkroomlike.TalkRoomLike;
 import com.jisungin.domain.talkroomlike.repository.TalkRoomLikeRepository;
@@ -107,17 +104,15 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .readingStatus(readingStatus)
                 .build();
 
-        authContext.setUserId(user.getId());
-
         // when
-        TalkRoomResponse response = talkRoomService.createTalkRoom(request, authContext);
+        TalkRoomFindOneResponse response = talkRoomService.createTalkRoom(request, user.getId());
 
         // then
-        List<ReadingStatus> readingStatuses = response.getReadingStatuses();
-        List<TalkRoom> talkRooms = talkRoomRepository.findAll();
+        List<String> readingStatuses = response.getReadingStatuses();
         assertThat(response)
-                .extracting("userName", "title", "content")
-                .contains("user@gmail.com", "토크방", "내용");
+                .extracting("id", "profileImage", "username", "title", "content", "bookName", "bookThumbnail",
+                        "likeCount", "likeTalkRoom")
+                .contains(response.getId(), "image", "user@gmail.com", "토크방", "내용", "제목", "이미지", 0L, false);
         assertThat(readingStatuses.size()).isEqualTo(2);
     }
 
@@ -140,10 +135,8 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .readingStatus(null)
                 .build();
 
-        authContext.setUserId(user.getId());
-
         // when // then
-        assertThatThrownBy(() -> talkRoomService.createTalkRoom(request, authContext))
+        assertThatThrownBy(() -> talkRoomService.createTalkRoom(request, user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("참가 조건은 1개 이상이어야 합니다.");
     }
@@ -177,15 +170,14 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .readingStatus(readingStatus)
                 .build();
 
-        authContext.setUserId(user.getId());
-
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, authContext);
+        talkRoomService.editTalkRoom(request, user.getId());
 
         // then
-        assertThat(response)
-                .extracting("userName", "title", "content")
-                .contains("user@gmail.com", "토크방 수정", "내용 수정");
+        List<TalkRoom> response = talkRoomRepository.findAll();
+        assertThat(response.get(0))
+                .extracting("title", "content")
+                .contains("토크방 수정", "내용 수정");
         assertThat(talkRoomRoles.size()).isEqualTo(2);
     }
 
@@ -218,15 +210,14 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .readingStatus(readingStatus)
                 .build();
 
-        authContext.setUserId(user.getId());
-
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, authContext);
+        talkRoomService.editTalkRoom(request, user.getId());
 
         // then
-        assertThat(response)
-                .extracting("userName", "title", "content")
-                .contains("user@gmail.com", "토크방", "내용");
+        List<TalkRoom> response = talkRoomRepository.findAll();
+        assertThat(response.get(0))
+                .extracting("title", "content")
+                .contains("토크방", "내용");
         assertThat(talkRoomRoles.size()).isEqualTo(2);
     }
 
@@ -259,16 +250,15 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .readingStatus(readingStatus)
                 .build();
 
-        authContext.setUserId(user.getId());
-
         // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, authContext);
+        talkRoomService.editTalkRoom(request, user.getId());
 
         // then
+        List<TalkRoom> response = talkRoomRepository.findAll();
         List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.findAll();
-        assertThat(response)
-                .extracting("userName", "title", "content")
-                .contains("user@gmail.com", "토크방", "내용");
+        assertThat(response.get(0))
+                .extracting("title", "content")
+                .contains("토크방", "내용");
         assertThat(talkRoomRoles.size()).isEqualTo(3);
     }
 
@@ -312,10 +302,8 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .readingStatus(readingStatus)
                 .build();
 
-        authContext.setUserId(userB.getId());
-
         // when // then
-        assertThatThrownBy(() -> talkRoomService.editTalkRoom(request, authContext))
+        assertThatThrownBy(() -> talkRoomService.editTalkRoom(request, userB.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
@@ -345,12 +333,12 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> talkRooms = talkRoomService.findAllTalkRoom(search, authContext);
+        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(search, user.getId());
 
         // then
-        assertThat(10L).isEqualTo(talkRooms.getQueryResponse().size());
-        assertThat("토론방 19").isEqualTo(talkRooms.getQueryResponse().get(0).getTitle());
-        assertThat(2).isEqualTo(talkRooms.getQueryResponse().get(0).getReadingStatuses().size());
+        assertThat(10L).isEqualTo(response.getResponse().getSize());
+        assertThat("토론방 19").isEqualTo(response.getResponse().getQueryResponse().get(0).getTitle());
+        assertThat(2).isEqualTo(response.getResponse().getQueryResponse().get(0).getReadingStatuses().size());
     }
 
     @Test
@@ -378,10 +366,10 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> talkRooms = talkRoomService.findAllTalkRoom(search, authContext);
+        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(search, user.getId());
 
         // then
-        assertThat(103).isEqualTo(talkRooms.getTotalCount());
+        assertThat(103).isEqualTo(response.getResponse().getTotalCount());
     }
 
     @Test
@@ -409,12 +397,12 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> talkRooms = talkRoomService.findAllTalkRoom(search, authContext);
+        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(search, user.getId());
 
         // then
-        assertThat(talkRooms.getQueryResponse().size()).isEqualTo(10L);
-        assertThat(talkRooms.getQueryResponse().get(0).getTitle()).isEqualTo("토론방 62");
-        assertThat(talkRooms.getQueryResponse().get(0).getContent()).isEqualTo("내용 62");
+        assertThat(response.getResponse().getQueryResponse().size()).isEqualTo(10L);
+        assertThat(response.getResponse().getQueryResponse().get(0).getTitle()).isEqualTo("토론방 62");
+        assertThat(response.getResponse().getQueryResponse().get(0).getContent()).isEqualTo("내용 62");
     }
 
     @Test
@@ -442,12 +430,12 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> talkRooms = talkRoomService.findAllTalkRoom(search, authContext);
+        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(search, user.getId());
 
         // then
-        assertThat(talkRooms.getQueryResponse().size()).isEqualTo(3);
-        assertThat(talkRooms.getQueryResponse().get(0).getTitle()).isEqualTo("토론방 2");
-        assertThat(talkRooms.getQueryResponse().get(0).getContent()).isEqualTo("내용 2");
+        assertThat(response.getResponse().getQueryResponse().size()).isEqualTo(3);
+        assertThat(response.getResponse().getQueryResponse().get(0).getTitle()).isEqualTo("토론방 2");
+        assertThat(response.getResponse().getQueryResponse().get(0).getContent()).isEqualTo("내용 2");
     }
 
     @Test
@@ -466,7 +454,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         TalkRoomFindOneResponse findOneTalkRoomResponse = talkRoomService.findOneTalkRoom(talkRoom.getId(),
-                authContext);
+                user.getId());
 
         // then
         assertThat("토크방").isEqualTo(findOneTalkRoomResponse.getTitle());
@@ -490,7 +478,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         TalkRoomFindOneResponse findOneTalkRoomResponse = talkRoomService.findOneTalkRoom(talkRoom.getId(),
-                authContext);
+                user.getId());
 
         // then
         assertThat("토크방").isEqualTo(findOneTalkRoomResponse.getTitle());
@@ -514,7 +502,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         TalkRoomFindOneResponse findOneTalkRoomResponse = talkRoomService.findOneTalkRoom(talkRoom.getId(),
-                authContext);
+                user.getId());
 
         // then
         assertThat("토크방").isEqualTo(findOneTalkRoomResponse.getTitle());
@@ -543,7 +531,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         authContext.setUserId(user.getId());
 
         // when
-        talkRoomService.deleteTalkRoom(talkRoom.getId(), authContext);
+        talkRoomService.deleteTalkRoom(talkRoom.getId(), user.getId());
 
         // then
         assertThat(0).isEqualTo(talkRoomRepository.findAll().size());
@@ -584,7 +572,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         authContext.setUserId(userB.getId());
 
         // when // then
-        assertThatThrownBy(() -> talkRoomService.deleteTalkRoom(talkRoom.getId(), authContext))
+        assertThatThrownBy(() -> talkRoomService.deleteTalkRoom(talkRoom.getId(), userB.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
@@ -607,7 +595,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         authContext.setUserId(user.getId());
 
         // when
-        talkRoomService.deleteTalkRoom(talkRoom.getId(), authContext);
+        talkRoomService.deleteTalkRoom(talkRoom.getId(), user.getId());
 
         // then
         assertThat(0).isEqualTo(talkRoomRepository.findAll().size());
@@ -647,10 +635,10 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> response = talkRoomService.findAllTalkRoom(search, authContext);
+        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(search, users.get(0).getId());
 
         // then
-        assertThat(5L).isEqualTo(response.getQueryResponse().get(9).getLikeCount());
+        assertThat(5L).isEqualTo(response.getResponse().getQueryResponse().get(9).getLikeCount());
     }
 
     @Test
@@ -686,16 +674,15 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .order("recent")
                 .build();
 
-        authContext.setUserId(users.get(0).getId());
         // when
-        PageResponse<TalkRoomFindAllResponse> response = talkRoomService.findAllTalkRoom(search, authContext);
+        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(search, users.get(0).getId());
 
         // then
-        assertThat(talkRoom.get(0).getId()).isEqualTo(response.getLikeContents().get(0));
-        assertThat(talkRoom.get(1).getId()).isEqualTo(response.getLikeContents().get(1));
-        assertThat(talkRoom.get(2).getId()).isEqualTo(response.getLikeContents().get(2));
-        assertThat(talkRoom.get(3).getId()).isEqualTo(response.getLikeContents().get(3));
-        assertThat(talkRoom.get(4).getId()).isEqualTo(response.getLikeContents().get(4));
+        assertThat(talkRoom.get(0).getId()).isEqualTo(response.getUserLikeTalkRoomIds().get(0));
+        assertThat(talkRoom.get(1).getId()).isEqualTo(response.getUserLikeTalkRoomIds().get(1));
+        assertThat(talkRoom.get(2).getId()).isEqualTo(response.getUserLikeTalkRoomIds().get(2));
+        assertThat(talkRoom.get(3).getId()).isEqualTo(response.getUserLikeTalkRoomIds().get(3));
+        assertThat(talkRoom.get(4).getId()).isEqualTo(response.getUserLikeTalkRoomIds().get(4));
     }
 
     @Test
@@ -726,14 +713,14 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        TalkRoomFindOneResponse response = talkRoomService.findOneTalkRoom(talkRoom.get(0).getId(), authContext);
+        TalkRoomFindOneResponse response = talkRoomService.findOneTalkRoom(talkRoom.get(0).getId(), null);
 
         // then
         assertThat(5L).isEqualTo(response.getLikeCount());
     }
 
     @Test
-    @DisplayName("토크방 단건 조회 시 로그인한 유저가 토론방에 좋아요를 눌렀으면 토론방 ID값을 리턴해준다.")
+    @DisplayName("토크방 단건 조회 시 로그인한 유저가 토론방에 좋아요를 눌렀으면 토론방 ture를 리턴해준다.")
     void findOneTalkRoomWithLikeUserId() {
         // given
         List<User> users = listUsers();
@@ -759,12 +746,12 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
-        authContext.setUserId(users.get(0).getId());
         // when
-        TalkRoomFindOneResponse response = talkRoomService.findOneTalkRoom(talkRoom.get(0).getId(), authContext);
+        TalkRoomFindOneResponse response = talkRoomService.findOneTalkRoom(talkRoom.get(0).getId(),
+                users.get(0).getId());
 
         // then
-        assertThat(talkRoom.get(0).getId()).isEqualTo(response.getLikeTalkRoomId());
+        assertThat(response.isLikeTalkRoom()).isTrue();
     }
 
     @Test
@@ -811,10 +798,10 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> response = talkRoomService.findAllTalkRoom(search, authContext);
+        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(search, users.get(0).getId());
 
         // then
-        assertThat(10L).isEqualTo(response.getQueryResponse().get(0).getLikeCount());
+        assertThat(10L).isEqualTo(response.getResponse().getQueryResponse().get(0).getLikeCount());
     }
 
     @Test
@@ -852,8 +839,11 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         talkRoomRepository.save(talkRoom1);
+        createTalkRoomRole(talkRoom1);
         talkRoomRepository.save(talkRoom2);
+        createTalkRoomRole(talkRoom2);
         talkRoomRepository.save(talkRoom3);
+        createTalkRoomRole(talkRoom3);
 
         talkRoomRepository.saveAll(talkRoom);
 
@@ -886,12 +876,12 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> response = talkRoomService.findAllTalkRoom(search, authContext);
+        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(search, users.get(0).getId());
 
         // then
-        assertThat(talkRoom1.getTitle()).isEqualTo(response.getQueryResponse().get(0).getTitle());
-        assertThat(talkRoom2.getTitle()).isEqualTo(response.getQueryResponse().get(1).getTitle());
-        assertThat(talkRoom3.getTitle()).isEqualTo(response.getQueryResponse().get(2).getTitle());
+        assertThat(talkRoom1.getTitle()).isEqualTo(response.getResponse().getQueryResponse().get(0).getTitle());
+        assertThat(talkRoom2.getTitle()).isEqualTo(response.getResponse().getQueryResponse().get(1).getTitle());
+        assertThat(talkRoom3.getTitle()).isEqualTo(response.getResponse().getQueryResponse().get(2).getTitle());
     }
 
     @Test
@@ -917,50 +907,10 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         authContext.setUserId(user.getId());
 
         // when
-        TalkRoomResponse response = talkRoomService.createTalkRoom(request, authContext);
+        TalkRoomFindOneResponse response = talkRoomService.createTalkRoom(request, user.getId());
 
         // then
-        assertThat(response.getImageUrls().get(0)).isEqualTo("image.png");
-
-    }
-
-    @Test
-    @DisplayName("토크룸을 수정할 때 이미지도 변경할 수 있다.")
-    void editTalkRoomWithImage() throws Exception {
-        // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
-
-        createTalkRoomRole(talkRoom);
-
-        TalkRoomImage talkRoomImage = TalkRoomImage.builder()
-                .imageUrl("이미지1")
-                .talkRoom(talkRoom)
-                .build();
-        talkRoomImageRepository.save(talkRoomImage);
-
-        TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
-                .id(talkRoom.getId())
-                .newImage(List.of("이미지2"))
-                .removeImage(List.of("이미지1"))
-                .readingStatus(List.of("읽음"))
-                .build();
-
-        AuthContext authContext = new AuthContext();
-        authContext.setUserId(user.getId());
-
-        // when
-        TalkRoomResponse response = talkRoomService.editTalkRoom(request, authContext);
-
-        // then
-        assertThat(1).isEqualTo(response.getImageUrls().size());
-        assertThat("이미지2").isEqualTo(response.getImageUrls().get(0));
+        assertThat(response.getImages().get(0)).isEqualTo("image.png");
 
     }
 
@@ -1039,6 +989,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .publisher("publisher")
                 .dateTime(LocalDateTime.now())
                 .imageUrl("www")
+                .thumbnail("이미지")
                 .build();
     }
 
