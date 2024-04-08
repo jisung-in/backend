@@ -3,10 +3,12 @@ package com.jisungin.api.book;
 import com.jisungin.api.ApiResponse;
 import com.jisungin.api.book.request.BookCreateRequest;
 import com.jisungin.api.book.request.BookPageRequest;
+import com.jisungin.api.oauth.Auth;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.book.BestSellerService;
 import com.jisungin.application.book.BookService;
 import com.jisungin.application.book.response.BestSellerResponse;
+import com.jisungin.application.book.response.BookRelatedTalkRoomPageResponse;
 import com.jisungin.application.book.response.BookResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +33,18 @@ public class BookController {
         return ApiResponse.ok(bookService.getBook(isbn));
     }
 
+    @GetMapping("/books/{isbn}/talk-rooms")
+    public ApiResponse<BookRelatedTalkRoomPageResponse> getTalkRoomsByRelatedBook(
+            @PathVariable("isbn") String isbn,
+            @ModelAttribute BookPageRequest request,
+            @Auth Long userId
+    ) {
+        return ApiResponse.ok(bookService.getBookRelatedTalkRooms(isbn, request.toService(), userId));
+    }
+
     @GetMapping("/books/best-seller")
     public ApiResponse<PageResponse<BestSellerResponse>> getBestSellers(@ModelAttribute BookPageRequest page) {
-        return ApiResponse.ok(bestSellerService.getBestSellers(page.toServiceRequest()));
+        return ApiResponse.ok(bestSellerService.getBestSellers(page.toService()));
     }
 
     @PostMapping("/books")

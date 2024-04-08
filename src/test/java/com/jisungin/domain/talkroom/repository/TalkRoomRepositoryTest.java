@@ -1,15 +1,18 @@
 package com.jisungin.domain.talkroom.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 import com.jisungin.RepositoryTestSupport;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
+import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
+import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
 import com.jisungin.domain.oauth.OauthId;
@@ -397,6 +400,140 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         assertThat(talkRoom3.getTitle()).isEqualTo(response.getQueryResponse().get(2).getTitle());
     }
 
+    @Test
+    @DisplayName("querydsl 책과 연관된 토크방 조회")
+    void getTalkRoomRelatedBook() {
+        // given
+        List<User> users = IntStream.range(0, 10)
+                .mapToObj(i -> User.builder()
+                        .name("user@gmail.com " + i)
+                        .profileImage("image")
+                        .oauthId(
+                                OauthId.builder()
+                                        .oauthId("oauthId " + i)
+                                        .oauthType(OauthType.KAKAO)
+                                        .build()
+                        )
+                        .build()).toList();
+
+        userRepository.saveAll(users);
+
+        Book book = bookRepository.save(createBookWithIsbn("00001"));
+        Book anotherBook = bookRepository.save(createBookWithIsbn("00002"));
+
+        List<TalkRoom> talkRoomsWithBook = IntStream.range(0, 10)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(users.get(0))
+                        .book(book)
+                        .title("토론방" + i)
+                        .content("내용" + i)
+                        .build())
+                .toList();
+
+        List<TalkRoom> talkRoomsWithAnotherBook = IntStream.range(10, 20)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(users.get(0))
+                        .book(anotherBook)
+                        .title("토론방" + i)
+                        .content("내용" + i)
+                        .build())
+                .toList();
+
+        talkRoomRepository.saveAll(talkRoomsWithBook);
+        talkRoomRepository.saveAll(talkRoomsWithAnotherBook);
+
+        talkRoomsWithBook.forEach(this::createTalkRoomRole);
+        talkRoomsWithAnotherBook.forEach(this::createTalkRoomRole);
+
+        List<TalkRoomLike> likes1 = IntStream.range(0, 10).mapToObj(i -> TalkRoomLike.builder()
+                        .user(users.get(i))
+                        .talkRoom(talkRoomsWithBook.get(0))
+                        .build())
+                .toList();
+
+        List<TalkRoomLike> likes2 = IntStream.range(0, 9).mapToObj(i -> TalkRoomLike.builder()
+                        .user(users.get(i))
+                        .talkRoom(talkRoomsWithAnotherBook.get(1))
+                        .build())
+                .toList();
+
+        talkRoomLikeRepository.saveAll(likes1);
+        talkRoomLikeRepository.saveAll(likes2);
+
+        // when
+        List<TalkRoomQueryResponse> talkRoomsRelatedBook = talkRoomRepository.findTalkRoomsRelatedBook(book.getIsbn(),
+                0, 20);
+
+        // then
+        assertThat(talkRoomsRelatedBook.size()).isEqualTo(10);
+        assertThat(talkRoomsRelatedBook.get(0).getLikeCount()).isEqualTo(10);
+        assertThat(talkRoomsRelatedBook.get(1).getLikeCount()).isEqualTo(0);
+        assertThat(talkRoomsRelatedBook).extracting("bookName", "bookThumbnail")
+                .containsOnly(tuple("제목00001", "www.thumbnail.com/00001"));
+    }
+
+    @Test
+    @DisplayName("querydsl 책과 관련된 총 페이지 조회")
+    public void getTalkRoomsRelatedBookTotalSize() {
+        // given
+        List<User> users = IntStream.range(0, 10)
+                .mapToObj(i -> User.builder()
+                        .name("user@gmail.com " + i)
+                        .profileImage("image")
+                        .oauthId(
+                                OauthId.builder()
+                                        .oauthId("oauthId " + i)
+                                        .oauthType(OauthType.KAKAO)
+                                        .build()
+                        )
+                        .build()).toList();
+
+        userRepository.saveAll(users);
+
+        Book book = bookRepository.save(createBookWithIsbn("00001"));
+        Book anotherBook = bookRepository.save(createBookWithIsbn("00002"));
+
+        List<TalkRoom> talkRoomsWithBook = IntStream.range(0, 10)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(users.get(0))
+                        .book(book)
+                        .title("토론방" + i)
+                        .content("내용" + i)
+                        .build())
+                .toList();
+
+        List<TalkRoom> talkRoomsWithAnotherBook = IntStream.range(10, 20)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(users.get(0))
+                        .book(anotherBook)
+                        .title("토론방" + i)
+                        .content("내용" + i)
+                        .build())
+                .toList();
+
+        talkRoomRepository.saveAll(talkRoomsWithBook);
+        talkRoomRepository.saveAll(talkRoomsWithAnotherBook);
+
+        talkRoomsWithBook.forEach(this::createTalkRoomRole);
+        talkRoomsWithAnotherBook.forEach(this::createTalkRoomRole);
+
+        // when
+        Long totalCount = talkRoomRepository.countTalkRoomsRelatedBook(book.getIsbn());
+        Long anotherTotalCount = talkRoomRepository.countTalkRoomsRelatedBook(anotherBook.getIsbn());
+
+        // then
+        assertThat(totalCount).isEqualTo(10L);
+        assertThat(anotherTotalCount).isEqualTo(10L);
+    }
+
+    private static Comment createComment(TalkRoom talkRoom, User user) {
+        return Comment.builder()
+                .talkRoom(talkRoom)
+                .user(user)
+                .content("의견 남기기")
+                .build();
+    }
+
     private void createTalkRoomRole(TalkRoom talkRoom) {
         List<String> request = new ArrayList<>();
         request.add("읽는 중");
@@ -439,6 +576,20 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
                 .publisher("publisher")
                 .dateTime(LocalDateTime.now())
                 .imageUrl("www")
+                .thumbnail("www.thumbnail.com")
+                .build();
+    }
+
+    private static Book createBookWithIsbn(String isbn) {
+        return Book.builder()
+                .title("제목" + isbn)
+                .content("내용" + isbn)
+                .authors("작가")
+                .isbn(isbn)
+                .publisher("publisher")
+                .dateTime(LocalDateTime.now())
+                .imageUrl("www.image.com/" + isbn)
+                .thumbnail("www.thumbnail.com/" + isbn)
                 .build();
     }
 

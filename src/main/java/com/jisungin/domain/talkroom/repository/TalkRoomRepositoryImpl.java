@@ -12,9 +12,11 @@ import com.jisungin.application.PageResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.QTalkRoomQueryReadingStatusResponse;
+import com.jisungin.application.talkroom.response.QTalkRoomQueryResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryReadingStatusResponse;
+import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -50,6 +52,40 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .totalCount(totalCount)
                 .size(size)
                 .build();
+    }
+
+    // 책과 연관된 TalkRoomResponse 조회
+    @Override
+    public List<TalkRoomQueryResponse> findTalkRoomsRelatedBook(String isbn, long offset, Integer size) {
+        return queryFactory.select(new QTalkRoomQueryResponse(
+                        talkRoom.id,
+                        user.profileImage,
+                        user.name.as("username"),
+                        talkRoom.title,
+                        talkRoom.content,
+                        book.title.as("bookName"),
+                        book.thumbnail.as("bookThumbnail"),
+                        talkRoomLike.count().as("likeCount"),
+                        talkRoom.createDateTime.as("createTime")
+                ))
+                .from(talkRoom)
+                .join(talkRoom.user, user)
+                .join(talkRoom.book, book)
+                .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
+                .where(book.isbn.eq(isbn))
+                .groupBy(talkRoom.id)
+                .offset(offset)
+                .limit(size)
+                .orderBy(talkRoomLike.count().desc())
+                .fetch();
+    }
+
+    public Long countTalkRoomsRelatedBook(String isbn) {
+        return queryFactory.select(talkRoom.count())
+                .from(talkRoom)
+                .join(talkRoom.book, book)
+                .where(book.isbn.eq(isbn))
+                .fetchOne();
     }
 
     // 토크룸 단건 조회

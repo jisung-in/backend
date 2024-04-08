@@ -24,4 +24,11 @@ public interface TalkRoomLikeRepository extends JpaRepository<TalkRoomLike, Long
                     + " trl.talkRoom.id WHERE trl.user.id = :userId AND trl.talkRoom.id = :talkRoomId"
     )
     Long userLikeTalkRoom(@Param("talkRoomId") Long talkRoomId, @Param("userId") Long userId);
+
+    @Query(value = "SELECT trl.talkRoom.id " +
+            "FROM TalkRoomLike trl " +
+            "WHERE trl.user.id = :userId " +
+            "AND trl.talkRoom.id IN :talkRoomIds")
+    List<Long> findLikeTalkRoomIdsByUserId(@Param("userId") Long userId, @Param("talkRoomIds") List<Long> talkRoomIds);
+
 }
