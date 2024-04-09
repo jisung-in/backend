@@ -1,4 +1,4 @@
-package com.jisungin.application.talkroom.response;
+package com.jisungin.domain.talkroomimage.repository;
 
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
@@ -7,17 +7,17 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class TalkRoomLikeUserIdResponse {
+public class TalkRoomImageQueryResponse {
 
     private Long talkRoomId;
 
-    private Long userId;
+    private String imageUrl;
 
     @Builder
     @QueryProjection
-    public TalkRoomLikeUserIdResponse(Long talkRoomId, Long userId) {
+    public TalkRoomImageQueryResponse(Long talkRoomId, String imageUrl) {
         this.talkRoomId = talkRoomId;
-        this.userId = userId;
+        this.imageUrl = imageUrl;
     }
 
 }

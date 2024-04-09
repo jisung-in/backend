@@ -109,7 +109,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .totalCount(1L)
                 .build();
 
-        response.addContents(List.of(1L));
+//        response.addContents(List.of(1L));
 
         given(commentService.findAllComments(anyLong(), any(AuthContext.class)))
                 .willReturn(response);

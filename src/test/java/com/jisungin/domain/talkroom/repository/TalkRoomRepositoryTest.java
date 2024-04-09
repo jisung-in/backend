@@ -4,10 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
 import com.jisungin.RepositoryTestSupport;
-import com.jisungin.application.PageResponse;
 import com.jisungin.application.SearchServiceRequest;
-import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
-import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -98,15 +95,13 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> talkRooms = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
                 search.getSize(), search.getOrder(), search.getQuery());
 
         // then
-        assertThat(10L).isEqualTo(talkRooms.getQueryResponse().size());
-        assertThat("토론방 19").isEqualTo(talkRooms.getQueryResponse().get(0).getTitle());
-        assertThat("내용 19").isEqualTo(talkRooms.getQueryResponse().get(0).getContent());
-        assertThat(2).isEqualTo(talkRooms.getQueryResponse().get(0).getReadingStatuses().size());
-        assertThat(20).isEqualTo(talkRooms.getTotalCount());
+        assertThat(10L).isEqualTo(response.size());
+        assertThat("토론방 19").isEqualTo(response.get(0).getTitle());
+        assertThat("내용 19").isEqualTo(response.get(0).getContent());
     }
 
     @Test
@@ -170,11 +165,11 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
                 search.getSize(), search.getOrder(), search.getQuery());
 
         // then
-        assertThat(5L).isEqualTo(response.getQueryResponse().get(9).getLikeCount());
+        assertThat(5L).isEqualTo(response.get(9).getLikeCount());
     }
 
     @Test
@@ -231,7 +226,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        TalkRoomFindOneResponse response = talkRoomRepository.findOneTalkRoom(talkRoom.get(0).getId());
+        TalkRoomQueryResponse response = talkRoomRepository.findOneTalkRoom(talkRoom.get(0).getId());
 
         // then
         assertThat(5L).isEqualTo(response.getLikeCount());
@@ -298,11 +293,11 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
                 search.getSize(), search.getOrder(), search.getQuery());
 
         // then
-        assertThat(10L).isEqualTo(response.getQueryResponse().get(0).getLikeCount());
+        assertThat(10L).isEqualTo(response.get(0).getLikeCount());
     }
 
     @Test
@@ -391,13 +386,13 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
                 .build();
 
         // when
-        PageResponse<TalkRoomFindAllResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
                 search.getSize(), search.getOrder(), search.getQuery());
 
         // then
-        assertThat(talkRoom1.getTitle()).isEqualTo(response.getQueryResponse().get(0).getTitle());
-        assertThat(talkRoom2.getTitle()).isEqualTo(response.getQueryResponse().get(1).getTitle());
-        assertThat(talkRoom3.getTitle()).isEqualTo(response.getQueryResponse().get(2).getTitle());
+        assertThat(talkRoom1.getTitle()).isEqualTo(response.get(0).getTitle());
+        assertThat(talkRoom2.getTitle()).isEqualTo(response.get(1).getTitle());
+        assertThat(talkRoom3.getTitle()).isEqualTo(response.get(2).getTitle());
     }
 
     @Test
@@ -543,15 +538,6 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
-    }
-
-    private static TalkRoom createTalkRoom(Book book, User user) {
-        return TalkRoom.builder()
-                .book(book)
-                .title("토론방")
-                .content("내용")
-                .user(user)
-                .build();
     }
 
     private static User createUser() {

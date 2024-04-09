@@ -3,14 +3,11 @@ package com.jisungin.api.talkroom;
 import com.jisungin.api.ApiResponse;
 import com.jisungin.api.SearchRequest;
 import com.jisungin.api.oauth.Auth;
-import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
-import com.jisungin.application.PageResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
-import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
-import com.jisungin.application.talkroom.response.TalkRoomResponse;
+import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,35 +29,40 @@ public class TalkRoomController {
     private final TalkRoomService talkRoomService;
 
     @PostMapping("/talk-rooms")
-    public ApiResponse<TalkRoomResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request, @Auth
-    AuthContext authContext) {
-        return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), authContext));
+    public ApiResponse<TalkRoomFindOneResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request, @Auth
+    Long userId) {
+        return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), userId));
     }
 
     @GetMapping("/talk-rooms")
-    public ApiResponse<PageResponse<TalkRoomFindAllResponse>> findAllTalkRoom(
-            @ModelAttribute SearchRequest search, @Auth AuthContext authContext) {
-        return ApiResponse.ok(talkRoomService.findAllTalkRoom(search.toService(), authContext));
+    public ApiResponse<TalkRoomPageResponse> findAllTalkRoom(
+            @ModelAttribute SearchRequest search, @Auth Long userId) {
+        return ApiResponse.ok(talkRoomService.findAllTalkRoom(search.toService(), userId));
     }
 
     @GetMapping("/talk-room/{talkRoomId}")
     public ApiResponse<TalkRoomFindOneResponse> findOneTalkRoom(@PathVariable Long talkRoomId,
-                                                                @Auth AuthContext authContext) {
-        return ApiResponse.ok(talkRoomService.findOneTalkRoom(talkRoomId, authContext));
+                                                                @Auth Long userId) {
+        return ApiResponse.ok(talkRoomService.findOneTalkRoom(talkRoomId, userId));
     }
 
     @PatchMapping("/talk-rooms")
-    public ApiResponse<TalkRoomResponse> editTalkRoom(@Valid @RequestBody TalkRoomEditRequest request,
-                                                      @Auth AuthContext authContext) {
-        return ApiResponse.ok(talkRoomService.editTalkRoom(request.toServiceRequest(), authContext));
+    public ApiResponse<Void> editTalkRoom(@Valid @RequestBody TalkRoomEditRequest request,
+                                          @Auth Long userId) {
+        talkRoomService.editTalkRoom(request.toServiceRequest(), userId);
+
+        return ApiResponse.<Void>builder()
+                .message("수정 완료")
+                .status(HttpStatus.OK)
+                .build();
     }
 
     @DeleteMapping("/talk-rooms/{talkRoomId}")
-    public ApiResponse<Void> deleteTalkRoom(@PathVariable Long talkRoomId, @Auth AuthContext authContext) {
-        talkRoomService.deleteTalkRoom(talkRoomId, authContext);
+    public ApiResponse<Void> deleteTalkRoom(@PathVariable Long talkRoomId, @Auth Long userId) {
+        talkRoomService.deleteTalkRoom(talkRoomId, userId);
 
         return ApiResponse.<Void>builder()
-                .message("OK")
+                .message("삭제 성공")
                 .status(HttpStatus.OK)
                 .build();
     }
