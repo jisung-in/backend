@@ -8,6 +8,7 @@ import com.jisungin.api.image.ImageController;
 import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.api.review.ReviewController;
 import com.jisungin.api.reviewlike.ReviewLikeController;
+import com.jisungin.api.search.SearchController;
 import com.jisungin.api.talkroom.TalkRoomController;
 import com.jisungin.api.talkroomlike.TalkRoomLikeController;
 import com.jisungin.api.user.UserController;
@@ -18,6 +19,7 @@ import com.jisungin.application.commentlike.CommentLikeService;
 import com.jisungin.application.image.ImageService;
 import com.jisungin.application.review.ReviewService;
 import com.jisungin.application.reviewlike.ReviewLikeService;
+import com.jisungin.application.search.SearchService;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroomlike.TalkRoomLikeService;
 import com.jisungin.application.user.UserService;
@@ -35,7 +37,8 @@ import org.springframework.test.web.servlet.MockMvc;
         UserController.class,
         BookController.class,
         ReviewLikeController.class,
-        ImageController.class
+        ImageController.class,
+        SearchController.class
 })
 public abstract class ControllerTestSupport {
 
@@ -77,5 +80,8 @@ public abstract class ControllerTestSupport {
 
     @MockBean
     protected ImageService imageService;
+
+    @MockBean
+    protected SearchService searchService;
 
 }
