@@ -5,10 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.api.oauth.AuthContext;
-import com.jisungin.application.PageResponse;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.request.CommentEditServiceRequest;
-import com.jisungin.application.comment.response.CommentQueryResponse;
+import com.jisungin.application.comment.response.CommentPageResponse;
 import com.jisungin.application.comment.response.CommentResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -96,10 +95,8 @@ class CommentServiceTest extends ServiceTestSupport {
                 .content("의견 남기기")
                 .build();
 
-        authContext.setUserId(user.getId());
-
         // when
-        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), authContext);
+        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId());
 
         // then
         assertThat(response)
@@ -129,10 +126,8 @@ class CommentServiceTest extends ServiceTestSupport {
                 .content("의견 수정")
                 .build();
 
-        authContext.setUserId(user.getId());
-
         // when
-        CommentResponse response = commentService.editComment(comment.getId(), request, authContext);
+        CommentResponse response = commentService.editComment(comment.getId(), request, user.getId());
 
         // then
         assertThat(response)
@@ -161,10 +156,8 @@ class CommentServiceTest extends ServiceTestSupport {
         CommentEditServiceRequest request = CommentEditServiceRequest.builder()
                 .build();
 
-        authContext.setUserId(user.getId());
-
         // when
-        CommentResponse response = commentService.editComment(comment.getId(), request, authContext);
+        CommentResponse response = commentService.editComment(comment.getId(), request, user.getId());
 
         // then
         assertThat(response)
@@ -206,10 +199,8 @@ class CommentServiceTest extends ServiceTestSupport {
                 .content("의견 수정")
                 .build();
 
-        authContext.setUserId(userB.getId());
-
         // when // then
-        assertThatThrownBy(() -> commentService.editComment(comment.getId(), request, authContext))
+        assertThatThrownBy(() -> commentService.editComment(comment.getId(), request, userB.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
@@ -232,10 +223,8 @@ class CommentServiceTest extends ServiceTestSupport {
         Comment comment = createComment(user, talkRoom);
         commentRepository.save(comment);
 
-        authContext.setUserId(user.getId());
-
         // when
-        commentService.deleteComment(comment.getId(), authContext);
+        commentService.deleteComment(comment.getId(), user.getId());
 
         // then
         List<Comment> comments = commentRepository.findAll();
@@ -272,10 +261,8 @@ class CommentServiceTest extends ServiceTestSupport {
         Comment comment = createComment(userA, talkRoom);
         commentRepository.save(comment);
 
-        authContext.setUserId(userB.getId());
-
         // when // then
-        assertThatThrownBy(() -> commentService.deleteComment(comment.getId(), authContext))
+        assertThatThrownBy(() -> commentService.deleteComment(comment.getId(), userB.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
@@ -307,17 +294,16 @@ class CommentServiceTest extends ServiceTestSupport {
             commentRepository.save(comments.get(i));
         }
 
-        AuthContext authContext = new AuthContext();
         // when
-        PageResponse<CommentQueryResponse> response = commentService.findAllComments(talkRoom.getId(), authContext);
+        CommentPageResponse response = commentService.findAllComments(talkRoom.getId(), user.getId());
 
         // then
-        assertThat(5L).isEqualTo(response.getTotalCount());
-        assertThat("의견 5").isEqualTo(response.getQueryResponse().get(0).getContent());
-        assertThat("의견 4").isEqualTo(response.getQueryResponse().get(1).getContent());
-        assertThat("의견 3").isEqualTo(response.getQueryResponse().get(2).getContent());
-        assertThat("의견 2").isEqualTo(response.getQueryResponse().get(3).getContent());
-        assertThat("의견 1").isEqualTo(response.getQueryResponse().get(4).getContent());
+        assertThat(5L).isEqualTo(response.getResponse().getTotalCount());
+        assertThat("의견 5").isEqualTo(response.getResponse().getQueryResponse().get(0).getContent());
+        assertThat("의견 4").isEqualTo(response.getResponse().getQueryResponse().get(1).getContent());
+        assertThat("의견 3").isEqualTo(response.getResponse().getQueryResponse().get(2).getContent());
+        assertThat("의견 2").isEqualTo(response.getResponse().getQueryResponse().get(3).getContent());
+        assertThat("의견 1").isEqualTo(response.getResponse().getQueryResponse().get(4).getContent());
     }
 
     @Test
@@ -358,14 +344,14 @@ class CommentServiceTest extends ServiceTestSupport {
         authContext.setUserId(user.getId());
 
         // when
-        PageResponse<CommentQueryResponse> response = commentService.findAllComments(talkRoom.getId(), authContext);
+        CommentPageResponse response = commentService.findAllComments(talkRoom.getId(), user.getId());
 
         // then
-//        assertThat(comments.get(0).getId()).isEqualTo(response.getLikeContents().get(0));
-//        assertThat(comments.get(1).getId()).isEqualTo(response.getLikeContents().get(1));
-//        assertThat(comments.get(2).getId()).isEqualTo(response.getLikeContents().get(2));
-//        assertThat(comments.get(3).getId()).isEqualTo(response.getLikeContents().get(3));
-//        assertThat(comments.get(4).getId()).isEqualTo(response.getLikeContents().get(4));
+        assertThat(comments.get(0).getId()).isEqualTo(response.getUserLikeCommentIds().get(0));
+        assertThat(comments.get(1).getId()).isEqualTo(response.getUserLikeCommentIds().get(1));
+        assertThat(comments.get(2).getId()).isEqualTo(response.getUserLikeCommentIds().get(2));
+        assertThat(comments.get(3).getId()).isEqualTo(response.getUserLikeCommentIds().get(3));
+        assertThat(comments.get(4).getId()).isEqualTo(response.getUserLikeCommentIds().get(4));
     }
 
     private static Comment createComment(User user, TalkRoom talkRoom) {

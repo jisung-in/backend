@@ -1,10 +1,11 @@
 package com.jisungin.domain.comment.repository;
 
-import com.jisungin.application.PageResponse;
 import com.jisungin.application.comment.response.CommentQueryResponse;
+import java.util.List;
 
 public interface CommentRepositoryCustom {
 
-    PageResponse<CommentQueryResponse> findAllComments(Long talkRoomId);
+    List<CommentQueryResponse> findAllComments(Long talkRoomId);
 
+    Long commentTotalCount(Long talkRoomId);
 }
