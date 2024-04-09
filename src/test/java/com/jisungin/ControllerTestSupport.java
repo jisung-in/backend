@@ -13,6 +13,7 @@ import com.jisungin.api.talkroomlike.TalkRoomLikeController;
 import com.jisungin.api.user.UserController;
 import com.jisungin.application.book.BestSellerService;
 import com.jisungin.application.book.BookService;
+import com.jisungin.application.comment.CommentService;
 import com.jisungin.application.commentlike.CommentLikeService;
 import com.jisungin.application.image.ImageService;
 import com.jisungin.application.review.ReviewService;
@@ -51,7 +52,7 @@ public abstract class ControllerTestSupport {
     protected TalkRoomService talkRoomService;
 
     @MockBean
-    protected com.jisungin.application.comment.CommentService commentService;
+    protected CommentService commentService;
 
     @MockBean
     protected ReviewService reviewService;
