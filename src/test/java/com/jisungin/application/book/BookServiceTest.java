@@ -1,18 +1,22 @@
-package com.jisungin.application.service.book;
+package com.jisungin.application.book;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.jisungin.ServiceTestSupport;
-import com.jisungin.application.book.BookService;
+import com.jisungin.application.PageResponse;
+import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.book.request.BookCreateServiceRequest;
 import com.jisungin.application.book.request.BookServicePageRequest;
 import com.jisungin.application.book.response.BookRelatedTalkRoomPageResponse;
 import com.jisungin.application.book.response.BookResponse;
+import com.jisungin.application.book.response.SimpleBookResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
+import com.jisungin.domain.comment.Comment;
+import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.oauth.OauthId;
 import com.jisungin.domain.oauth.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
@@ -57,11 +61,15 @@ public class BookServiceTest extends ServiceTestSupport {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CommentRepository commentRepository;
+
     @MockBean
     private Crawler crawler;
 
     @AfterEach
     void tearDown() {
+        commentRepository.deleteAllInBatch();
         talkRoomLikeRepository.deleteAllInBatch();
         talkRoomRoleRepository.deleteAllInBatch();
         talkRoomRepository.deleteAllInBatch();
@@ -100,6 +108,58 @@ public class BookServiceTest extends ServiceTestSupport {
     }
 
     @Test
+    @DisplayName("최근 등록된 책을 페이징 조회한다.")
+    public void getBooksByPage() {
+        // given
+        User user = userRepository.save(createUser(1));
+        List<Book> books = bookRepository.saveAll(createBooks());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(1, user, books.get(0)));
+
+        SearchServiceRequest params = SearchServiceRequest.builder()
+                .page(1)
+                .size(5)
+                .order("recent")
+                .build();
+
+        // when
+        PageResponse<SimpleBookResponse> response = bookService.getBooks(params);
+
+        // then
+        assertThat(response.getSize()).isEqualTo(5);
+        assertThat(response.getTotalCount()).isEqualTo(5);
+        assertThat(response.getQueryResponse()).hasSize(5)
+                .extracting("isbn")
+                .containsExactly("00004", "00003", "00002", "00001", "00000");
+    }
+
+    @Test
+    @DisplayName("토크가 많은 책을 페이징 조회한다.")
+    public void getBooksByComment() {
+        // given
+        User user = userRepository.save(createUser(1));
+        List<Book> books = bookRepository.saveAll(createBooks());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(1, user, books.get(0)));
+        List<Comment> comments = commentRepository.saveAll(createComments(user, talkRoom));
+
+        SearchServiceRequest params = SearchServiceRequest.builder()
+                .page(1)
+                .size(5)
+                .order("comment")
+                .build();
+
+        // when
+        PageResponse<SimpleBookResponse> response = bookService.getBooks(params);
+
+        // then
+        assertThat(response.getSize()).isEqualTo(5);
+        assertThat(response.getTotalCount()).isEqualTo(1);
+        assertThat(response.getQueryResponse()).hasSize(1)
+                .extracting("isbn")
+                .containsExactly("00000");
+    }
+
+
+    @Test
     @DisplayName("책과 관련된 토크룸 정보를 가져온다.")
     public void getTalkRoomRelatedBook() {
         // given
@@ -130,13 +190,15 @@ public class BookServiceTest extends ServiceTestSupport {
                 request, users.get(0).getId());
 
         // then
+        Long expectedTalkRoomId = talkRoomsWithBook.get(0).getId();
+
         assertThat(responses.getResponse().getSize()).isEqualTo(5);
         assertThat(responses.getResponse().getTotalCount()).isEqualTo(10);
         assertThat(responses.getResponse().getQueryResponse().size()).isEqualTo(5);
         assertThat(responses.getResponse().getQueryResponse().get(0).getLikeCount()).isEqualTo(10);
         assertThat(responses.getResponse().getQueryResponse().get(1).getLikeCount()).isEqualTo(0);
         assertThat(responses.getUserLikeTalkRoomIds().size()).isEqualTo(1);
-        assertThat(responses.getUserLikeTalkRoomIds().get(0)).isEqualTo(1);
+        assertThat(responses.getUserLikeTalkRoomIds().get(0)).isEqualTo(expectedTalkRoomId);
     }
 
     @NotNull
@@ -148,32 +210,6 @@ public class BookServiceTest extends ServiceTestSupport {
                 .toList();
     }
 
-    @NotNull
-    private static List<TalkRoom> createTalkRooms(User user, Book book) {
-        return IntStream.range(0, 10)
-                .mapToObj(i -> TalkRoom.builder()
-                        .user(user)
-                        .book(book)
-                        .title("토론방" + i)
-                        .content("내용" + i)
-                        .build())
-                .toList();
-    }
-
-    @NotNull
-    private static List<User> createUsers() {
-        return IntStream.range(0, 10)
-                .mapToObj(i -> User.builder()
-                        .name("user@gmail.com " + i)
-                        .profileImage("image")
-                        .oauthId(
-                                OauthId.builder()
-                                        .oauthId("oauthId " + i)
-                                        .oauthType(OauthType.KAKAO)
-                                        .build()
-                        )
-                        .build()).toList();
-    }
 
     @Test
     @DisplayName("도서 정보에 대한 책을 생성한다.")
@@ -256,6 +292,60 @@ public class BookServiceTest extends ServiceTestSupport {
                 .imageUrl("www.image.com/" + isbn)
                 .thumbnail("www.thumbnail.com/" + isbn)
                 .build();
+    }
+
+    private static List<Book> createBooks() {
+        return IntStream.range(0, 5)
+                .mapToObj(i -> createBookWithIsbn("0000" + i))
+                .toList();
+    }
+
+    private static User createUser(int id) {
+        return User.builder()
+                .name("user@gmail.com " + id)
+                .profileImage("image")
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId("oauthId " + id)
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .build();
+    }
+
+    private static TalkRoom createTalkRoom(int id, User user, Book book) {
+        return TalkRoom.builder()
+                .title("토론방 제목" + id)
+                .content("토론방 내용" + id)
+                .user(user)
+                .book(book)
+                .build();
+    }
+
+    private static Comment createComment(User user, TalkRoom talkRoom) {
+        return Comment.builder()
+                .content("토크 내용")
+                .user(user)
+                .talkRoom(talkRoom)
+                .build();
+    }
+
+    private static List<TalkRoom> createTalkRooms(User user, Book book) {
+        return IntStream.range(0, 10)
+                .mapToObj(i -> createTalkRoom(i, user, book))
+                .toList();
+    }
+
+    private static List<User> createUsers() {
+        return IntStream.range(0, 10)
+                .mapToObj(BookServiceTest::createUser)
+                .toList();
+    }
+
+    private static List<Comment> createComments(User user, TalkRoom talkRoom) {
+        return IntStream.range(0, 10)
+                .mapToObj(i -> createComment(user, talkRoom))
+                .toList();
     }
 
     private void createTalkRoomRole(TalkRoom talkRoom) {
