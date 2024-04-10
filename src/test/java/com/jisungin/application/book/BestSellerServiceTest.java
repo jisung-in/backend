@@ -1,4 +1,4 @@
-package com.jisungin.application.service.book;
+package com.jisungin.application.book;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
