@@ -1,11 +1,13 @@
 package com.jisungin.application.book;
 
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.book.request.BookCreateServiceRequest;
 import com.jisungin.application.book.request.BookServicePageRequest;
 import com.jisungin.application.book.response.BookRelatedTalkRoomPageResponse;
 import com.jisungin.application.book.response.BookRelatedTalkRoomResponse;
 import com.jisungin.application.book.response.BookResponse;
+import com.jisungin.application.book.response.SimpleBookResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -43,6 +45,10 @@ public class BookService {
         Double averageRating = reviewRepository.findAverageRatingByBookId(book.getIsbn());
 
         return BookResponse.of(book, averageRating);
+    }
+
+    public PageResponse<SimpleBookResponse> getBooks(SearchServiceRequest params) {
+        return bookRepository.getBooks(params.getOffset(), params.getSize(), params.getOrder());
     }
 
     public BookRelatedTalkRoomPageResponse getBookRelatedTalkRooms(String isbn, BookServicePageRequest request,

@@ -6,7 +6,8 @@ import lombok.RequiredArgsConstructor;
 public enum OrderType {
 
     RECENT("최신순"),
-    RECOMMEND("좋아요순");
+    RECOMMEND("좋아요순"),
+    COMMENT("토크 많은순");
 
     private final String text;
 
@@ -18,6 +19,7 @@ public enum OrderType {
         return switch (order) {
             case "recent" -> RECENT;
             case "recommend" -> RECOMMEND;
+            case "comment" -> COMMENT;
             default -> RECENT;
         };
     }

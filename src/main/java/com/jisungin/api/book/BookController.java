@@ -1,6 +1,7 @@
 package com.jisungin.api.book;
 
 import com.jisungin.api.ApiResponse;
+import com.jisungin.api.SearchRequest;
 import com.jisungin.api.book.request.BookCreateRequest;
 import com.jisungin.api.book.request.BookPageRequest;
 import com.jisungin.api.oauth.Auth;
@@ -10,6 +11,7 @@ import com.jisungin.application.book.BookService;
 import com.jisungin.application.book.response.BestSellerResponse;
 import com.jisungin.application.book.response.BookRelatedTalkRoomPageResponse;
 import com.jisungin.application.book.response.BookResponse;
+import com.jisungin.application.book.response.SimpleBookResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +33,11 @@ public class BookController {
     @GetMapping("/books/{isbn}")
     public ApiResponse<BookResponse> getBook(@PathVariable("isbn") String isbn) {
         return ApiResponse.ok(bookService.getBook(isbn));
+    }
+
+    @GetMapping("/books")
+    public ApiResponse<PageResponse<SimpleBookResponse>> getBooks(@ModelAttribute SearchRequest params) {
+        return ApiResponse.ok(bookService.getBooks(params.toService()));
     }
 
     @GetMapping("/books/{isbn}/talk-rooms")

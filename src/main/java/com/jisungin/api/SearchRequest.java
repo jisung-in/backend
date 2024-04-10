@@ -31,7 +31,7 @@ public class SearchRequest {
         return SearchServiceRequest.builder()
                 .page(page)
                 .size(size)
-                .order(order != null ? order : "re")
+                .order(order != null ? order : "recent")
                 .query(query)
                 .build();
     }
