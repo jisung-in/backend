@@ -12,4 +12,5 @@ public interface UserLibraryRepository extends JpaRepository<UserLibrary, Long> 
             "SELECT ul.status FROM UserLibrary ul JOIN ul.user u WHERE u.id = :id"
     )
     ReadingStatus findByUserId(@Param("id") Long userId);
+
 }
