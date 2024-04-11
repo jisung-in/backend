@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.userlibrary.request.UserLibraryCreateServiceRequest;
+import com.jisungin.application.userlibrary.request.UserLibraryEditServiceRequest;
 import com.jisungin.application.userlibrary.response.UserLibraryResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -17,6 +18,7 @@ import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -101,6 +103,130 @@ public class UserLibraryServiceTest extends ServiceTestSupport {
                 .hasMessage("책을 찾을 수 없습니다.");
     }
 
+    @Test
+    @DisplayName("서재 정보를 수정한다.")
+    public void editUserLibrary() {
+        // given
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
+
+        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+                .isbn(book.getIsbn())
+                .readingStatus("read")
+                .build();
+
+        // when
+        userLibraryService.editUserLibrary(userLibrary.getId(), user.getId(), request);
+
+        // then
+        Optional<UserLibrary> savedLibrary = userLibraryRepository.findById(userLibrary.getId());
+
+        assertThat(savedLibrary).isNotEmpty();
+        assertThat(savedLibrary.get().getStatus()).isEqualTo(ReadingStatus.READ);
+    }
+
+    @Test
+    @DisplayName("서재 정보 수정 시 사용자 정보가 존재해야 한다.")
+    public void editUserLibraryWithoutUser() {
+        // given
+        Long userLibraryId = 1L;
+        Long userId = 1L;
+        Book book = bookRepository.save(createBook());
+
+        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+                .isbn(book.getIsbn())
+                .readingStatus("read")
+                .build();
+
+        // when // then
+        assertThatThrownBy(() -> userLibraryService.editUserLibrary(userLibraryId, userId, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("사용자를 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("서재 정보 수정 시 책 정보가 존재해야 한다.")
+    public void editUserLibraryWithoutBook() {
+        // given
+        Long userLibraryId = 1L;
+        String bookIsbn = "0000X";
+        User user = userRepository.save(createUser());
+
+        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+                .isbn(bookIsbn)
+                .readingStatus("read")
+                .build();
+
+        // when // then
+        assertThatThrownBy(() -> userLibraryService.editUserLibrary(userLibraryId, user.getId(), request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("책을 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("서재 정보 수정 시 서재 정보가 존재해야 한다.")
+    public void editUserLibraryWithoutUserLibrary() {
+        // given
+        Long userLibraryId = 1L;
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+
+        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+                .isbn(book.getIsbn())
+                .readingStatus("read")
+                .build();
+
+        // when // then
+        assertThatThrownBy(() -> userLibraryService.editUserLibrary(userLibraryId, user.getId(), request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("서재 정보를 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("서재 정보 수정 시 서재 정보와 사용자 정보는 일치해야 한다.")
+    public void editUserLibraryInvalidUser() {
+        // given
+        User user = userRepository.save(createUser());
+        User anotherUser = userRepository.save(createAnotherUser());
+
+        Book book = bookRepository.save(createBook());
+
+        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
+
+        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+                .isbn(book.getIsbn())
+                .readingStatus("read")
+                .build();
+
+        // when // then
+        assertThatThrownBy(() -> userLibraryService.editUserLibrary(userLibrary.getId(), anotherUser.getId(), request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("권한이 없는 사용자입니다.");
+    }
+
+    @Test
+    @DisplayName("서재 정보 수정 시 서재 정보와 도서 정보는 일치해야 한다.")
+    public void editUserLibraryInvalidBook() {
+        // given
+        User user = userRepository.save(createUser());
+
+        Book book = bookRepository.save(createBookWithIsbn("00001"));
+        Book anotherBook = bookRepository.save(createBookWithIsbn("00002"));
+
+        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
+
+        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+                .isbn(anotherBook.getIsbn())
+                .readingStatus("read")
+                .build();
+
+        // when // then
+        assertThatThrownBy(() -> userLibraryService.editUserLibrary(userLibrary.getId(), user.getId(), request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("올바르지 않은 책 정보 입니다.");
+    }
+
     private static User createUser() {
         return User.builder()
                 .name("user@gmail.com")
@@ -108,6 +234,19 @@ public class UserLibraryServiceTest extends ServiceTestSupport {
                 .oauthId(
                         OauthId.builder()
                                 .oauthId("oauthId")
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .build();
+    }
+
+    private static User createAnotherUser() {
+        return User.builder()
+                .name("another@gmail.com")
+                .profileImage("image")
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId("anotherOauthId")
                                 .oauthType(OauthType.KAKAO)
                                 .build()
                 )
@@ -124,6 +263,27 @@ public class UserLibraryServiceTest extends ServiceTestSupport {
                 .dateTime(LocalDateTime.now())
                 .imageUrl("www")
                 .thumbnail("이미지")
+                .build();
+    }
+
+    private static Book createBookWithIsbn(String isbn) {
+        return Book.builder()
+                .title("제목")
+                .content("내용")
+                .authors("작가")
+                .isbn(isbn)
+                .publisher("publisher")
+                .dateTime(LocalDateTime.now())
+                .imageUrl("www")
+                .thumbnail("이미지")
+                .build();
+    }
+
+    public static UserLibrary create(User user, Book book) {
+        return UserLibrary.builder()
+                .user(user)
+                .book(book)
+                .status(ReadingStatus.WANT)
                 .build();
     }
 

@@ -1,6 +1,7 @@
 package com.jisungin.api.userlibrary;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -8,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jisungin.ControllerTestSupport;
 import com.jisungin.api.userlibrary.request.UserLibraryCreateRequest;
+import com.jisungin.api.userlibrary.request.UserLibraryEditRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -61,6 +63,68 @@ public class UserLibraryControllerTest extends ControllerTestSupport {
 
         // when // then
         mockMvc.perform(post("/v1/user-libraries")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("400"))
+                .andExpect(jsonPath("$.message").value("독서 상태 정보 입력은 필수 입니다."))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("서재 정보를 수정한다.")
+    public void editUserLibrary() throws Exception {
+        // given
+        Long userLibraryId = 1L;
+
+        UserLibraryEditRequest request = UserLibraryEditRequest.builder()
+                .isbn("00001")
+                .readingStatus("want")
+                .build();
+
+        // when // then
+        mockMvc.perform(patch("/v1/user-libraries/{userLibraryId}", userLibraryId)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("서재 정보를 수정시 isbn 입력은 필수이다.")
+    public void editUserLibraryWithoutIsbn() throws Exception {
+        // given
+        Long userLibraryId = 1L;
+
+        UserLibraryEditRequest request = UserLibraryEditRequest.builder()
+                .readingStatus("want")
+                .build();
+
+        // when // then
+        mockMvc.perform(patch("/v1/user-libraries/{userLibraryId}", userLibraryId)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("400"))
+                .andExpect(jsonPath("$.message").value("책 isbn 입력은 필수 입니다."))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("서재 정보를 수정시 독서 상태 정보 입력은 필수이다.")
+    public void editUserLibraryWithoutReadingStatus() throws Exception {
+        // given
+        Long userLibraryId = 1L;
+
+        UserLibraryEditRequest request = UserLibraryEditRequest.builder()
+                .isbn("00001")
+                .build();
+
+        // when // then
+        mockMvc.perform(patch("/v1/user-libraries/{userLibraryId}", userLibraryId)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
