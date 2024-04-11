@@ -16,6 +16,8 @@ import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.commentlike.CommentLike;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
+import com.jisungin.domain.mylibrary.UserLibrary;
+import com.jisungin.domain.mylibrary.repository.UserLibraryRepository;
 import com.jisungin.domain.oauth.OauthId;
 import com.jisungin.domain.oauth.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
@@ -63,6 +65,9 @@ class CommentServiceTest extends ServiceTestSupport {
     CommentLikeRepository commentLikeRepository;
 
     @Autowired
+    UserLibraryRepository userLibraryRepository;
+
+    @Autowired
     AuthContext authContext;
 
     @AfterEach
@@ -72,6 +77,7 @@ class CommentServiceTest extends ServiceTestSupport {
         talkRoomImageRepository.deleteAllInBatch();
         talkRoomRoleRepository.deleteAllInBatch();
         talkRoomRepository.deleteAllInBatch();
+        userLibraryRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
     }
@@ -89,6 +95,14 @@ class CommentServiceTest extends ServiceTestSupport {
         TalkRoom talkRoom = createTalkRoom(book, user);
         talkRoomRepository.save(talkRoom);
 
+        UserLibrary userLibrary = UserLibrary.builder()
+                .user(user)
+                .book(book)
+                .status(ReadingStatus.READING)
+                .build();
+
+        userLibraryRepository.save(userLibrary);
+
         createTalkRoomRole(talkRoom);
 
         CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
@@ -102,6 +116,71 @@ class CommentServiceTest extends ServiceTestSupport {
         assertThat(response)
                 .extracting("content", "userName")
                 .contains("의견 남기기", "user@gmail.com");
+    }
+
+    @Test
+    @DisplayName("의견을 작성할땐 토론방 참가 조건하고 유저의 책 상태가 일치해야한다.")
+    void writeCommentWithInvalidStatus() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        UserLibrary userLibrary = UserLibrary.builder()
+                .user(user)
+                .book(book)
+                .status(ReadingStatus.PAUSE)
+                .build();
+
+        userLibraryRepository.save(userLibrary);
+
+        createTalkRoomRole(talkRoom);
+
+        CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
+                .content("의견 남기기")
+                .build();
+
+        // when
+        assertThatThrownBy(() -> commentService.writeComment(request, talkRoom.getId(), user.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("의견을 쓸 권한이 없습니다.");
+    }
+
+    @Test
+    @DisplayName("의견을 작성할땐 토론방 참가 조건하고 유저의 책 상태가 일치해야한다. -> Reading Status NULL")
+    void writeCommentWithStatusEmpty() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        UserLibrary userLibrary = UserLibrary.builder()
+                .user(user)
+                .book(book)
+                .build();
+
+        userLibraryRepository.save(userLibrary);
+
+        createTalkRoomRole(talkRoom);
+
+        CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
+                .content("의견 남기기")
+                .build();
+
+        // when
+        assertThatThrownBy(() -> commentService.writeComment(request, talkRoom.getId(), user.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("의견을 쓸 권한이 없습니다.");
     }
 
     @Test

@@ -6,11 +6,14 @@ import com.jisungin.application.comment.request.CommentEditServiceRequest;
 import com.jisungin.application.comment.response.CommentPageResponse;
 import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.jisungin.application.comment.response.CommentResponse;
+import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
+import com.jisungin.domain.mylibrary.repository.UserLibraryRepository;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
+import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
@@ -30,6 +33,8 @@ public class CommentService {
     private final TalkRoomRepository talkRoomRepository;
     private final UserRepository userRepository;
     private final CommentLikeRepository commentLikeRepository;
+    private final UserLibraryRepository userLibraryRepository;
+    private final TalkRoomRoleRepository talkRoomRoleRepository;
 
     @Transactional
     public CommentResponse writeComment(CommentCreateServiceRequest request, Long talkRoomId, Long userId) {
@@ -38,6 +43,14 @@ public class CommentService {
 
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
+
+        ReadingStatus userReadingStatus = userLibraryRepository.findByUserId(user.getId());
+
+        List<ReadingStatus> talkRoomReadingStatus = talkRoomRoleRepository.findTalkRoomRoleByTalkRoomId(
+                talkRoom.getId());
+
+        talkRoomReadingStatus.stream().filter(i -> i.equals(userReadingStatus)).findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNABLE_WRITE_COMMENT));
 
         Comment comment = Comment.create(request, user, talkRoom);
 
