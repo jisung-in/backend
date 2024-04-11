@@ -8,11 +8,13 @@ import com.jisungin.application.userlibrary.UserLibraryService;
 import com.jisungin.application.userlibrary.response.UserLibraryResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -35,6 +37,16 @@ public class UserLibraryController {
                                              @Auth Long userId
     ) {
         userLibraryService.editUserLibrary(userLibraryId, userId, request.toServiceRequest());
+
+        return ApiResponse.ok();
+    }
+
+    @DeleteMapping("/user-libraries/{userLibraryId}")
+    public ApiResponse<Void> deleteUserLibrary(@PathVariable("userLibraryId") Long userLibraryId,
+                                               @RequestParam String isbn,
+                                               @Auth Long userId
+    ) {
+        userLibraryService.deleteUserLibrary(userLibraryId, userId, isbn);
 
         return ApiResponse.ok();
     }

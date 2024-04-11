@@ -1,5 +1,6 @@
 package com.jisungin.application.userlibrary;
 
+import com.amazonaws.services.kms.model.EnableKeyRotationRequest;
 import com.jisungin.application.userlibrary.request.UserLibraryCreateServiceRequest;
 import com.jisungin.application.userlibrary.request.UserLibraryEditServiceRequest;
 import com.jisungin.application.userlibrary.response.UserLibraryResponse;
@@ -60,6 +61,28 @@ public class UserLibraryService {
         }
 
         userLibrary.editReadingStatus(ReadingStatus.createReadingStatus(request.getReadingStatus()));
+    }
+
+    @Transactional
+    public void deleteUserLibrary(Long userLibraryId, Long userId, String isbn) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Book book = bookRepository.findById(isbn)
+                .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
+
+        UserLibrary userLibrary = userLibraryRepository.findByIdWithBookAndUser(userLibraryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_LIBRARY_NOT_FOUND));
+
+        if (!userLibrary.isUserLibraryOwner(user.getId())) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
+        }
+
+        if (!userLibrary.isSameBook(book.getIsbn())) {
+            throw new BusinessException(ErrorCode.BOOK_INVALID_INFO);
+        }
+
+        userLibraryRepository.deleteById(userLibrary.getId());
     }
 
 }
