@@ -1,0 +1,72 @@
+package com.jisungin.api.userlibrary;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.jisungin.ControllerTestSupport;
+import com.jisungin.api.userlibrary.request.UserLibraryCreateRequest;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+public class UserLibraryControllerTest extends ControllerTestSupport {
+
+    @Test
+    @DisplayName("서재 정보를 생성한다.")
+    public void createUseLibrary() throws Exception {
+        // given
+        UserLibraryCreateRequest request = UserLibraryCreateRequest.builder()
+                .isbn("00001")
+                .readingStatus("want")
+                .build();
+
+        // when // then
+        mockMvc.perform(post("/v1/user-libraries")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("서재 정보 등록 시 isbn 입력은 필수이다.")
+    public void createUserLibraryWithoutIsbn() throws Exception {
+        // given
+        UserLibraryCreateRequest request = UserLibraryCreateRequest.builder()
+                .readingStatus("want")
+                .build();
+
+        // when // then
+        mockMvc.perform(post("/v1/user-libraries")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("400"))
+                .andExpect(jsonPath("$.message").value("책 isbn 입력은 필수 입니다."))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("사재 정보 등록 시 독서 상태 입력은 필수이다.")
+    public void createUserLibraryWithoutReadingStatus() throws Exception {
+        // given
+        UserLibraryCreateRequest request = UserLibraryCreateRequest.builder()
+                .isbn("00001")
+                .build();
+
+        // when // then
+        mockMvc.perform(post("/v1/user-libraries")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("400"))
+                .andExpect(jsonPath("$.message").value("독서 상태 정보 입력은 필수 입니다."))
+                .andDo(print());
+    }
+
+}
