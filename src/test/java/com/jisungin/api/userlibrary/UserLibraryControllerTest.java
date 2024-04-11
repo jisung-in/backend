@@ -1,6 +1,7 @@
 package com.jisungin.api.userlibrary;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -130,6 +131,36 @@ public class UserLibraryControllerTest extends ControllerTestSupport {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("400"))
                 .andExpect(jsonPath("$.message").value("독서 상태 정보 입력은 필수 입니다."))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("서재 정보를 삭제한다.")
+    public void deleteUserLibrary() throws Exception {
+        // given
+        Long userLibraryId = 1L;
+
+        // when // then
+        mockMvc.perform(delete("/v1/user-libraries/{userLibraryId}", userLibraryId)
+                        .param("isbn", "0000X"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("서재 정보 삭제 시 책 isbn 입력은 필수이다.")
+    public void deleteUserLibraryWithoutIsbn() throws Exception {
+        // given
+        Long userLibraryId = 1L;
+
+        // when // then
+        mockMvc.perform(delete("/v1/user-libraries/{userLibraryId}", userLibraryId))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("400"))
+                .andExpect(jsonPath("$.message").value("유효하지 않은 파라미터 입니다."))
                 .andDo(print());
     }
 
