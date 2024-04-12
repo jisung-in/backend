@@ -2,6 +2,7 @@ package com.jisungin.api.userlibrary;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -15,6 +16,35 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 public class UserLibraryControllerTest extends ControllerTestSupport {
+
+    @Test
+    @DisplayName("서재 정보를 조회한다.")
+    public void getUserLibrary() throws Exception {
+        // given
+        String isbn = "00001";
+
+        // when // then
+        mockMvc.perform(get("/v1/user-libraries")
+                        .param("isbn", isbn)
+                        .accept(APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("서재 정보 조회 시 책 isbn 입력은 필수이다.")
+    public void getUserLibraryWithoutIsbn() throws Exception {
+        // when // then
+        mockMvc.perform(get("/v1/user-libraries")
+                        .accept(APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("400"))
+                .andExpect(jsonPath("$.message").value("유효하지 않은 파라미터 입니다."))
+                .andDo(print());
+    }
 
     @Test
     @DisplayName("서재 정보를 생성한다.")
