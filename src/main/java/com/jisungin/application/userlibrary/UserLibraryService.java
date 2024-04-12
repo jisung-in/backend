@@ -1,6 +1,5 @@
 package com.jisungin.application.userlibrary;
 
-import com.amazonaws.services.kms.model.EnableKeyRotationRequest;
 import com.jisungin.application.userlibrary.request.UserLibraryCreateServiceRequest;
 import com.jisungin.application.userlibrary.request.UserLibraryEditServiceRequest;
 import com.jisungin.application.userlibrary.response.UserLibraryResponse;
@@ -27,6 +26,22 @@ public class UserLibraryService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
     private final UserLibraryRepository userLibraryRepository;
+
+    public UserLibraryResponse getUserLibrary(Long userId, String isbn) {
+        if (userId == null || isbn == null) {
+            return UserLibraryResponse.empty();
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Book book = bookRepository.findById(isbn)
+                .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
+
+        UserLibrary userLibrary = userLibraryRepository.findByUserAndBook(user, book);
+
+        return UserLibraryResponse.of(userLibrary);
+    }
 
     @Transactional
     public UserLibraryResponse createUserLibrary(UserLibraryCreateServiceRequest request, Long userId) {

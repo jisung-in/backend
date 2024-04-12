@@ -1,7 +1,9 @@
 package com.jisungin.domain.mylibrary.repository;
 
 import com.jisungin.domain.ReadingStatus;
+import com.jisungin.domain.book.Book;
 import com.jisungin.domain.mylibrary.UserLibrary;
+import com.jisungin.domain.user.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,5 +23,7 @@ public interface UserLibraryRepository extends JpaRepository<UserLibrary, Long> 
                     + "WHERE ul.id = :id"
     )
     Optional<UserLibrary> findByIdWithBookAndUser(@Param("id") Long id);
+
+    UserLibrary findByUserAndBook(User user, Book book);
 
 }
