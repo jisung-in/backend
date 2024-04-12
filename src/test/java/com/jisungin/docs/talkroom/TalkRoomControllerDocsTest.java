@@ -314,7 +314,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .id(1L)
                 .title("토론방 제목 수정")
                 .content("토론방 본문 수정")
-                .readingStatus(List.of("READ"))
+                .readingStatus(List.of("읽음"))
                 .newImage(List.of("새로운 이미지"))
                 .removeImage(List.of("기존에 있던 이미지"))
                 .build();

@@ -1,20 +1,24 @@
 package com.jisungin.application.comment;
 
-import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.request.CommentEditServiceRequest;
+import com.jisungin.application.comment.response.CommentPageResponse;
 import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.jisungin.application.comment.response.CommentResponse;
+import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
+import com.jisungin.domain.mylibrary.repository.UserLibraryRepository;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
+import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
+import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,14 +33,24 @@ public class CommentService {
     private final TalkRoomRepository talkRoomRepository;
     private final UserRepository userRepository;
     private final CommentLikeRepository commentLikeRepository;
+    private final UserLibraryRepository userLibraryRepository;
+    private final TalkRoomRoleRepository talkRoomRoleRepository;
 
     @Transactional
-    public CommentResponse writeComment(CommentCreateServiceRequest request, Long talkRoomId, AuthContext authContext) {
-        User user = userRepository.findById(authContext.getUserId())
+    public CommentResponse writeComment(CommentCreateServiceRequest request, Long talkRoomId, Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
+
+        ReadingStatus userReadingStatus = userLibraryRepository.findByUserId(user.getId());
+
+        List<ReadingStatus> talkRoomReadingStatus = talkRoomRoleRepository.findTalkRoomRoleByTalkRoomId(
+                talkRoom.getId());
+
+        talkRoomReadingStatus.stream().filter(i -> i.equals(userReadingStatus)).findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNABLE_WRITE_COMMENT));
 
         Comment comment = Comment.create(request, user, talkRoom);
 
@@ -45,22 +59,27 @@ public class CommentService {
         return CommentResponse.of(comment.getContent(), user.getName());
     }
 
-    public PageResponse<CommentQueryResponse> findAllComments(Long talkRoomId, AuthContext authContext) {
-        PageResponse<CommentQueryResponse> response = commentRepository.findAllComments(talkRoomId);
+    public CommentPageResponse findAllComments(Long talkRoomId, Long userId) {
+        TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        if (authContext.getUserId() != null) {
-            List<Long> likeComments = commentLikeRepository.userLikeComments(authContext.getUserId());
-        }
+        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        List<CommentQueryResponse> findComment = commentRepository.findAllComments(talkRoom.getId());
 
-        return response;
+        Long totalCount = commentRepository.commentTotalCount(talkRoom.getId());
+
+        List<Long> userLikeCommentIds =
+                (user.getId() != null) ? commentLikeRepository.userLikeComments(user.getId()) : Collections.emptyList();
+
+        return CommentPageResponse.of(PageResponse.of(50, totalCount, findComment), userLikeCommentIds);
     }
 
     @Transactional
-    public CommentResponse editComment(Long commentId, CommentEditServiceRequest request, AuthContext authContext) {
+    public CommentResponse editComment(Long commentId, CommentEditServiceRequest request, Long userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
-        User user = userRepository.findById(authContext.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!comment.isCommentOwner(user.getId())) {
@@ -73,11 +92,11 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(Long commentId, AuthContext authContext) {
+    public void deleteComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
-        User user = userRepository.findById(authContext.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!comment.isCommentOwner(user.getId())) {

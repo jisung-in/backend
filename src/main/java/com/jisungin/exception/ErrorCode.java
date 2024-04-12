@@ -25,8 +25,8 @@ public enum ErrorCode {
     REVIEW_LIKE_NOT_FOUND(404, "리뷰 좋아요를 찾을 수 없습니다."),
     IMAGE_NOT_FOUND(400, "파일이 없습니다."),
     S3_UPLOAD_FAIL(400, "이미지 업로드가 실패되었습니다."),
-    NOT_IMAGE(400, "이미지 파일이 아닙니다.");
-
+    NOT_IMAGE(400, "이미지 파일이 아닙니다."),
+    UNABLE_WRITE_COMMENT(400, "의견을 쓸 권한이 없습니다.");
 
     private final int code;
     private final String message;

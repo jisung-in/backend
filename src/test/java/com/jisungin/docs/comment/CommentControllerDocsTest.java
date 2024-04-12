@@ -19,14 +19,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.jisungin.api.comment.CommentController;
 import com.jisungin.api.comment.request.CommentCreateRequest;
 import com.jisungin.api.comment.request.CommentEditRequest;
-import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.comment.CommentService;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.request.CommentEditServiceRequest;
+import com.jisungin.application.comment.response.CommentPageResponse;
 import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.jisungin.application.comment.response.CommentResponse;
 import com.jisungin.docs.RestDocsSupport;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,8 +52,10 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .content("의견 내용")
                 .build();
 
+        given(authContext.getUserId()).willReturn(1L);
+
         given(commentService.writeComment(any(CommentCreateServiceRequest.class), any(Long.class),
-                any(AuthContext.class)))
+                anyLong()))
                 .willReturn(CommentResponse.builder()
                         .content("의견 내용")
                         .userName("user")
@@ -101,6 +104,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .userName("유저 이름")
                 .content("의견 내용")
                 .commentLikeCount(0L)
+                .createTime(LocalDateTime.now())
                 .build();
 
         PageResponse<CommentQueryResponse> response = PageResponse.<CommentQueryResponse>builder()
@@ -109,10 +113,13 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .totalCount(1L)
                 .build();
 
-//        response.addContents(List.of(1L));
+        given(authContext.getUserId()).willReturn(1L);
 
-        given(commentService.findAllComments(anyLong(), any(AuthContext.class)))
-                .willReturn(response);
+        given(commentService.findAllComments(anyLong(), anyLong()))
+                .willReturn(CommentPageResponse.builder()
+                        .response(response)
+                        .userLikeCommentIds(List.of())
+                        .build());
 
         mockMvc.perform(
                         RestDocumentationRequestBuilders.get("/v1/{talkRoomId}/comments", 1L)
@@ -136,21 +143,24 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                                         .description("메시지"),
                                 fieldWithPath("data").type(JsonFieldType.OBJECT)
                                         .description("응답 데이터"),
-                                fieldWithPath("data..queryResponse").type(JsonFieldType.ARRAY)
+                                fieldWithPath("data.response.queryResponse").type(JsonFieldType.ARRAY)
                                         .description("의견 데이터"),
-                                fieldWithPath("data.queryResponse[].commentId").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.response.queryResponse[].commentId").type(JsonFieldType.NUMBER)
                                         .description("의견 ID"),
-                                fieldWithPath("data.queryResponse[].userName").type(JsonFieldType.STRING)
+                                fieldWithPath("data.response.queryResponse[].userName").type(JsonFieldType.STRING)
                                         .description("작성자 이름"),
-                                fieldWithPath("data.queryResponse[].content").type(JsonFieldType.STRING)
+                                fieldWithPath("data.response.queryResponse[].content").type(JsonFieldType.STRING)
                                         .description("의견 내용"),
-                                fieldWithPath("data.queryResponse[].commentLikeCount").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.response.queryResponse[].commentLikeCount").type(
+                                                JsonFieldType.NUMBER)
                                         .description("의견 좋아요 개수"),
-                                fieldWithPath("data.totalCount").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.response.queryResponse[].createTime").type(JsonFieldType.ARRAY)
+                                        .description("의견 생성 시간"),
+                                fieldWithPath("data.response.totalCount").type(JsonFieldType.NUMBER)
                                         .description("의견 총 개수"),
-                                fieldWithPath("data.size").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.response.size").type(JsonFieldType.NUMBER)
                                         .description("조회 크기"),
-                                fieldWithPath("data.likeContents").type(JsonFieldType.ARRAY)
+                                fieldWithPath("data.userLikeCommentIds").type(JsonFieldType.ARRAY)
                                         .description("로그인한 유저가 좋아요 누른 의견 ID들").optional()
                         )
                 ));
@@ -164,8 +174,10 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .content("수정된 의견 내용")
                 .build();
 
+        given(authContext.getUserId()).willReturn(1L);
+
         given(commentService.editComment(any(Long.class), any(CommentEditServiceRequest.class),
-                any(AuthContext.class)))
+                anyLong()))
                 .willReturn(CommentResponse.builder()
                         .content("수정된 의견 내용")
                         .userName("user")

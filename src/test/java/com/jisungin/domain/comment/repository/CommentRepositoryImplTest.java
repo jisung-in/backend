@@ -3,7 +3,6 @@ package com.jisungin.domain.comment.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.jisungin.RepositoryTestSupport;
-import com.jisungin.application.PageResponse;
 import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -82,11 +81,10 @@ class CommentRepositoryImplTest extends RepositoryTestSupport {
         commentRepository.save(comment);
 
         // when
-        PageResponse<CommentQueryResponse> response = commentRepository.findAllComments(talkRoom.getId());
+        List<CommentQueryResponse> response = commentRepository.findAllComments(talkRoom.getId());
 
         // then
-        assertThat("의견 남기기").isEqualTo(response.getQueryResponse().get(0).getContent());
-        assertThat(1L).isEqualTo(response.getTotalCount());
+        assertThat("의견 남기기").isEqualTo(response.get(0).getContent());
     }
 
     @Test
@@ -117,15 +115,14 @@ class CommentRepositoryImplTest extends RepositoryTestSupport {
         }
 
         // when
-        PageResponse<CommentQueryResponse> response = commentRepository.findAllComments(talkRoom.getId());
+        List<CommentQueryResponse> response = commentRepository.findAllComments(talkRoom.getId());
 
         // then
-        assertThat(5L).isEqualTo(response.getTotalCount());
-        assertThat("의견 5").isEqualTo(response.getQueryResponse().get(0).getContent());
-        assertThat("의견 4").isEqualTo(response.getQueryResponse().get(1).getContent());
-        assertThat("의견 3").isEqualTo(response.getQueryResponse().get(2).getContent());
-        assertThat("의견 2").isEqualTo(response.getQueryResponse().get(3).getContent());
-        assertThat("의견 1").isEqualTo(response.getQueryResponse().get(4).getContent());
+        assertThat("의견 5").isEqualTo(response.get(0).getContent());
+        assertThat("의견 4").isEqualTo(response.get(1).getContent());
+        assertThat("의견 3").isEqualTo(response.get(2).getContent());
+        assertThat("의견 2").isEqualTo(response.get(3).getContent());
+        assertThat("의견 1").isEqualTo(response.get(4).getContent());
     }
 
     private static Comment createComment(TalkRoom talkRoom, User user) {
