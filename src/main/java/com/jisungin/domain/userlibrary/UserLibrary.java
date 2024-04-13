@@ -1,4 +1,4 @@
-package com.jisungin.domain.mylibrary;
+package com.jisungin.domain.userlibrary;
 
 import com.jisungin.domain.BaseEntity;
 import com.jisungin.domain.ReadingStatus;

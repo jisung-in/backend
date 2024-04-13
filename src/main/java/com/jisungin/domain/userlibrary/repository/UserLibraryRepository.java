@@ -1,15 +1,17 @@
-package com.jisungin.domain.mylibrary.repository;
+package com.jisungin.domain.userlibrary.repository;
 
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
-import com.jisungin.domain.mylibrary.UserLibrary;
+import com.jisungin.domain.userlibrary.UserLibrary;
 import com.jisungin.domain.user.User;
+
 import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface UserLibraryRepository extends JpaRepository<UserLibrary, Long> {
+public interface UserLibraryRepository extends JpaRepository<UserLibrary, Long>, UserLibraryRepositoryCustom {
 
     @Query(
             "SELECT ul.status FROM UserLibrary ul JOIN ul.user u WHERE u.id = :id"

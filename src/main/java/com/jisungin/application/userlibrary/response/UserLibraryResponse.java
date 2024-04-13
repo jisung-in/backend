@@ -1,7 +1,7 @@
 package com.jisungin.application.userlibrary.response;
 
 
-import com.jisungin.domain.mylibrary.UserLibrary;
+import com.jisungin.domain.userlibrary.UserLibrary;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

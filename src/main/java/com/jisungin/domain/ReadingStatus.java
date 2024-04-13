@@ -2,6 +2,7 @@ package com.jisungin.domain;
 
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
+
 import java.util.List;
 import java.util.Locale;
 import lombok.Getter;
@@ -37,6 +38,14 @@ public enum ReadingStatus {
                     throw new IllegalArgumentException();
                 })
                 .toList();
+    }
+
+    public static ReadingStatus fromName(String name) {
+//        if (name == null) {
+//            return null;
+//        }
+
+        return ReadingStatus.valueOf(name.toUpperCase(Locale.ENGLISH));
     }
 
 }
