@@ -8,10 +8,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import static com.jisungin.api.oauth.AuthConstant.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/oauth")
@@ -25,6 +27,7 @@ public class OauthController {
             @PathVariable OauthType oauthType,
             HttpServletResponse response
     ) {
+        log.info("redirect 요청");
         String redirectUrl = oauthService.getAuthCodeRequestUrl(oauthType);
         response.sendRedirect(redirectUrl);
         return ApiResponse.ok(null);
@@ -36,6 +39,7 @@ public class OauthController {
             @RequestParam("code") String code,
             HttpServletRequest request
     ) {
+        log.info("login 요청");
         Long userId = oauthService.login(oauthType, code);
         HttpSession session = request.getSession(true);
         session.setAttribute(JSESSION_ID, userId);
