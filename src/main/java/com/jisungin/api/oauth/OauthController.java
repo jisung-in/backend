@@ -43,6 +43,7 @@ public class OauthController {
         Long userId = oauthService.login(oauthType, code);
         HttpSession session = request.getSession(true);
         session.setAttribute(JSESSION_ID, userId);
+        log.info("JSESSION_ID = {}", session.getAttribute(JSESSION_ID));
         return ApiResponse.ok(null);
     }
 
