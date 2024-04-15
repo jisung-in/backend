@@ -6,6 +6,9 @@ import com.jisungin.application.review.response.RatingFindAllResponse;
 import com.jisungin.application.review.response.ReviewContentGetAllResponse;
 import com.jisungin.application.user.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.application.user.request.UserRatingGetAllServiceRequest;
+import com.jisungin.application.user.request.UserReadingStatusGetAllServiceRequest;
+import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
+import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.oauth.OauthId;
@@ -16,17 +19,23 @@ import com.jisungin.domain.reviewlike.ReviewLike;
 import com.jisungin.domain.reviewlike.repository.ReviewLikeRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
+import com.jisungin.domain.userlibrary.UserLibrary;
+import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.jisungin.domain.ReadingStatus.*;
 import static com.jisungin.domain.review.RatingOrderType.*;
+import static com.jisungin.domain.userlibrary.ReadingStatusOrderType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
@@ -45,10 +54,14 @@ class UserServiceTest extends ServiceTestSupport {
     private ReviewLikeRepository reviewLikeRepository;
 
     @Autowired
+    private UserLibraryRepository userLibraryRepository;
+
+    @Autowired
     private UserService userService;
 
     @AfterEach
     void tearDown() {
+        userLibraryRepository.deleteAllInBatch();
         reviewLikeRepository.deleteAllInBatch();
         reviewRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
@@ -120,6 +133,40 @@ class UserServiceTest extends ServiceTestSupport {
         assertThat(result.getUserLikes()).hasSize(4);
     }
 
+    @DisplayName("사용자의 독서 상태가 읽고 싶은인 책을 가져온다.")
+    @Test
+    void getReadingStatuses() {
+        //given
+        User user1 = userRepository.save(createUser("1"));
+        User user2 = userRepository.save(createUser("2"));
+        List<Book> books = bookRepository.saveAll(createBooks());
+        List<Review> reviewsByUser1 = reviewRepository.saveAll(createReviews(user1, books));
+        List<Review> reviewsByUser2 = reviewRepository.saveAll(createReviews(user2, books));
+        List<UserLibrary> userLibraries = userLibraryRepository.saveAll(createUserLibraries(user1, books));
+
+        // 읽고 싶은 상태인 책을 사전 순으로 정렬하고 1페이지를 가져온다.
+        UserReadingStatusGetAllServiceRequest request = UserReadingStatusGetAllServiceRequest.builder()
+                .page(1)
+                .size(4)
+                .orderType(DICTIONARY)
+                .readingStatus(WANT)
+                .build();
+
+        //when
+        PageResponse<UserReadingStatusResponse> result = userService.getUserReadingStatuses(user1.getId(), request);
+
+        //then
+        assertThat(result.getTotalCount()).isEqualTo(4);
+        assertThat(result.getQueryResponse()).hasSize(4)
+                .extracting("bookImage", "bookTitle", "ratingAvg")
+                .containsExactly(
+                        Assertions.tuple("bookImage", "제목1", 1.0),
+                        Assertions.tuple("bookImage", "제목11", 1.0),
+                        Assertions.tuple("bookImage", "제목16", 1.0),
+                        Assertions.tuple("bookImage", "제목6", 1.0)
+                );
+    }
+
     private static List<Book> createBooks() {
         return IntStream.rangeClosed(1, 20)
                 .mapToObj(i -> createBook(
@@ -180,6 +227,28 @@ class UserServiceTest extends ServiceTestSupport {
                                 .oauthType(OauthType.KAKAO)
                                 .build()
                 )
+                .build();
+    }
+
+    private static List<UserLibrary> createUserLibraries(User user, List<Book> books) {
+        List<UserLibrary> userLibraries = new ArrayList<>();
+        List<ReadingStatus> statuses = List.of(WANT, READING, READ, PAUSE, STOP);
+
+        IntStream.rangeClosed(1, 20)
+                .forEach(i -> {
+                    ReadingStatus readingStatus = statuses.get((i - 1) % statuses.size());
+                    UserLibrary userLibrary = createUserLibrary(user, books.get(i - 1), readingStatus);
+                    userLibraries.add(userLibrary);
+                });
+
+        return userLibraries;
+    }
+
+    private static UserLibrary createUserLibrary(User user, Book book, ReadingStatus readingStatus) {
+        return UserLibrary.builder()
+                .user(user)
+                .book(book)
+                .status(readingStatus)
                 .build();
     }
 

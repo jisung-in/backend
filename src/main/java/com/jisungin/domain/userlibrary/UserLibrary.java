@@ -1,14 +1,11 @@
-package com.jisungin.domain.mylibrary;
+package com.jisungin.domain.userlibrary;
 
 import com.jisungin.domain.BaseEntity;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.user.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

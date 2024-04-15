@@ -6,10 +6,13 @@ import com.jisungin.application.review.response.ReviewContentGetAllResponse;
 import com.jisungin.application.review.response.ReviewContentResponse;
 import com.jisungin.application.user.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.application.user.request.UserRatingGetAllServiceRequest;
+import com.jisungin.application.user.request.UserReadingStatusGetAllServiceRequest;
+import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
 import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.domain.reviewlike.repository.ReviewLikeRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
+import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,8 @@ public class UserService {
     private final ReviewRepository reviewRepository;
 
     private final ReviewLikeRepository reviewLikeRepository;
+
+    private final UserLibraryRepository userLibraryRepository;
 
     public PageResponse<RatingFindAllResponse> getUserRatings(Long userId, UserRatingGetAllServiceRequest request) {
         User user = userRepository.findById(userId)
@@ -52,6 +57,15 @@ public class UserService {
         List<Long> likeReviewIds = reviewLikeRepository.findLikeReviewByReviewId(userId, reviewIds);
 
         return ReviewContentGetAllResponse.of(reviewContents, likeReviewIds);
+    }
+
+    public PageResponse<UserReadingStatusResponse> getUserReadingStatuses(
+            Long userId, UserReadingStatusGetAllServiceRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        return userLibraryRepository.findAllReadingStatusOrderBy(
+                user.getId(), request.getReadingStatus(), request.getOrderType(), request.getSize(), request.getOffset());
     }
 
 }

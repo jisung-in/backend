@@ -41,4 +41,19 @@ class UserControllerTest extends ControllerTestSupport {
                 .andDo(print());
     }
 
+    @DisplayName("사용자의 독서 상태를 조회한다.")
+    @Test
+    void getReadingStatuses() throws Exception {
+        //given
+        //when //then
+        mockMvc.perform(get("/v1/users/statuses?page=1&size=4&order=dictionary&status=want")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
+
 }

@@ -2,7 +2,7 @@ package com.jisungin.application.userlibrary.request;
 
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
-import com.jisungin.domain.mylibrary.UserLibrary;
+import com.jisungin.domain.userlibrary.UserLibrary;
 import com.jisungin.domain.user.User;
 import lombok.Builder;
 import lombok.Getter;
