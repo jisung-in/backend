@@ -39,4 +39,16 @@ public class UserLibrary extends BaseEntity {
         this.status = status;
     }
 
+    public boolean isUserLibraryOwner(Long userId) {
+        return user.isMe(userId);
+    }
+
+    public boolean isSameBook(String isbn) {
+        return book.isSame(isbn);
+    }
+
+    public void editReadingStatus(ReadingStatus status) {
+        this.status = status;
+    }
+
 }

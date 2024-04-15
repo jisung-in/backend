@@ -24,4 +24,8 @@ public class ApiResponse<T> {
         return new ApiResponse<>(HttpStatus.OK, HttpStatus.OK.name(), data);
     }
 
+    public static ApiResponse<Void> ok() {
+        return new ApiResponse<>(HttpStatus.OK, HttpStatus.OK.name(), null);
+    }
+
 }

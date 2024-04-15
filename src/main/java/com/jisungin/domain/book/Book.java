@@ -56,4 +56,8 @@ public class Book extends BaseEntity {
         this.dateTime = dateTime;
     }
 
+    public boolean isSame(String isbn) {
+        return this.isbn.equals(isbn);
+    }
+
 }

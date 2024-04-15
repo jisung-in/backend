@@ -26,7 +26,9 @@ public enum ErrorCode {
     IMAGE_NOT_FOUND(400, "파일이 없습니다."),
     S3_UPLOAD_FAIL(400, "이미지 업로드가 실패되었습니다."),
     NOT_IMAGE(400, "이미지 파일이 아닙니다."),
-    UNABLE_WRITE_COMMENT(400, "의견을 쓸 권한이 없습니다.");
+    UNABLE_WRITE_COMMENT(400, "의견을 쓸 권한이 없습니다."),
+    USER_LIBRARY_NOT_FOUND(404, "서재 정보를 찾을 수 없습니다."),
+    INVALID_PARAMS_VALUE(400, "유효하지 않은 파라미터 입니다.");
 
     private final int code;
     private final String message;
