@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -912,6 +913,23 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         // then
         assertThat(response.getImages().get(0)).isEqualTo("image.png");
 
+    }
+
+    @Test
+    @DisplayName("최근 의견이 달린 토론방을 조회 할때 의견이 없다면 빈 값을 보낸다.")
+    void fetchRecentCommentedDiscussionsWithCommentEmpty() throws Exception {
+        // given
+        SearchServiceRequest request = SearchServiceRequest.builder()
+                .size(3)
+                .page(1)
+                .order("recent_comment")
+                .build();
+
+        // when
+        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(request, null);
+
+        // then
+        Assertions.assertThat(response.getResponse().getQueryResponse()).isEmpty();
     }
 
     private static List<User> listUsers() {

@@ -521,6 +521,110 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         assertThat(anotherTotalCount).isEqualTo(10L);
     }
 
+    @Test
+    @DisplayName("최근 의견이 달린 토론방을 가져온다.")
+    void fetchRecentCommentedDiscussions() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<TalkRoom> talkRooms = IntStream.range(1, 11)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방" + i)
+                        .content("내용" + i)
+                        .build())
+                .toList();
+        talkRoomRepository.saveAll(talkRooms);
+
+        List<Comment> comments = IntStream.range(3, 6)
+                .mapToObj(i -> Comment.builder()
+                        .user(user)
+                        .talkRoom(talkRooms.get(i))
+                        .content("의견")
+                        .build())
+                .toList();
+        commentRepository.saveAll(comments);
+
+        SearchServiceRequest request = SearchServiceRequest.builder()
+                .size(3)
+                .page(1)
+                .order("recent-comment")
+                .build();
+
+        // when
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(request.getOffset(),
+                request.getSize(), request.getOrder(), request.getQuery());
+
+        // then
+        assertThat("토론방6").isEqualTo(response.get(0).getTitle());
+        assertThat("토론방5").isEqualTo(response.get(1).getTitle());
+        assertThat("토론방4").isEqualTo(response.get(2).getTitle());
+    }
+
+    @Test
+    @DisplayName("최근 의견이 달린 토론방을 가져온다.")
+    void fetchRecentCommentedDiscussions2() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<TalkRoom> talkRooms = IntStream.range(1, 11)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방" + i)
+                        .content("내용" + i)
+                        .build())
+                .toList();
+        talkRoomRepository.saveAll(talkRooms);
+
+        Comment comment1 = Comment.builder()
+                .content("의견")
+                .user(user)
+                .talkRoom(talkRooms.get(3))
+                .build();
+        Comment comment2 = Comment.builder()
+                .content("의견")
+                .user(user)
+                .talkRoom(talkRooms.get(4))
+                .build();
+        Comment comment3 = Comment.builder()
+                .content("의견")
+                .user(user)
+                .talkRoom(talkRooms.get(5))
+                .build();
+        Comment comment4 = Comment.builder()
+                .content("의견 추가")
+                .user(user)
+                .talkRoom(talkRooms.get(5))
+                .build();
+
+        commentRepository.saveAll(List.of(comment1, comment2, comment3, comment4));
+
+        SearchServiceRequest request = SearchServiceRequest.builder()
+                .size(3)
+                .page(1)
+                .order("recent-comment")
+                .build();
+
+        // when
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(request.getOffset(),
+                request.getSize(), request.getOrder(), request.getQuery());
+
+        // then
+        assertThat("토론방6").isEqualTo(response.get(0).getTitle());
+        assertThat("토론방5").isEqualTo(response.get(1).getTitle());
+        assertThat("토론방4").isEqualTo(response.get(2).getTitle());
+    }
+
     private static Comment createComment(TalkRoom talkRoom, User user) {
         return Comment.builder()
                 .talkRoom(talkRoom)
