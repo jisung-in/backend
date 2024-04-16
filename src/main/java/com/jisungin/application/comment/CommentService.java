@@ -9,6 +9,8 @@ import com.jisungin.application.comment.response.CommentResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
+import com.jisungin.domain.commentimage.CommentImage;
+import com.jisungin.domain.commentimage.repository.CommentImageRepository;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
 import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.domain.talkroom.TalkRoom;
@@ -35,6 +37,7 @@ public class CommentService {
     private final CommentLikeRepository commentLikeRepository;
     private final UserLibraryRepository userLibraryRepository;
     private final TalkRoomRoleRepository talkRoomRoleRepository;
+    private final CommentImageRepository commentImageRepository;
 
     @Transactional
     public CommentResponse writeComment(CommentCreateServiceRequest request, Long talkRoomId, Long userId) {
@@ -56,7 +59,15 @@ public class CommentService {
 
         commentRepository.save(comment);
 
-        return CommentResponse.of(comment.getContent(), user.getName());
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            request.getImageUrls().stream()
+                    .map(url -> CommentImage.createImages(comment, url))
+                    .forEach(commentImageRepository::save);
+        }
+
+        List<String> imageUrls = commentImageRepository.findByCommentIdWithImageUrl(comment.getId());
+
+        return CommentResponse.of(comment.getContent(), user.getName(), imageUrls);
     }
 
     public CommentPageResponse findAllComments(Long talkRoomId, Long userId) {
@@ -88,7 +99,7 @@ public class CommentService {
 
         comment.edit(request.getContent());
 
-        return CommentResponse.of(comment.getContent(), user.getName());
+        return CommentResponse.of(comment.getContent(), user.getName(), null);
     }
 
     @Transactional
