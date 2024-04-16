@@ -12,12 +12,12 @@ import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.commentimage.CommentImage;
 import com.jisungin.domain.commentimage.repository.CommentImageRepository;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
-import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
+import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
 import java.util.Collections;
@@ -99,7 +99,19 @@ public class CommentService {
 
         comment.edit(request.getContent());
 
-        return CommentResponse.of(comment.getContent(), user.getName(), null);
+        if (request.getNewImage() != null && !request.getNewImage().isEmpty()) {
+            request.getNewImage().stream().map(url -> CommentImage.createImages(comment, url))
+                    .forEach(commentImageRepository::save);
+        }
+
+        if (request.getRemoveImage() != null && !request.getRemoveImage().isEmpty()) {
+            request.getRemoveImage().stream().map(url -> commentImageRepository.findByCommentAndImageUrl(comment, url))
+                    .forEach(commentImageRepository::deleteAll);
+        }
+
+        List<String> imageUrls = commentImageRepository.findByCommentIdWithImageUrl(comment.getId());
+
+        return CommentResponse.of(comment.getContent(), user.getName(), imageUrls);
     }
 
     @Transactional
