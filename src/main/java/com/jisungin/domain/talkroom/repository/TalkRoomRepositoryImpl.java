@@ -1,8 +1,10 @@
 package com.jisungin.domain.talkroom.repository;
 
 import static com.jisungin.domain.book.QBook.book;
+import static com.jisungin.domain.comment.QComment.comment;
 import static com.jisungin.domain.talkroom.QTalkRoom.talkRoom;
 import static com.jisungin.domain.talkroom.repository.OrderType.RECENT;
+import static com.jisungin.domain.talkroom.repository.OrderType.RECENT_COMMENT;
 import static com.jisungin.domain.talkroom.repository.OrderType.RECOMMEND;
 import static com.jisungin.domain.talkroomlike.QTalkRoomLike.talkRoomLike;
 import static com.jisungin.domain.user.QUser.user;
@@ -11,6 +13,7 @@ import com.jisungin.application.talkroom.response.QTalkRoomQueryResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +80,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
 
     // 토크룸 페이징 조회 쿼리
     private List<TalkRoomQueryResponse> findTalkRoomBySearch(long offset, int size, String order, String query) {
-        return queryFactory.select(new QTalkRoomQueryResponse(
+        JPAQuery<TalkRoomQueryResponse> jpaQuery = queryFactory.select(new QTalkRoomQueryResponse(
                         talkRoom.id.as("talkRoomId"),
                         user.profileImage,
                         user.name.as("userName"),
@@ -92,12 +95,25 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .join(talkRoom.user, user)
                 .join(talkRoom.book, book)
                 .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
-                .groupBy(talkRoom.id)
+                .from(talkRoom);
+
+        addJoinByOrder(jpaQuery, OrderType.convertToOrderType(order));
+
+        List<TalkRoomQueryResponse> response = jpaQuery.groupBy(talkRoom.id)
                 .where(searchQuery(query))
                 .offset(offset)
                 .limit(size)
                 .orderBy(condition(OrderType.convertToOrderType(order)))
                 .fetch();
+
+        return response;
+    }
+
+    private void addJoinByOrder(JPAQuery<?> jpaQuery, OrderType orderType) {
+        if (RECENT_COMMENT.equals(orderType)) {
+            jpaQuery
+                    .leftJoin(comment).on(talkRoom.eq(comment.talkRoom));
+        }
     }
 
     private BooleanExpression searchQuery(String search) {
@@ -130,6 +146,8 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
             return talkRoom.createDateTime.desc();
         } else if (RECOMMEND.equals(orderType)) {
             return talkRoomLike.count().desc();
+        } else if (RECENT_COMMENT.equals(orderType)) {
+            return comment.createDateTime.max().desc();
         }
         return OrderByNull.DEFAULT;
     }
