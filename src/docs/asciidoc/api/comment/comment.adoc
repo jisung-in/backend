@@ -10,6 +10,18 @@ include::{snippets}/comment/create/request-fields.adoc[]
 include::{snippets}/comment/create/http-response.adoc[]
 include::{snippets}/comment/create/response-fields.adoc[]
 
+=== 의견 조회
+
+==== HTTP Request
+
+include::{snippets}/comment/find/http-request.adoc[]
+include::{snippets}/comment/find/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/comment/find/http-response.adoc[]
+include::{snippets}/comment/find/response-fields.adoc[]
+
 === 의견 수정
 
 ==== HTTP Request
