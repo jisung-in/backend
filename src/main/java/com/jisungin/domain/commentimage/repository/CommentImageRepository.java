@@ -1,5 +1,6 @@
 package com.jisungin.domain.commentimage.repository;
 
+import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.commentimage.CommentImage;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,5 @@ public interface CommentImageRepository extends JpaRepository<CommentImage, Long
     )
     List<String> findByCommentIdWithImageUrl(@Param("commentId") Long commentId);
 
+    List<CommentImage> findByCommentAndImageUrl(Comment comment, String url);
 }

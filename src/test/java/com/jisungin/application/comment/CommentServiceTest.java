@@ -14,11 +14,10 @@ import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
+import com.jisungin.domain.commentimage.CommentImage;
 import com.jisungin.domain.commentimage.repository.CommentImageRepository;
 import com.jisungin.domain.commentlike.CommentLike;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
-import com.jisungin.domain.userlibrary.UserLibrary;
-import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.domain.oauth.OauthId;
 import com.jisungin.domain.oauth.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
@@ -28,6 +27,8 @@ import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.talkroomimage.repository.TalkRoomImageRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
+import com.jisungin.domain.userlibrary.UserLibrary;
+import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.exception.BusinessException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -324,6 +325,45 @@ class CommentServiceTest extends ServiceTestSupport {
         assertThatThrownBy(() -> commentService.editComment(comment.getId(), request, userB.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
+    }
+
+    @Test
+    @DisplayName("의견을 작성한 유저가 의견과 이미지를 수정한다")
+    void editCommentWithImage() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        Comment comment = createComment(user, talkRoom);
+        commentRepository.save(comment);
+
+        CommentImage imageUrl = CommentImage.builder()
+                .imageUrl("basic Image")
+                .comment(comment)
+                .build();
+        commentImageRepository.save(imageUrl);
+
+        CommentEditServiceRequest request = CommentEditServiceRequest.builder()
+                .content("의견 수정")
+                .newImage(List.of("new Image"))
+                .removeImage(List.of("basic Image"))
+                .build();
+
+        // when
+        CommentResponse response = commentService.editComment(comment.getId(), request, user.getId());
+
+        // then
+        assertThat(response)
+                .extracting("content", "userName", "imageUrls")
+                .contains("의견 수정", "user@gmail.com", List.of("new Image"));
     }
 
     @Test
