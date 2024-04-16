@@ -159,7 +159,7 @@ public class TalkRoomService {
         commentRepository.findByTalkRoom(talkRoom).ifPresent(commentRepository::delete);
 
         List<TalkRoomImage> images = talkRoomImageRepository.findByTalkRoom(talkRoom);
-        if (images != null) {
+        if (images != null && !images.isEmpty()) {
             talkRoomImageRepository.deleteAll(images);
         }
         talkRoomRoleRepository.deleteAllByTalkRoom(talkRoom);

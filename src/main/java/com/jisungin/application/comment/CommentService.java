@@ -126,6 +126,10 @@ public class CommentService {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
         }
 
+        List<CommentImage> images = commentImageRepository.findByComment(comment);
+        if (images != null && !images.isEmpty()) {
+            commentImageRepository.deleteAll(images);
+        }
         commentRepository.delete(comment);
     }
 

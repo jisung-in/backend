@@ -15,4 +15,6 @@ public interface CommentImageRepository extends JpaRepository<CommentImage, Long
     List<String> findByCommentIdWithImageUrl(@Param("commentId") Long commentId);
 
     List<CommentImage> findByCommentAndImageUrl(Comment comment, String url);
+
+    List<CommentImage> findByComment(Comment comment);
 }
