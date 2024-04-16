@@ -14,6 +14,7 @@ import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
+import com.jisungin.domain.commentimage.repository.CommentImageRepository;
 import com.jisungin.domain.commentlike.CommentLike;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
 import com.jisungin.domain.userlibrary.UserLibrary;
@@ -68,10 +69,14 @@ class CommentServiceTest extends ServiceTestSupport {
     UserLibraryRepository userLibraryRepository;
 
     @Autowired
+    CommentImageRepository commentImageRepository;
+
+    @Autowired
     AuthContext authContext;
 
     @AfterEach
     void tearDown() {
+        commentImageRepository.deleteAllInBatch();
         commentLikeRepository.deleteAllInBatch();
         commentRepository.deleteAllInBatch();
         talkRoomImageRepository.deleteAllInBatch();
@@ -114,8 +119,8 @@ class CommentServiceTest extends ServiceTestSupport {
 
         // then
         assertThat(response)
-                .extracting("content", "userName")
-                .contains("의견 남기기", "user@gmail.com");
+                .extracting("content", "userName", "imageUrls")
+                .contains("의견 남기기", "user@gmail.com", List.of());
     }
 
     @Test
@@ -181,6 +186,43 @@ class CommentServiceTest extends ServiceTestSupport {
         assertThatThrownBy(() -> commentService.writeComment(request, talkRoom.getId(), user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("의견을 쓸 권한이 없습니다.");
+    }
+
+    @Test
+    @DisplayName("유저가 1번 토크방에 자신의 의견을 작성하고 이미지를 추가한다.")
+    void writeCommentWithImages() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        UserLibrary userLibrary = UserLibrary.builder()
+                .user(user)
+                .book(book)
+                .status(ReadingStatus.READING)
+                .build();
+
+        userLibraryRepository.save(userLibrary);
+
+        createTalkRoomRole(talkRoom);
+
+        CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
+                .content("의견 남기기")
+                .imageUrls(List.of("이미지 URL"))
+                .build();
+
+        // when
+        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId());
+
+        // then
+        assertThat(response)
+                .extracting("content", "userName", "imageUrls")
+                .contains("의견 남기기", "user@gmail.com", List.of("이미지 URL"));
     }
 
     @Test
