@@ -429,6 +429,40 @@ class CommentServiceTest extends ServiceTestSupport {
     }
 
     @Test
+    @DisplayName("의견을 작성한 유저가 의견과 이미지를 삭제한다.")
+    void deleteCommentWithImages() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        Comment comment = createComment(user, talkRoom);
+        commentRepository.save(comment);
+
+        CommentImage imageUrl = CommentImage.builder()
+                .imageUrl("basic Image")
+                .comment(comment)
+                .build();
+        commentImageRepository.save(imageUrl);
+
+        // when
+        commentService.deleteComment(comment.getId(), user.getId());
+
+        // then
+        List<Comment> comments = commentRepository.findAll();
+        List<CommentImage> images = commentImageRepository.findAll();
+        assertThat(0).isEqualTo(comments.size());
+        assertThat(0).isEqualTo(images.size());
+    }
+
+    @Test
     @DisplayName("의견을 조회한다.")
     void findAllComments() throws Exception {
         // given
