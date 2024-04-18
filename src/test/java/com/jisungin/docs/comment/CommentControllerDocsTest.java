@@ -50,6 +50,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
         Long talkRoomId = 1L;
         CommentCreateRequest request = CommentCreateRequest.builder()
                 .content("의견 내용")
+                .imageUrls(List.of("이미지 URL"))
                 .build();
 
         given(authContext.getUserId()).willReturn(1L);
@@ -59,6 +60,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .willReturn(CommentResponse.builder()
                         .content("의견 내용")
                         .userName("user")
+                        .imageUrls(List.of("이미지 URL"))
                         .build());
 
         mockMvc.perform(
@@ -77,7 +79,9 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                         ),
                         requestFields(
                                 fieldWithPath("content").type(JsonFieldType.STRING)
-                                        .description("의견 내용")
+                                        .description("의견 내용"),
+                                fieldWithPath("imageUrls").type(JsonFieldType.ARRAY)
+                                        .description("이미지 URL").optional()
                         ),
                         responseFields(
                                 fieldWithPath("code").type(JsonFieldType.NUMBER)
@@ -91,7 +95,9 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("data.content").type(JsonFieldType.STRING)
                                         .description("의견 내용"),
                                 fieldWithPath("data.userName").type(JsonFieldType.STRING)
-                                        .description("작성자 이름")
+                                        .description("작성자 이름"),
+                                fieldWithPath("data.imageUrls").type(JsonFieldType.ARRAY)
+                                        .description("이미지 URL").optional()
                         )
                 ));
     }
@@ -172,6 +178,8 @@ public class CommentControllerDocsTest extends RestDocsSupport {
         Long commentId = 1L;
         CommentEditRequest request = CommentEditRequest.builder()
                 .content("수정된 의견 내용")
+                .newImage(List.of("새로운 이미지 URL"))
+                .removeImage(List.of("삭제할 이미지 URL"))
                 .build();
 
         given(authContext.getUserId()).willReturn(1L);
@@ -181,6 +189,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .willReturn(CommentResponse.builder()
                         .content("수정된 의견 내용")
                         .userName("user")
+                        .imageUrls(List.of("이미지 URL"))
                         .build());
 
         mockMvc.perform(
@@ -199,7 +208,11 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                         ),
                         requestFields(
                                 fieldWithPath("content").type(JsonFieldType.STRING)
-                                        .description("수정된 의견 내용")
+                                        .description("수정된 의견 내용"),
+                                fieldWithPath("newImage").type(JsonFieldType.ARRAY)
+                                        .description("새로운 이미지 URL").optional(),
+                                fieldWithPath("removeImage").type(JsonFieldType.ARRAY)
+                                        .description("삭제할 이미지 URL").optional()
                         ),
                         responseFields(
                                 fieldWithPath("code").type(JsonFieldType.NUMBER)
@@ -213,7 +226,9 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("data.content").type(JsonFieldType.STRING)
                                         .description("수정된 의견 내용"),
                                 fieldWithPath("data.userName").type(JsonFieldType.STRING)
-                                        .description("작성자 이름")
+                                        .description("작성자 이름"),
+                                fieldWithPath("data.imageUrls").type(JsonFieldType.ARRAY)
+                                        .description("이미지 URL").optional()
                         )
                 ));
     }

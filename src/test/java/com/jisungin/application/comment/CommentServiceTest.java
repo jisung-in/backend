@@ -14,10 +14,10 @@ import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
+import com.jisungin.domain.commentimage.CommentImage;
+import com.jisungin.domain.commentimage.repository.CommentImageRepository;
 import com.jisungin.domain.commentlike.CommentLike;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
-import com.jisungin.domain.userlibrary.UserLibrary;
-import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.domain.oauth.OauthId;
 import com.jisungin.domain.oauth.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
@@ -27,6 +27,8 @@ import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.talkroomimage.repository.TalkRoomImageRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
+import com.jisungin.domain.userlibrary.UserLibrary;
+import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.exception.BusinessException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -68,10 +70,14 @@ class CommentServiceTest extends ServiceTestSupport {
     UserLibraryRepository userLibraryRepository;
 
     @Autowired
+    CommentImageRepository commentImageRepository;
+
+    @Autowired
     AuthContext authContext;
 
     @AfterEach
     void tearDown() {
+        commentImageRepository.deleteAllInBatch();
         commentLikeRepository.deleteAllInBatch();
         commentRepository.deleteAllInBatch();
         talkRoomImageRepository.deleteAllInBatch();
@@ -114,8 +120,8 @@ class CommentServiceTest extends ServiceTestSupport {
 
         // then
         assertThat(response)
-                .extracting("content", "userName")
-                .contains("의견 남기기", "user@gmail.com");
+                .extracting("content", "userName", "imageUrls")
+                .contains("의견 남기기", "user@gmail.com", List.of());
     }
 
     @Test
@@ -181,6 +187,43 @@ class CommentServiceTest extends ServiceTestSupport {
         assertThatThrownBy(() -> commentService.writeComment(request, talkRoom.getId(), user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("의견을 쓸 권한이 없습니다.");
+    }
+
+    @Test
+    @DisplayName("유저가 1번 토크방에 자신의 의견을 작성하고 이미지를 추가한다.")
+    void writeCommentWithImages() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        UserLibrary userLibrary = UserLibrary.builder()
+                .user(user)
+                .book(book)
+                .status(ReadingStatus.READING)
+                .build();
+
+        userLibraryRepository.save(userLibrary);
+
+        createTalkRoomRole(talkRoom);
+
+        CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
+                .content("의견 남기기")
+                .imageUrls(List.of("이미지 URL"))
+                .build();
+
+        // when
+        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId());
+
+        // then
+        assertThat(response)
+                .extracting("content", "userName", "imageUrls")
+                .contains("의견 남기기", "user@gmail.com", List.of("이미지 URL"));
     }
 
     @Test
@@ -285,6 +328,45 @@ class CommentServiceTest extends ServiceTestSupport {
     }
 
     @Test
+    @DisplayName("의견을 작성한 유저가 의견과 이미지를 수정한다")
+    void editCommentWithImage() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        Comment comment = createComment(user, talkRoom);
+        commentRepository.save(comment);
+
+        CommentImage imageUrl = CommentImage.builder()
+                .imageUrl("basic Image")
+                .comment(comment)
+                .build();
+        commentImageRepository.save(imageUrl);
+
+        CommentEditServiceRequest request = CommentEditServiceRequest.builder()
+                .content("의견 수정")
+                .newImage(List.of("new Image"))
+                .removeImage(List.of("basic Image"))
+                .build();
+
+        // when
+        CommentResponse response = commentService.editComment(comment.getId(), request, user.getId());
+
+        // then
+        assertThat(response)
+                .extracting("content", "userName", "imageUrls")
+                .contains("의견 수정", "user@gmail.com", List.of("new Image"));
+    }
+
+    @Test
     @DisplayName("의견을 작성한 유저가 의견을 삭제한다.")
     void deleteComment() {
         // given
@@ -344,6 +426,40 @@ class CommentServiceTest extends ServiceTestSupport {
         assertThatThrownBy(() -> commentService.deleteComment(comment.getId(), userB.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
+    }
+
+    @Test
+    @DisplayName("의견을 작성한 유저가 의견과 이미지를 삭제한다.")
+    void deleteCommentWithImages() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        Comment comment = createComment(user, talkRoom);
+        commentRepository.save(comment);
+
+        CommentImage imageUrl = CommentImage.builder()
+                .imageUrl("basic Image")
+                .comment(comment)
+                .build();
+        commentImageRepository.save(imageUrl);
+
+        // when
+        commentService.deleteComment(comment.getId(), user.getId());
+
+        // then
+        List<Comment> comments = commentRepository.findAll();
+        List<CommentImage> images = commentImageRepository.findAll();
+        assertThat(0).isEqualTo(comments.size());
+        assertThat(0).isEqualTo(images.size());
     }
 
     @Test
