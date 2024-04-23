@@ -1,0 +1,57 @@
+=== 도서 단건 조회
+==== HTTP Request
+include::{snippets}/book/get/http-request.adoc[]
+include::{snippets}/book/get/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/book/get/http-response.adoc[]
+===== Request Body
+include::{snippets}/book/get/response-body.adoc[]
+include::{snippets}/book/get/response-fields.adoc[]
+
+=== 도서 페이징 조회
+==== HTTP Request
+include::{snippets}/book/get-all/http-request.adoc[]
+include::{snippets}/book/get-all/query-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/book/get-all/http-response.adoc[]
+===== Response Body
+include::{snippets}/book/get-all/response-body.adoc[]
+include::{snippets}/book/get-all/response-fields.adoc[]
+
+=== 도서 관련 토크방 조회
+==== HTTP Request
+include::{snippets}/book/get-related-talkRooms/http-request.adoc[]
+include::{snippets}/book/get-related-talkRooms/path-parameters.adoc[]
+include::{snippets}/book/get-related-talkRooms/query-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/book/get-related-talkRooms/http-response.adoc[]
+===== Response Body
+include::{snippets}/book/get-related-talkRooms/response-body.adoc[]
+include::{snippets}/book/get-related-talkRooms/response-fields.adoc[]
+
+=== 베스트 셀러 조회
+==== HTTP Request
+include::{snippets}/book/get-best-seller/http-request.adoc[]
+include::{snippets}/book/get-best-seller/query-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/book/get-best-seller/http-response.adoc[]
+===== Response Body
+include::{snippets}/book/get-best-seller/response-body.adoc[]
+include::{snippets}/book/get-best-seller/response-fields.adoc[]
+
+=== 도서 생성
+==== HTTP Request
+include::{snippets}/book/create/http-request.adoc[]
+===== Request Body
+include::{snippets}/book/create/request-body.adoc[]
+include::{snippets}/book/create/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/book/create/http-response.adoc[]
+===== Response Body
+include::{snippets}/book/create/response-body.adoc[]
+include::{snippets}/book/create/response-fields.adoc[]
