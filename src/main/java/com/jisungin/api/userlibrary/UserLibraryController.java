@@ -51,10 +51,9 @@ public class UserLibraryController {
 
     @DeleteMapping("/user-libraries/{userLibraryId}")
     public ApiResponse<Void> deleteUserLibrary(@PathVariable("userLibraryId") Long userLibraryId,
-                                               @RequestParam String isbn,
                                                @Auth Long userId
     ) {
-        userLibraryService.deleteUserLibrary(userLibraryId, userId, isbn);
+        userLibraryService.deleteUserLibrary(userLibraryId, userId);
 
         return ApiResponse.ok();
     }

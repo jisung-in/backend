@@ -79,22 +79,15 @@ public class UserLibraryService {
     }
 
     @Transactional
-    public void deleteUserLibrary(Long userLibraryId, Long userId, String isbn) {
+    public void deleteUserLibrary(Long userLibraryId, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-        Book book = bookRepository.findById(isbn)
-                .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
         UserLibrary userLibrary = userLibraryRepository.findByIdWithBookAndUser(userLibraryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_LIBRARY_NOT_FOUND));
 
         if (!userLibrary.isUserLibraryOwner(user.getId())) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
-        }
-
-        if (!userLibrary.isSameBook(book.getIsbn())) {
-            throw new BusinessException(ErrorCode.BOOK_INVALID_INFO);
         }
 
         userLibraryRepository.deleteById(userLibrary.getId());
