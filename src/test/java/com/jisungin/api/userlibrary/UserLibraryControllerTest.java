@@ -171,26 +171,11 @@ public class UserLibraryControllerTest extends ControllerTestSupport {
         Long userLibraryId = 1L;
 
         // when // then
-        mockMvc.perform(delete("/v1/user-libraries/{userLibraryId}", userLibraryId)
-                        .param("isbn", "0000X"))
+        mockMvc.perform(delete("/v1/user-libraries/{userLibraryId}", userLibraryId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("OK"))
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("서재 정보 삭제 시 책 isbn 입력은 필수이다.")
-    public void deleteUserLibraryWithoutIsbn() throws Exception {
-        // given
-        Long userLibraryId = 1L;
-
-        // when // then
-        mockMvc.perform(delete("/v1/user-libraries/{userLibraryId}", userLibraryId))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("400"))
-                .andExpect(jsonPath("$.message").value("유효하지 않은 파라미터 입니다."))
                 .andDo(print());
     }
 
