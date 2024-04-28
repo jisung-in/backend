@@ -586,26 +586,10 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
                 .toList();
         talkRoomRepository.saveAll(talkRooms);
 
-        Comment comment1 = Comment.builder()
-                .content("의견")
-                .user(user)
-                .talkRoom(talkRooms.get(3))
-                .build();
-        Comment comment2 = Comment.builder()
-                .content("의견")
-                .user(user)
-                .talkRoom(talkRooms.get(4))
-                .build();
-        Comment comment3 = Comment.builder()
-                .content("의견")
-                .user(user)
-                .talkRoom(talkRooms.get(5))
-                .build();
-        Comment comment4 = Comment.builder()
-                .content("의견 추가")
-                .user(user)
-                .talkRoom(talkRooms.get(5))
-                .build();
+        Comment comment1 = createComment(talkRooms.get(3), user);
+        Comment comment2 = createComment(talkRooms.get(4), user);
+        Comment comment3 = createComment(talkRooms.get(5), user);
+        Comment comment4 = createComment(talkRooms.get(5), user);
 
         commentRepository.saveAll(List.of(comment1, comment2, comment3, comment4));
 
