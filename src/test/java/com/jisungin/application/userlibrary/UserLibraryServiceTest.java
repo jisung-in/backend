@@ -349,20 +349,6 @@ public class UserLibraryServiceTest extends ServiceTestSupport {
                 .hasMessage("사용자를 찾을 수 없습니다.");
     }
 
-//    @Test
-//    @DisplayName("서재 정보 삭제 시 책 정보가 존재해야 한다.")
-//    public void deleteUserLibraryWithoutBook() {
-//        // given
-//        Long userLibraryId = 1L;
-//        String bookIsbn = "0000X";
-//        User user = userRepository.save(createUser());
-//
-//        // when // then
-//        assertThatThrownBy(() -> userLibraryService.deleteUserLibrary(userLibraryId, user.getId())
-//                .isInstanceOf(BusinessException.class)
-//                .hasMessage("책을 찾을 수 없습니다.");
-//    }
-
     @Test
     @DisplayName("서재 정보 삭제 시 서재 정보가 존재해야 한다.")
     public void deleteUserLibraryWithoutUserLibrary() {
@@ -393,24 +379,6 @@ public class UserLibraryServiceTest extends ServiceTestSupport {
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
-
-//    @Test
-//    @DisplayName("서재 정보 삭제 시 서재 정보와 도서 정보는 일치해야 한다.")
-//    public void deleteUserLibraryInvalidBook() {
-//        // given
-//        User user = userRepository.save(createUser());
-//
-//        Book book = bookRepository.save(createBookWithIsbn("00001"));
-//        Book anotherBook = bookRepository.save(createBookWithIsbn("00002"));
-//
-//        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
-//
-//        // when // then
-//        assertThatThrownBy(
-//                () -> userLibraryService.deleteUserLibrary(userLibrary.getId(), user.getId(), anotherBook.getIsbn()))
-//                .isInstanceOf(BusinessException.class)
-//                .hasMessage("올바르지 않은 책 정보 입니다.");
-//    }
 
     private static User createUser() {
         return User.builder()
