@@ -4,10 +4,8 @@ import com.jisungin.application.SearchServiceRequest;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
 @NoArgsConstructor
 public class SearchRequest {
 
@@ -23,7 +21,7 @@ public class SearchRequest {
     private SearchRequest(Integer page, Integer size, String order, String query) {
         this.page = page != null ? page : 1;
         this.size = size != null ? size : 10;
-        this.order = order;
+        this.order = order != null ? order : "recent";
         this.query = query;
     }
 
@@ -31,7 +29,7 @@ public class SearchRequest {
         return SearchServiceRequest.builder()
                 .page(page)
                 .size(size)
-                .order(order != null ? order : "recent")
+                .order(order)
                 .query(query)
                 .build();
     }

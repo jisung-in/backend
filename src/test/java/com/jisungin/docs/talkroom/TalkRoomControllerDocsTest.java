@@ -185,7 +185,8 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                 parameterWithName("size")
                                         .description("페이지 사이즈"),
                                 parameterWithName("order")
-                                        .description("정렬 기준(기본값 최신순) -> RECENT(최신순), RECOMMEND(좋아요순)"),
+                                        .description(
+                                                "정렬 기준 : recent(최신순), recommend(좋아요순), recent-comment(최근 등록된 의견순)"),
                                 parameterWithName("search")
                                         .description("검색").optional()
                         ),
