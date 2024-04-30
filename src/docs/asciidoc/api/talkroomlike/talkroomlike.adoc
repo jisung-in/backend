@@ -1,4 +1,4 @@
-=== 토론방 좋아요 생성
+=== 토크방 좋아요 생성
 
 ==== HTTP Request
 
@@ -10,7 +10,7 @@ include::{snippets}/talkroomlike/create/path-parameters.adoc[]
 include::{snippets}/talkroomlike/create/http-response.adoc[]
 include::{snippets}/talkroomlike/create/response-fields.adoc[]
 
-=== 토론방 좋아요 삭제
+=== 토크방 좋아요 삭제
 
 ==== HTTP Request
 
