@@ -52,8 +52,7 @@ public class CommentService {
         List<ReadingStatus> talkRoomReadingStatus = talkRoomRoleRepository.findTalkRoomRoleByTalkRoomId(
                 talkRoom.getId());
 
-        talkRoomReadingStatus.stream().filter(i -> i.equals(userReadingStatus)).findFirst()
-                .orElseThrow(() -> new BusinessException(ErrorCode.UNABLE_WRITE_COMMENT));
+        checkPermissionToWriteComment(talkRoomReadingStatus, userReadingStatus);
 
         Comment comment = Comment.create(request, user, talkRoom);
 
@@ -68,6 +67,7 @@ public class CommentService {
         List<String> imageUrls = commentImageRepository.findByCommentIdWithImageUrl(comment.getId());
 
         return CommentResponse.of(comment.getContent(), user.getName(), imageUrls);
+
     }
 
     public CommentPageResponse findAllComments(Long talkRoomId, Long userId) {
@@ -132,6 +132,13 @@ public class CommentService {
             commentImageRepository.deleteAll(images);
         }
         commentRepository.delete(comment);
+    }
+
+    private void checkPermissionToWriteComment(List<ReadingStatus> talkRoomReadingStatus,
+                                               ReadingStatus userReadingStatus) {
+        if (!talkRoomReadingStatus.contains(ReadingStatus.NONE) && !talkRoomReadingStatus.contains(userReadingStatus)) {
+            throw new BusinessException(ErrorCode.UNABLE_WRITE_COMMENT);
+        }
     }
 
 }

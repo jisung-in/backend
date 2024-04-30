@@ -57,7 +57,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .bookIsbn("1111111")
                 .title("토론방")
                 .content("내용")
-                .readingStatus(List.of("읽고 싶은", "읽는 중", "읽음", "잠시 멈춤", "중단"))
+                .readingStatus(List.of("읽고 싶은", "읽는 중", "읽음", "잠시 멈춤", "중단", "상관없음"))
                 .imageUrls(List.of("이미지 URL"))
                 .build();
 

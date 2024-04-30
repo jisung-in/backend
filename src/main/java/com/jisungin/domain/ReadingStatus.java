@@ -2,7 +2,6 @@ package com.jisungin.domain;
 
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
-
 import java.util.List;
 import java.util.Locale;
 import lombok.Getter;
@@ -16,7 +15,8 @@ public enum ReadingStatus {
     READING("읽는 중"),
     READ("읽음"),
     PAUSE("잠시 멈춤"),
-    STOP("중단");
+    STOP("중단"),
+    NONE("상관없음");
 
     private final String text;
 
