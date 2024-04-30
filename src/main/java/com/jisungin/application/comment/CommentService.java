@@ -75,6 +75,7 @@ public class CommentService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
         User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
         List<CommentQueryResponse> findComment = commentRepository.findAllComments(talkRoom.getId());
 
         Long totalCount = commentRepository.commentTotalCount(talkRoom.getId());
@@ -82,7 +83,7 @@ public class CommentService {
         List<Long> userLikeCommentIds =
                 (user.getId() != null) ? commentLikeRepository.userLikeComments(user.getId()) : Collections.emptyList();
 
-        return CommentPageResponse.of(PageResponse.of(50, totalCount, findComment), userLikeCommentIds);
+        return CommentPageResponse.of(PageResponse.of(findComment.size(), totalCount, findComment), userLikeCommentIds);
     }
 
     @Transactional
