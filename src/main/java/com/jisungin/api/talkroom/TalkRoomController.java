@@ -9,6 +9,7 @@ import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,13 +32,15 @@ public class TalkRoomController {
     @PostMapping("/talk-rooms")
     public ApiResponse<TalkRoomFindOneResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request, @Auth
     Long userId) {
-        return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), userId));
+        LocalDateTime registeredDateTime = LocalDateTime.now();
+        return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), userId, registeredDateTime));
     }
 
     @GetMapping("/talk-rooms")
     public ApiResponse<TalkRoomPageResponse> findAllTalkRoom(
             @ModelAttribute SearchRequest search, @Auth Long userId) {
-        return ApiResponse.ok(talkRoomService.findAllTalkRoom(search.toService(), userId));
+        LocalDateTime now = LocalDateTime.now();
+        return ApiResponse.ok(talkRoomService.findAllTalkRoom(search.toService(), userId, now));
     }
 
     @GetMapping("/talk-room/{talkRoomId}")

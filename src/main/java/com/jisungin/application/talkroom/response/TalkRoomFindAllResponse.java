@@ -20,27 +20,29 @@ public class TalkRoomFindAllResponse {
     private String title;
     private String content;
     private String bookName;
+    private String bookAuthor;
     private String bookThumbnail;
     private Long likeCount;
     private List<String> readingStatuses = new ArrayList<>();
-    private LocalDateTime createTime;
+    private LocalDateTime registeredDateTime;
 
     @Builder
     @QueryProjection
     public TalkRoomFindAllResponse(Long id, String profileImage, String username, String title, String content,
-                                   String bookName,
+                                   String bookName, String bookAuthor,
                                    String bookThumbnail, Long likeCount, List<String> readingStatuses,
-                                   LocalDateTime createTime) {
+                                   LocalDateTime registeredDateTime) {
         this.id = id;
         this.profileImage = profileImage;
         this.username = username;
         this.title = title;
         this.content = content;
         this.bookName = bookName;
+        this.bookAuthor = bookAuthor;
         this.bookThumbnail = bookThumbnail;
         this.likeCount = likeCount;
         this.readingStatuses = readingStatuses;
-        this.createTime = createTime;
+        this.registeredDateTime = registeredDateTime;
     }
 
     public static List<TalkRoomFindAllResponse> create(List<TalkRoomQueryResponse> talkRooms,
@@ -56,10 +58,11 @@ public class TalkRoomFindAllResponse {
                             .title(talkRoom.getTitle())
                             .content(talkRoom.getContent())
                             .bookName(talkRoom.getBookName())
+                            .bookAuthor(talkRoom.getBookAuthor())
                             .bookThumbnail(talkRoom.getBookThumbnail())
                             .likeCount(talkRoom.getLikeCount())
                             .readingStatuses(talkRoomReadingStatus)
-                            .createTime(talkRoom.getCreateTime())
+                            .registeredDateTime(talkRoom.getRegisteredDateTime())
                             .build();
                 })
                 .toList();

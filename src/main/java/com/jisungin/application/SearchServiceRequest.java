@@ -21,12 +21,15 @@ public class SearchServiceRequest {
 
     private String query;
 
+    private String day;
+
     @Builder
-    private SearchServiceRequest(Integer page, Integer size, String order, String query) {
+    private SearchServiceRequest(Integer page, Integer size, String order, String query, String day) {
         this.page = page;
         this.size = size;
         this.order = order;
         this.query = query;
+        this.day = day;
     }
 
     public long getOffset() {

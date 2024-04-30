@@ -15,6 +15,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -24,8 +25,9 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<TalkRoomQueryResponse> findAllTalkRoom(long offset, int size, String order, String query) {
-        return findTalkRoomBySearch(offset, size, order, query);
+    public List<TalkRoomQueryResponse> findAllTalkRoom(long offset, int size, String order, String query, String day,
+                                                       LocalDateTime now) {
+        return findTalkRoomBySearch(offset, size, order, query, day, now);
     }
 
     @Override
@@ -48,9 +50,10 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         talkRoom.title,
                         talkRoom.content,
                         book.title.as("bookName"),
+                        book.authors.as("bookAuthor"),
                         book.thumbnail.as("bookThumbnail"),
                         talkRoomLike.count().as("likeCount"),
-                        talkRoom.createDateTime.as("createTime")
+                        talkRoom.registeredDateTime.as("registeredDateTime")
                 ))
                 .from(talkRoom)
                 .join(talkRoom.user, user)
@@ -62,6 +65,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .limit(size)
                 .orderBy(talkRoomLike.count().desc())
                 .fetch();
+
     }
 
     public Long countTalkRoomsRelatedBook(String isbn) {
@@ -79,7 +83,8 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     // 토크룸 페이징 조회 쿼리
-    private List<TalkRoomQueryResponse> findTalkRoomBySearch(long offset, int size, String order, String query) {
+    private List<TalkRoomQueryResponse> findTalkRoomBySearch(long offset, int size, String order, String query,
+                                                             String day, LocalDateTime now) {
         JPAQuery<TalkRoomQueryResponse> jpaQuery = queryFactory.select(new QTalkRoomQueryResponse(
                         talkRoom.id.as("talkRoomId"),
                         user.profileImage,
@@ -87,9 +92,10 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         talkRoom.title,
                         talkRoom.content,
                         book.title,
+                        book.authors.as("bookAuthor"),
                         book.thumbnail.as("bookThumbnail"),
                         talkRoomLike.count().as("likeCount"),
-                        talkRoom.createDateTime.as("createTime")
+                        talkRoom.registeredDateTime.as("registeredDateTime")
                 ))
                 .from(talkRoom)
                 .join(talkRoom.user, user)
@@ -100,7 +106,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         addJoinByOrder(jpaQuery, OrderType.convertToOrderType(order));
 
         List<TalkRoomQueryResponse> response = jpaQuery.groupBy(talkRoom.id)
-                .where(searchQuery(query))
+                .where(searchQuery(query), dataTimeEq(OrderDay.of(day), now))
                 .offset(offset)
                 .limit(size)
                 .orderBy(condition(OrderType.convertToOrderType(order)))
@@ -116,6 +122,11 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         }
     }
 
+    private BooleanExpression dataTimeEq(OrderDay orderDay, LocalDateTime now) {
+        return orderDay != null ? talkRoom.registeredDateTime.goe(orderDay.getDataTime(now))
+                .and(talkRoom.registeredDateTime.loe(now)) : null;
+    }
+
     private BooleanExpression searchQuery(String search) {
         return search != null ? talkRoom.title.contains(search) : null;
     }
@@ -129,9 +140,10 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         talkRoom.title,
                         talkRoom.content,
                         book.title,
+                        book.authors.as("bookAuthor"),
                         book.thumbnail.as("bookImage"),
                         talkRoomLike.count().as("likeCount"),
-                        talkRoom.createDateTime.as("createTime")
+                        talkRoom.registeredDateTime.as("registeredDateTime")
                 ))
                 .from(talkRoom)
                 .join(talkRoom.user, user)

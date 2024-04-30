@@ -10,8 +10,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -41,20 +41,26 @@ public class TalkRoom extends BaseEntity {
     @Column(name = "talk_room_content", length = 2000)
     private String content;
 
+    @Column(name = "talk_room_registered_datetime")
+    private LocalDateTime registeredDateTime;
+
     @Builder
-    private TalkRoom(Book book, User user, String title, String content) {
+    private TalkRoom(Book book, User user, String title, String content, LocalDateTime registeredDateTime) {
         this.book = book;
         this.user = user;
         this.title = title;
         this.content = content;
+        this.registeredDateTime = registeredDateTime;
     }
 
-    public static TalkRoom create(String title, String content, Book book, User user) {
+    public static TalkRoom create(String title, String content, Book book, User user,
+                                  LocalDateTime registeredDateTime) {
         return TalkRoom.builder()
                 .book(book)
                 .user(user)
                 .title(title)
                 .content(content)
+                .registeredDateTime(registeredDateTime)
                 .build();
     }
 
