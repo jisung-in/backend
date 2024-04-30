@@ -38,3 +38,7 @@ include::api/image/image.adoc[]
 == Book API
 
 include::api/book/book.adoc[]
+
+[[UserLibrary-API]]
+== UserLibrary API
+include::api/userlibrary/userlibrary.adoc[]
