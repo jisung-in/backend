@@ -1,4 +1,4 @@
-=== 신규 의견 작성
+=== 토크방 의견 작성
 
 ==== HTTP Request
 
@@ -10,7 +10,7 @@ include::{snippets}/comment/create/request-fields.adoc[]
 include::{snippets}/comment/create/http-response.adoc[]
 include::{snippets}/comment/create/response-fields.adoc[]
 
-=== 의견 조회
+=== 토크방 의견 조회
 
 ==== HTTP Request
 
@@ -22,7 +22,7 @@ include::{snippets}/comment/find/path-parameters.adoc[]
 include::{snippets}/comment/find/http-response.adoc[]
 include::{snippets}/comment/find/response-fields.adoc[]
 
-=== 의견 수정
+=== 토크방 의견 수정
 
 ==== HTTP Request
 
@@ -34,7 +34,7 @@ include::{snippets}/comment/edit/request-fields.adoc[]
 include::{snippets}/comment/edit/http-response.adoc[]
 include::{snippets}/comment/edit/response-fields.adoc[]
 
-=== 의견 삭제
+=== 토크방 의견 삭제
 
 ==== HTTP Request
 

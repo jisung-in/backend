@@ -96,7 +96,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         // when
         List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery());
+                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), LocalDateTime.now());
 
         // then
         assertThat(10L).isEqualTo(response.size());
@@ -166,7 +166,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         // when
         List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery());
+                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), LocalDateTime.now());
 
         // then
         assertThat(5L).isEqualTo(response.get(9).getLikeCount());
@@ -294,7 +294,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         // when
         List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery());
+                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), LocalDateTime.now());
 
         // then
         assertThat(10L).isEqualTo(response.get(0).getLikeCount());
@@ -387,7 +387,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         // when
         List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery());
+                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), LocalDateTime.now());
 
         // then
         assertThat(talkRoom1.getTitle()).isEqualTo(response.get(0).getTitle());
@@ -522,8 +522,8 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
     }
 
     @Test
-    @DisplayName("최근 의견이 달린 토론방을 가져온다.")
-    void fetchRecentCommentedDiscussions() throws Exception {
+    @DisplayName("querydsl 특정 날짜에 생성된 토크방 조회 -> 하루 전")
+    void findAllTalkRoomWithDay() throws Exception {
         // given
         User user = createUser();
         userRepository.save(user);
@@ -531,44 +531,64 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         Book book = createBook();
         bookRepository.save(book);
 
-        List<TalkRoom> talkRooms = IntStream.range(1, 11)
+        LocalDateTime yesterdayWithSec = LocalDateTime.of(2024, 4, 28, 23, 59, 59);
+        LocalDateTime yesterday = LocalDateTime.of(2024, 4, 29, 0, 0);
+        LocalDateTime now = LocalDateTime.of(2024, 4, 30, 0, 0);
+
+        List<TalkRoom> talkRoom1 = IntStream.range(0, 5)
                 .mapToObj(i -> TalkRoom.builder()
                         .user(user)
                         .book(book)
-                        .title("토론방" + i)
-                        .content("내용" + i)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(yesterdayWithSec)
                         .build())
                 .toList();
-        talkRoomRepository.saveAll(talkRooms);
 
-        List<Comment> comments = IntStream.range(3, 6)
-                .mapToObj(i -> Comment.builder()
+        List<TalkRoom> talkRoom2 = IntStream.range(5, 10)
+                .mapToObj(i -> TalkRoom.builder()
                         .user(user)
-                        .talkRoom(talkRooms.get(i))
-                        .content("의견")
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(yesterday)
                         .build())
                 .toList();
-        commentRepository.saveAll(comments);
 
-        SearchServiceRequest request = SearchServiceRequest.builder()
-                .size(3)
+        List<TalkRoom> talkRoom3 = IntStream.range(10, 15)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(now)
+                        .build())
+                .toList();
+
+        talkRoomRepository.saveAll(talkRoom1);
+        talkRoomRepository.saveAll(talkRoom2);
+        talkRoomRepository.saveAll(talkRoom3);
+
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
-                .order("recent-comment")
+                .size(10)
+                .day("1d")
+                .order("recent")
                 .build();
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(request.getOffset(),
-                request.getSize(), request.getOrder(), request.getQuery());
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), now);
 
         // then
-        assertThat("토론방6").isEqualTo(response.get(0).getTitle());
-        assertThat("토론방5").isEqualTo(response.get(1).getTitle());
-        assertThat("토론방4").isEqualTo(response.get(2).getTitle());
+        assertThat(10L).isEqualTo(response.size());
+        assertThat("토론방 14").isEqualTo(response.get(0).getTitle());
+        assertThat("내용 14").isEqualTo(response.get(0).getContent());
     }
 
     @Test
-    @DisplayName("최근 의견이 달린 토론방을 가져온다.")
-    void fetchRecentCommentedDiscussions2() throws Exception {
+    @DisplayName("querydsl 특정 날짜에 생성된 토크방 조회 -> 일주일 전")
+    void findAllTalkRoomWithWeek() throws Exception {
         // given
         User user = createUser();
         userRepository.save(user);
@@ -576,37 +596,124 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         Book book = createBook();
         bookRepository.save(book);
 
-        List<TalkRoom> talkRooms = IntStream.range(1, 11)
+        LocalDateTime oneWeekWithSec = LocalDateTime.of(2024, 4, 22, 23, 59, 59);
+        LocalDateTime oneWeek = LocalDateTime.of(2024, 4, 23, 0, 0);
+        LocalDateTime now = LocalDateTime.of(2024, 4, 30, 0, 0);
+
+        List<TalkRoom> talkRoom1 = IntStream.range(0, 5)
                 .mapToObj(i -> TalkRoom.builder()
                         .user(user)
                         .book(book)
-                        .title("토론방" + i)
-                        .content("내용" + i)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(oneWeekWithSec)
                         .build())
                 .toList();
-        talkRoomRepository.saveAll(talkRooms);
 
-        Comment comment1 = createComment(talkRooms.get(3), user);
-        Comment comment2 = createComment(talkRooms.get(4), user);
-        Comment comment3 = createComment(talkRooms.get(5), user);
-        Comment comment4 = createComment(talkRooms.get(5), user);
+        List<TalkRoom> talkRoom2 = IntStream.range(5, 10)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(oneWeek)
+                        .build())
+                .toList();
 
-        commentRepository.saveAll(List.of(comment1, comment2, comment3, comment4));
+        List<TalkRoom> talkRoom3 = IntStream.range(10, 15)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(now)
+                        .build())
+                .toList();
 
-        SearchServiceRequest request = SearchServiceRequest.builder()
-                .size(3)
+        talkRoomRepository.saveAll(talkRoom1);
+        talkRoomRepository.saveAll(talkRoom2);
+        talkRoomRepository.saveAll(talkRoom3);
+
+        SearchServiceRequest search = SearchServiceRequest.builder()
                 .page(1)
-                .order("recent-comment")
+                .size(10)
+                .day("1w")
+                .order("recent")
                 .build();
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(request.getOffset(),
-                request.getSize(), request.getOrder(), request.getQuery());
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), now);
 
         // then
-        assertThat("토론방6").isEqualTo(response.get(0).getTitle());
-        assertThat("토론방5").isEqualTo(response.get(1).getTitle());
-        assertThat("토론방4").isEqualTo(response.get(2).getTitle());
+        assertThat(10L).isEqualTo(response.size());
+        assertThat("토론방 14").isEqualTo(response.get(0).getTitle());
+        assertThat("내용 14").isEqualTo(response.get(0).getContent());
+    }
+
+    @Test
+    @DisplayName("querydsl 특정 날짜에 생성된 토크방 조회 -> 한달 전")
+    void findAllTalkRoomWithMonth() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        LocalDateTime monthWithSec = LocalDateTime.of(2024, 3, 29, 23, 59, 59);
+        LocalDateTime month = LocalDateTime.of(2024, 3, 30, 0, 0);
+        LocalDateTime now = LocalDateTime.of(2024, 4, 30, 0, 0);
+
+        List<TalkRoom> talkRoom1 = IntStream.range(0, 5)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(monthWithSec)
+                        .build())
+                .toList();
+
+        List<TalkRoom> talkRoom2 = IntStream.range(5, 10)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(month)
+                        .build())
+                .toList();
+
+        List<TalkRoom> talkRoom3 = IntStream.range(10, 15)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(now)
+                        .build())
+                .toList();
+
+        talkRoomRepository.saveAll(talkRoom1);
+        talkRoomRepository.saveAll(talkRoom2);
+        talkRoomRepository.saveAll(talkRoom3);
+
+        SearchServiceRequest search = SearchServiceRequest.builder()
+                .page(1)
+                .size(10)
+                .day("1m")
+                .order("recent")
+                .build();
+
+        // when
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
+                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), now);
+
+        // then
+        assertThat(10L).isEqualTo(response.size());
+        assertThat("토론방 14").isEqualTo(response.get(0).getTitle());
+        assertThat("내용 14").isEqualTo(response.get(0).getContent());
     }
 
     private static Comment createComment(TalkRoom talkRoom, User user) {

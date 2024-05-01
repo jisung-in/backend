@@ -1,11 +1,13 @@
 package com.jisungin.domain.talkroom.repository;
 
 import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TalkRoomRepositoryCustom {
 
-    List<TalkRoomQueryResponse> findAllTalkRoom(long offset, int size, String order, String query);
+    List<TalkRoomQueryResponse> findAllTalkRoom(long offset, int size, String order, String query, String day,
+                                                LocalDateTime now);
 
     Long countTalkRooms();
 

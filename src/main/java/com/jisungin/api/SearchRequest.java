@@ -17,12 +17,15 @@ public class SearchRequest {
 
     private String query;
 
+    private String day;
+
     @Builder
-    private SearchRequest(Integer page, Integer size, String order, String query) {
+    private SearchRequest(Integer page, Integer size, String order, String query, String day) {
         this.page = page != null ? page : 1;
         this.size = size != null ? size : 10;
         this.order = order != null ? order : "recent";
         this.query = query;
+        this.day = day;
     }
 
     public SearchServiceRequest toService() {
@@ -31,6 +34,7 @@ public class SearchRequest {
                 .size(size)
                 .order(order)
                 .query(query)
+                .day(day)
                 .build();
     }
 

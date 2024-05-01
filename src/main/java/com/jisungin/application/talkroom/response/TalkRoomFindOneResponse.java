@@ -19,28 +19,31 @@ public class TalkRoomFindOneResponse {
     private String title;
     private String content;
     private String bookName;
+    private String bookAuthor;
     private String bookThumbnail;
     private Long likeCount;
     private List<String> readingStatuses = new ArrayList<>();
-    private LocalDateTime createTime;
+    private LocalDateTime registeredDateTime;
     private List<String> images = new ArrayList<>();
     private boolean likeTalkRoom;
 
     @Builder
     @QueryProjection
     public TalkRoomFindOneResponse(Long id, String profileImage, String username, String title, String content,
-                                   String bookName, String bookThumbnail, Long likeCount, List<String> readingStatuses,
-                                   LocalDateTime createTime, List<String> images, boolean likeTalkRoom) {
+                                   String bookName, String bookAuthor, String bookThumbnail, Long likeCount,
+                                   List<String> readingStatuses,
+                                   LocalDateTime registeredDateTime, List<String> images, boolean likeTalkRoom) {
         this.id = id;
         this.profileImage = profileImage;
         this.username = username;
         this.title = title;
         this.content = content;
         this.bookName = bookName;
+        this.bookAuthor = bookAuthor;
         this.bookThumbnail = bookThumbnail;
         this.likeCount = likeCount;
         this.readingStatuses = readingStatuses;
-        this.createTime = createTime;
+        this.registeredDateTime = registeredDateTime;
         this.images = images;
         this.likeTalkRoom = likeTalkRoom;
     }
@@ -55,18 +58,20 @@ public class TalkRoomFindOneResponse {
                 .title(talkRoom.getTitle())
                 .content(talkRoom.getContent())
                 .bookName(talkRoom.getBookName())
+                .bookAuthor(talkRoom.getBookAuthor())
                 .bookThumbnail(talkRoom.getBookThumbnail())
                 .likeCount(talkRoom.getLikeCount())
                 .readingStatuses(extractReadingStatuses(readingStatuses))
-                .createTime(talkRoom.getCreateTime())
+                .registeredDateTime(talkRoom.getRegisteredDateTime())
                 .images(images)
                 .likeTalkRoom(exists)
                 .build();
     }
 
     public static TalkRoomFindOneResponse create(Long id, String profileImage, String username, String title,
-                                                 String content, String bookName, String bookThumbnail,
-                                                 List<ReadingStatus> readingStatuses, LocalDateTime createTime,
+                                                 String content, String bookName, String bookAuthor,
+                                                 String bookThumbnail,
+                                                 List<ReadingStatus> readingStatuses, LocalDateTime registeredDateTime,
                                                  List<String> images) {
         return TalkRoomFindOneResponse.builder()
                 .id(id)
@@ -75,10 +80,11 @@ public class TalkRoomFindOneResponse {
                 .title(title)
                 .content(content)
                 .bookName(bookName)
+                .bookAuthor(bookAuthor)
                 .bookThumbnail(bookThumbnail)
                 .likeCount(0L)
                 .readingStatuses(extractReadingStatuses(readingStatuses))
-                .createTime(createTime)
+                .registeredDateTime(registeredDateTime)
                 .images(images)
                 .likeTalkRoom(false)
                 .build();

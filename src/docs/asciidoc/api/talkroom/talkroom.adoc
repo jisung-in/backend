@@ -1,5 +1,5 @@
 [[talkroom-create]]
-=== 신규 토론방 생성
+=== 신규 토크방 생성
 
 ==== HTTP Request
 
@@ -12,7 +12,7 @@ include::{snippets}/talkroom/create/http-response.adoc[]
 include::{snippets}/talkroom/create/response-fields.adoc[]
 
 [[talkroom-findAll]]
-=== 토론방 페이지 조회
+=== 토크방 페이지 조회
 
 ==== HTTP Request
 
@@ -25,20 +25,20 @@ include::{snippets}/talkroom/findAll/http-response.adoc[]
 include::{snippets}/talkroom/findAll/response-fields.adoc[]
 
 [[talkroom-findOne]]
-=== 토론방 단건 조회
+=== 토크방 상세 조회
 
 ==== HTTP Request
 
 include::{snippets}/talkroom/findOne/http-request.adoc[]
 include::{snippets}/talkroom/findOne/path-parameters.adoc[]
 
- ==== HTTP Response
+==== HTTP Response
 
 include::{snippets}/talkroom/findOne/http-response.adoc[]
 include::{snippets}/talkroom/findOne/response-fields.adoc[]
 
 [[talkroom-edit]]
-=== 토론방 수정
+=== 토크방 수정
 
 ==== HTTP Request
 
@@ -51,7 +51,7 @@ include::{snippets}/talkroom/edit/http-response.adoc[]
 include::{snippets}/talkroom/edit/response-fields.adoc[]
 
 [[talkroom-delete]]
-=== 토론방 삭제
+=== 토크방 삭제
 
 ==== HTTP Request
 

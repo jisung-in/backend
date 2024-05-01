@@ -1,4 +1,4 @@
-=== 의견 좋아요 생성
+=== 토크방 의견 좋아요 생성
 
 ==== HTTP Request
 
@@ -10,7 +10,7 @@ include::{snippets}/commentlike/create/path-parameters.adoc[]
 include::{snippets}/commentlike/create/http-response.adoc[]
 include::{snippets}/commentlike/create/response-fields.adoc[]
 
-=== 의견 좋아요 삭제
+=== 토크방 의견 좋아요 삭제
 
 ==== HTTP Request
 

@@ -23,6 +23,7 @@ import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -44,14 +45,15 @@ public class TalkRoomService {
     private final TalkRoomLikeRepository talkRoomLikeRepository;
 
     @Transactional
-    public TalkRoomFindOneResponse createTalkRoom(TalkRoomCreateServiceRequest request, Long userId) {
+    public TalkRoomFindOneResponse createTalkRoom(TalkRoomCreateServiceRequest request, Long userId,
+                                                  LocalDateTime registeredDateTime) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Book book = bookRepository.findById(request.getBookIsbn())
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
-        TalkRoom talkRoom = TalkRoom.create(request.getTitle(), request.getContent(), book, user);
+        TalkRoom talkRoom = TalkRoom.create(request.getTitle(), request.getContent(), book, user, registeredDateTime);
         talkRoomRepository.save(talkRoom);
 
         List<ReadingStatus> readingStatus = ReadingStatus.createReadingStatus(request.getReadingStatus());
@@ -69,14 +71,15 @@ public class TalkRoomService {
                 talkRoom.getId());
 
         return TalkRoomFindOneResponse.create(talkRoom.getId(), user.getProfileImage(), user.getName(),
-                talkRoom.getTitle(), talkRoom.getContent(), book.getTitle(), book.getThumbnail(), readingStatus,
-                talkRoom.getCreateDateTime(), imageUrls);
+                talkRoom.getTitle(), talkRoom.getContent(), book.getTitle(), book.getAuthors(), book.getThumbnail(),
+                readingStatus,
+                talkRoom.getRegisteredDateTime(), imageUrls);
     }
 
-    public TalkRoomPageResponse findAllTalkRoom(SearchServiceRequest search, Long userId) {
+    public TalkRoomPageResponse findAllTalkRoom(SearchServiceRequest search, Long userId, LocalDateTime now) {
         List<TalkRoomQueryResponse> talkRooms = talkRoomRepository.findAllTalkRoom(search.getOffset(),
                 search.getSize(), search.getOrder(),
-                search.getQuery());
+                search.getQuery(), search.getDay(), now);
 
         List<Long> talkRoomIds = talkRooms.stream().map(TalkRoomQueryResponse::getId).toList();
 
@@ -91,7 +94,7 @@ public class TalkRoomService {
                 ? talkRoomLikeRepository.findLikeTalkRoomIdsByUserId(userId, talkRoomIds)
                 : Collections.emptyList();
 
-        return TalkRoomPageResponse.of(PageResponse.of(search.getSize(), totalCount, response), likeTalkRoomIds);
+        return TalkRoomPageResponse.of(PageResponse.of(talkRooms.size(), totalCount, response), likeTalkRoomIds);
     }
 
     public TalkRoomFindOneResponse findOneTalkRoom(Long talkRoomId, Long userId) {
