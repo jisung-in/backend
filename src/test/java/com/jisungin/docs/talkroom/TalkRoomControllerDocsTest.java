@@ -2,6 +2,7 @@ package com.jisungin.docs.talkroom;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -25,7 +26,6 @@ import com.jisungin.api.talkroom.TalkRoomController;
 import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
@@ -168,16 +168,17 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
 
         given(authContext.getUserId()).willReturn(1L);
 
-        given(talkRoomService.findAllTalkRoom(any(SearchServiceRequest.class), anyLong(), any(LocalDateTime.class)))
+        given(talkRoomService.findAllTalkRoom(anyLong(), any(Integer.class), anyString(), anyString(), anyString(),
+                anyLong(), any(LocalDateTime.class)))
                 .willReturn(response);
 
         mockMvc.perform(
                         get("/v1/talk-rooms")
-                                .param("page", String.valueOf(request.getPage()))
-                                .param("size", String.valueOf(request.getSize()))
-                                .param("order", request.getOrder())
-                                .param("search", request.getQuery())
-                                .param("day", request.getDay())
+                                .param("page", "1")
+                                .param("size", "10")
+                                .param("order", "sort")
+                                .param("search", "search")
+                                .param("day", "sortbydate")
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())

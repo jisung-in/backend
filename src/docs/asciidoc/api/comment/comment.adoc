@@ -1,8 +1,8 @@
 === 토크방 의견 작성
 
 ==== HTTP Request
-
 include::{snippets}/comment/create/http-request.adoc[]
+include::{snippets}/comment/create/path-parameters.adoc[]
 include::{snippets}/comment/create/request-fields.adoc[]
 
 ==== HTTP Response
