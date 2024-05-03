@@ -50,6 +50,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         Long userId = Optional.ofNullable(session.getAttribute(JSESSION_ID))
                 .map(id -> (Long) id)
                 .orElseThrow(() -> new BusinessException(UNAUTHORIZED_REQUEST));
+        log.info("JSESSION_ID 조회 = {}", userId);
         authContext.setUserId(userId);
         return true;
     }
@@ -63,6 +64,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     private HttpSession getSession(HttpServletRequest request) {
+        log.info("세션 조회");
         HttpSession session = request.getSession(false);
 
         if (session == null) {

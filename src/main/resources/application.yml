@@ -13,3 +13,10 @@ spring:
       - oauth
       - crawler
       - s3
+
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: true
