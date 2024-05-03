@@ -25,9 +25,9 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<TalkRoomQueryResponse> findAllTalkRoom(long offset, int size, String order, String query, String day,
+    public List<TalkRoomQueryResponse> findAllTalkRoom(long offset, int size, String order, String search, String day,
                                                        LocalDateTime now) {
-        return findTalkRoomBySearch(offset, size, order, query, day, now);
+        return findTalkRoomBySearch(offset, size, order, search, day, now);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     // 토크룸 페이징 조회 쿼리
-    private List<TalkRoomQueryResponse> findTalkRoomBySearch(long offset, int size, String order, String query,
+    private List<TalkRoomQueryResponse> findTalkRoomBySearch(long offset, int size, String order, String search,
                                                              String day, LocalDateTime now) {
         JPAQuery<TalkRoomQueryResponse> jpaQuery = queryFactory.select(new QTalkRoomQueryResponse(
                         talkRoom.id.as("talkRoomId"),
@@ -106,7 +106,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         addJoinByOrder(jpaQuery, OrderType.convertToOrderType(order));
 
         List<TalkRoomQueryResponse> response = jpaQuery.groupBy(talkRoom.id)
-                .where(searchQuery(query), dataTimeEq(OrderDay.of(day), now))
+                .where(searchQuery(search), dataTimeEq(OrderDay.of(day), now))
                 .offset(offset)
                 .limit(size)
                 .orderBy(condition(OrderType.convertToOrderType(order)))

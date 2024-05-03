@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface TalkRoomRepositoryCustom {
 
-    List<TalkRoomQueryResponse> findAllTalkRoom(long offset, int size, String order, String query, String day,
+    List<TalkRoomQueryResponse> findAllTalkRoom(long offset, int size, String order, String search, String day,
                                                 LocalDateTime now);
 
     Long countTalkRooms();

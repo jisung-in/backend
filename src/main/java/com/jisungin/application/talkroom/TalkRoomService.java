@@ -1,7 +1,6 @@
 package com.jisungin.application.talkroom;
 
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
@@ -76,10 +75,10 @@ public class TalkRoomService {
                 talkRoom.getRegisteredDateTime(), imageUrls);
     }
 
-    public TalkRoomPageResponse findAllTalkRoom(SearchServiceRequest search, Long userId, LocalDateTime now) {
-        List<TalkRoomQueryResponse> talkRooms = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(),
-                search.getQuery(), search.getDay(), now);
+    public TalkRoomPageResponse findAllTalkRoom(long offset, Integer size, String order, String search, String day,
+                                                Long userId, LocalDateTime now) {
+        List<TalkRoomQueryResponse> talkRooms = talkRoomRepository.findAllTalkRoom(offset,
+                size, order, search, day, now);
 
         List<Long> talkRoomIds = talkRooms.stream().map(TalkRoomQueryResponse::getId).toList();
 
