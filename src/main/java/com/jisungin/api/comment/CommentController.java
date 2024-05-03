@@ -27,7 +27,7 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping("{talkRoomId}/comments")
-    public ApiResponse<CommentResponse> writeComment(@PathVariable Long talkRoomId,
+    public ApiResponse<CommentResponse> writeComment(@PathVariable("talkRoomId") Long talkRoomId,
                                                      @Valid @RequestBody CommentCreateRequest request,
                                                      @Auth Long userId) {
         return ApiResponse.ok(commentService.writeComment(request.toService(), talkRoomId, userId));
