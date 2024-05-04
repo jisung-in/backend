@@ -20,7 +20,15 @@ public class AuthConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns(
-                        "/v1/**"
+                        "/v1/{talkRoomId}/comments/**",
+                        "/v1/comments/**",
+                        "/v1/{commentId}/likes/**",
+                        "/v1/logout/**",
+                        "/v1/reviews/**",
+                        "/v1/talk-rooms/**",
+                        "/v1/users/**",
+                        "/v1/user-library/**"
+
                 );
     }
 

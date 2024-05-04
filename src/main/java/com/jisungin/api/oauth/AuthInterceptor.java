@@ -1,9 +1,16 @@
 package com.jisungin.api.oauth;
 
+import static com.jisungin.api.oauth.AuthConstant.JSESSION_ID;
+import static com.jisungin.exception.ErrorCode.UNAUTHORIZED_REQUEST;
+
 import com.jisungin.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -12,14 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.jisungin.api.oauth.AuthConstant.*;
-import static com.jisungin.exception.ErrorCode.UNAUTHORIZED_REQUEST;
 
 @Slf4j
 @Component
@@ -36,7 +35,8 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
         log.info("시작");
         if (CorsUtils.isPreFlightRequest(request)) {
             return true;
@@ -47,6 +47,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         HttpSession session = getSession(request);
+        log.info("session = {}", session.getAttribute(JSESSION_ID));
         Long userId = Optional.ofNullable(session.getAttribute(JSESSION_ID))
                 .map(id -> (Long) id)
                 .orElseThrow(() -> new BusinessException(UNAUTHORIZED_REQUEST));
