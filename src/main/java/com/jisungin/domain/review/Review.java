@@ -30,23 +30,18 @@ public class Review extends BaseEntity {
     @Column(name = "review_content", length = 1000)
     private String content;
 
-    @Column(name = "review_rating")
-    private Double rating;
-
     @Builder
-    private Review(User user, Book book, String content, Double rating) {
+    private Review(User user, Book book, String content) {
         this.user = user;
         this.book = book;
         this.content = content;
-        this.rating = rating;
     }
 
-    public static Review create(User user, Book book, String content, Double rating) {
+    public static Review create(User user, Book book, String content) {
         return Review.builder()
                 .user(user)
                 .book(book)
                 .content(content)
-                .rating(rating)
                 .build();
     }
 

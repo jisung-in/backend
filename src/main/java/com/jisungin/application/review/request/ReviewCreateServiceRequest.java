@@ -12,13 +12,10 @@ public class ReviewCreateServiceRequest {
 
     private String content;
 
-    private Double rating;
-
     @Builder
-    public ReviewCreateServiceRequest(String bookIsbn, String content, Double rating) {
+    public ReviewCreateServiceRequest(String bookIsbn, String content) {
         this.bookIsbn = bookIsbn;
         this.content = content;
-        this.rating = rating;
     }
 
 }

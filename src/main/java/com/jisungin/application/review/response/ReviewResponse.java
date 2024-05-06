@@ -13,20 +13,16 @@ public class ReviewResponse {
 
     private String content;
 
-    private Double rating;
-
     @Builder
-    private ReviewResponse(Book book, String content, Double rating) {
+    private ReviewResponse(Book book, String content) {
         this.book = book;
         this.content = content;
-        this.rating = rating;
     }
 
-    public static ReviewResponse of(Book book, String content, Double rating) {
+    public static ReviewResponse of(Book book, String content) {
         return ReviewResponse.builder()
                 .book(book)
                 .content(content)
-                .rating(rating)
                 .build();
     }
 

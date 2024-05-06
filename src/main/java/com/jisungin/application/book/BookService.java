@@ -12,16 +12,18 @@ import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
-import com.jisungin.domain.review.repository.ReviewRepository;
+import com.jisungin.domain.rating.repository.RatingRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.talkroomlike.repository.TalkRoomLikeRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
 import com.jisungin.infra.crawler.Crawler;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,13 +38,13 @@ public class BookService {
     private final TalkRoomRepository talkRoomRepository;
     private final TalkRoomRoleRepository talkRoomRoleRepository;
     private final TalkRoomLikeRepository talkRoomLikeRepository;
-    private final ReviewRepository reviewRepository;
+    private final RatingRepository ratingRepository;
 
     public BookResponse getBook(String isbn) {
         Book book = bookRepository.findById(isbn)
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
-        Double averageRating = reviewRepository.findAverageRatingByBookId(book.getIsbn());
+        Double averageRating = ratingRepository.findAverageRatingByBookId(book.getIsbn());
 
         return BookResponse.of(book, averageRating);
     }

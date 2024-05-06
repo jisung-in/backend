@@ -6,7 +6,7 @@ import com.jisungin.api.user.request.ReviewContentGetAllRequest;
 import com.jisungin.api.user.request.UserRatingGetAllRequest;
 import com.jisungin.api.user.request.UserReadingStatusGetAllRequest;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.review.response.RatingFindAllResponse;
+import com.jisungin.application.rating.response.RatingGetResponse;
 import com.jisungin.application.review.response.ReviewContentGetAllResponse;
 import com.jisungin.application.user.UserService;
 import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
@@ -24,11 +24,11 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/ratings")
-    public ApiResponse<PageResponse<RatingFindAllResponse>> getUserRatings(
+    public ApiResponse<PageResponse<RatingGetResponse>> getUserRatings(
             @ModelAttribute UserRatingGetAllRequest request,
             @Auth Long userId
     ) {
-        PageResponse<RatingFindAllResponse> response = userService.getUserRatings(
+        PageResponse<RatingGetResponse> response = userService.getUserRatings(
                 userId, request.toService());
 
         return ApiResponse.ok(response);

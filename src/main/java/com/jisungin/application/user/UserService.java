@@ -1,13 +1,14 @@
 package com.jisungin.application.user;
 
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.review.response.RatingFindAllResponse;
+import com.jisungin.application.rating.response.RatingGetResponse;
 import com.jisungin.application.review.response.ReviewContentGetAllResponse;
 import com.jisungin.application.review.response.ReviewContentResponse;
 import com.jisungin.application.user.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.application.user.request.UserRatingGetAllServiceRequest;
 import com.jisungin.application.user.request.UserReadingStatusGetAllServiceRequest;
 import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
+import com.jisungin.domain.rating.repository.RatingRepository;
 import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.domain.reviewlike.repository.ReviewLikeRepository;
 import com.jisungin.domain.user.User;
@@ -31,15 +32,17 @@ public class UserService {
 
     private final ReviewRepository reviewRepository;
 
+    private final RatingRepository ratingRepository;
+
     private final ReviewLikeRepository reviewLikeRepository;
 
     private final UserLibraryRepository userLibraryRepository;
 
-    public PageResponse<RatingFindAllResponse> getUserRatings(Long userId, UserRatingGetAllServiceRequest request) {
+    public PageResponse<RatingGetResponse> getUserRatings(Long userId, UserRatingGetAllServiceRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
-        return reviewRepository.findAllRatingOrderBy(
+        return ratingRepository.getAllRatingOrderBy(
                 user.getId(), request.getOrderType(), request.getRating(), request.getSize(), request.getOffset());
     }
 
