@@ -6,6 +6,8 @@ import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
+import com.jisungin.domain.rating.Rating;
+import com.jisungin.domain.rating.repository.RatingRepository;
 import com.jisungin.domain.review.Review;
 import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.domain.userlibrary.UserLibrary;
@@ -40,6 +42,9 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
     private ReviewRepository reviewRepository;
 
     @Autowired
+    private RatingRepository ratingRepository;
+
+    @Autowired
     private UserLibraryRepository userLibraryRepository;
 
     @Autowired
@@ -49,6 +54,7 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
     void tearDown() {
         userLibraryRepository.deleteAllInBatch();
         reviewRepository.deleteAllInBatch();
+        ratingRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
     }
@@ -60,8 +66,7 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
         User user1 = userRepository.save(createUser("1"));
         User user2 = userRepository.save(createUser("2"));
         List<Book> books = bookRepository.saveAll(createBooks());
-        List<Review> reviewsByUser1 = reviewRepository.saveAll(createReviews(user1, books));
-        List<Review> reviewsByUser2 = reviewRepository.saveAll(createReviews(user2, books));
+        List<Rating> ratings = ratingRepository.saveAll(createRatings(user1, books));
         List<UserLibrary> userLibraries = userLibraryRepository.saveAll(createUserLibraries(user1, books));
 
         //when
@@ -127,7 +132,6 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
                 .user(user)
                 .book(book)
                 .content("리뷰 내용" + book.getIsbn())
-                .rating(rating)
                 .build();
     }
 
@@ -150,6 +154,23 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
                 .user(user)
                 .book(book)
                 .status(readingStatus)
+                .build();
+    }
+
+    private static List<Rating> createRatings(User user, List<Book> books) {
+        return IntStream.range(0, 20)
+                .mapToObj(i -> {
+                    double rating = i % 5 + 1.0;
+                    return createRating(user, books.get(i), rating);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private static Rating createRating(User user, Book book, Double rating) {
+        return Rating.builder()
+                .user(user)
+                .book(book)
+                .rating(rating)
                 .build();
     }
 

@@ -2,7 +2,6 @@ package com.jisungin.application.review;
 
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.review.request.ReviewCreateServiceRequest;
-import com.jisungin.application.review.response.ReviewResponse;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.oauth.OauthId;
@@ -56,25 +55,16 @@ class ReviewServiceTest extends ServiceTestSupport {
         ReviewCreateServiceRequest request = ReviewCreateServiceRequest.builder()
                 .bookIsbn(book.getIsbn())
                 .content("내용이 좋아요.")
-                .rating(4.5)
                 .build();
 
         //when
-        ReviewResponse reviewResponse = reviewService.createReview(request, user.getId());
+        reviewService.createReview(request, user.getId());
 
         //then
         List<Review> reviews = reviewRepository.findAll();
 
-        assertThat(reviewResponse.getBook())
-                .extracting("isbn", "title", "content")
-                .contains("123456", "제목", "내용");
-
-        assertThat(reviews).hasSize(1)
-                .extracting("content", "rating")
-                .contains(
-                        tuple("내용이 좋아요.", 4.5)
-                );
-
+        assertThat(reviews).hasSize(1);
+        assertThat(reviews.get(0).getContent()).isEqualTo("내용이 좋아요.");
     }
 
     @DisplayName("유저가 리뷰를 등록하는 책이 존재해야 한다")
@@ -148,7 +138,6 @@ class ReviewServiceTest extends ServiceTestSupport {
                 .user(user)
                 .book(book)
                 .content("내용")
-                .rating(4.5)
                 .build();
     }
 

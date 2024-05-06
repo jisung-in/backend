@@ -2,7 +2,7 @@ package com.jisungin.application.user;
 
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.review.response.RatingFindAllResponse;
+import com.jisungin.application.rating.response.RatingGetResponse;
 import com.jisungin.application.review.response.ReviewContentGetAllResponse;
 import com.jisungin.application.user.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.application.user.request.UserRatingGetAllServiceRequest;
@@ -13,6 +13,8 @@ import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.oauth.OauthId;
 import com.jisungin.domain.oauth.OauthType;
+import com.jisungin.domain.rating.Rating;
+import com.jisungin.domain.rating.repository.RatingRepository;
 import com.jisungin.domain.review.Review;
 import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.domain.reviewlike.ReviewLike;
@@ -21,7 +23,6 @@ import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.domain.userlibrary.UserLibrary;
 import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,6 +52,9 @@ class UserServiceTest extends ServiceTestSupport {
     private ReviewRepository reviewRepository;
 
     @Autowired
+    private RatingRepository ratingRepository;
+
+    @Autowired
     private ReviewLikeRepository reviewLikeRepository;
 
     @Autowired
@@ -64,6 +68,7 @@ class UserServiceTest extends ServiceTestSupport {
         userLibraryRepository.deleteAllInBatch();
         reviewLikeRepository.deleteAllInBatch();
         reviewRepository.deleteAllInBatch();
+        ratingRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
     }
@@ -74,7 +79,7 @@ class UserServiceTest extends ServiceTestSupport {
         //given
         User user = userRepository.save(createUser("1"));
         List<Book> books = bookRepository.saveAll(createBooks());
-        List<Review> reviews = reviewRepository.saveAll(createReviews(user, books));
+        List<Rating> ratings = ratingRepository.saveAll(createRatings(user, books));
 
         // 5번째부터 8번째 데이터를 요청, 별점 2.0이 4개가 나와야 함
         UserRatingGetAllServiceRequest request = UserRatingGetAllServiceRequest.builder()
@@ -84,17 +89,17 @@ class UserServiceTest extends ServiceTestSupport {
                 .build();
 
         //when
-        PageResponse<RatingFindAllResponse> result = userService.getUserRatings(user.getId(), request);
+        PageResponse<RatingGetResponse> result = userService.getUserRatings(user.getId(), request);
 
         //then
         assertThat(result.getTotalCount()).isEqualTo(20);
         assertThat(result.getQueryResponse()).hasSize(4)
                 .extracting("isbn", "title", "image", "rating")
                 .containsExactly(
-                        tuple("2", "제목2", "bookImage", 2.0),
-                        tuple("7", "제목7", "bookImage", 2.0),
                         tuple("12", "제목12", "bookImage", 2.0),
-                        tuple("17", "제목17", "bookImage", 2.0)
+                        tuple("17", "제목17", "bookImage", 2.0),
+                        tuple("2", "제목2", "bookImage", 2.0),
+                        tuple("7", "제목7", "bookImage", 2.0)
                 );
     }
 
@@ -106,6 +111,7 @@ class UserServiceTest extends ServiceTestSupport {
         User user2 = userRepository.save(createUser("2"));
         List<Book> books = bookRepository.saveAll(createBooks());
         List<Review> reviews = reviewRepository.saveAll(createReviews(user1, books));
+        List<Rating> ratings = ratingRepository.saveAll(createRatings(user1, books));
         List<ReviewLike> reviewLikesWithUser1 = reviewLikeRepository.saveAll(createReviewLikes(user1, reviews));
         List<ReviewLike> reviewLikesWithUser2 = reviewLikeRepository.saveAll(createReviewLikes(user2, reviews));
 
@@ -126,22 +132,21 @@ class UserServiceTest extends ServiceTestSupport {
                         "userImage", "userName", "rating", "content", "isbn", "title", "bookImage")
                 .containsExactly(
                         tuple("userImage", "김도형", 1.0, "리뷰 내용1", "1", "제목1", "bookImage"),
-                        tuple("userImage", "김도형", 1.0, "리뷰 내용6", "6", "제목6", "bookImage"),
                         tuple("userImage", "김도형", 1.0, "리뷰 내용11", "11", "제목11", "bookImage"),
-                        tuple("userImage", "김도형", 1.0, "리뷰 내용16", "16", "제목16", "bookImage")
+                        tuple("userImage", "김도형", 1.0, "리뷰 내용16", "16", "제목16", "bookImage"),
+                        tuple("userImage", "김도형", 1.0, "리뷰 내용6", "6", "제목6", "bookImage")
                 );
         assertThat(result.getUserLikes()).hasSize(4);
     }
 
-    @DisplayName("사용자의 독서 상태가 읽고 싶은인 책을 가져온다.")
+    @DisplayName("사용자의 독서 상태가 읽고 싶은 책을 가져온다.")
     @Test
     void getReadingStatuses() {
         //given
         User user1 = userRepository.save(createUser("1"));
         User user2 = userRepository.save(createUser("2"));
         List<Book> books = bookRepository.saveAll(createBooks());
-        List<Review> reviewsByUser1 = reviewRepository.saveAll(createReviews(user1, books));
-        List<Review> reviewsByUser2 = reviewRepository.saveAll(createReviews(user2, books));
+        List<Rating> ratings1 = ratingRepository.saveAll(createRatings(user1, books));
         List<UserLibrary> userLibraries = userLibraryRepository.saveAll(createUserLibraries(user1, books));
 
         // 읽고 싶은 상태인 책을 사전 순으로 정렬하고 1페이지를 가져온다.
@@ -160,10 +165,10 @@ class UserServiceTest extends ServiceTestSupport {
         assertThat(result.getQueryResponse()).hasSize(4)
                 .extracting("bookImage", "bookTitle", "ratingAvg")
                 .containsExactly(
-                        Assertions.tuple("bookImage", "제목1", 1.0),
-                        Assertions.tuple("bookImage", "제목11", 1.0),
-                        Assertions.tuple("bookImage", "제목16", 1.0),
-                        Assertions.tuple("bookImage", "제목6", 1.0)
+                        tuple("bookImage", "제목1", 1.0),
+                        tuple("bookImage", "제목11", 1.0),
+                        tuple("bookImage", "제목16", 1.0),
+                        tuple("bookImage", "제목6", 1.0)
                 );
     }
 
@@ -200,7 +205,6 @@ class UserServiceTest extends ServiceTestSupport {
                 .user(user)
                 .book(book)
                 .content("리뷰 내용" + book.getIsbn())
-                .rating(rating)
                 .build();
     }
 
@@ -249,6 +253,23 @@ class UserServiceTest extends ServiceTestSupport {
                 .user(user)
                 .book(book)
                 .status(readingStatus)
+                .build();
+    }
+
+    private static List<Rating> createRatings(User user, List<Book> books) {
+        return IntStream.range(0, 20)
+                .mapToObj(i -> {
+                    double rating = i % 5 + 1.0;
+                    return createRating(user, books.get(i), rating);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private static Rating createRating(User user, Book book, Double rating) {
+        return Rating.builder()
+                .user(user)
+                .book(book)
+                .rating(rating)
                 .build();
     }
 
