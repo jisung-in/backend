@@ -1,4 +1,4 @@
-package com.jisungin.api.oauth;
+package com.jisungin.api.support;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
