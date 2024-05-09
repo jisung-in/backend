@@ -51,8 +51,6 @@ public class UserLibraryControllerDocsTest extends RestDocsSupport {
     public void getUserLibrary() throws Exception {
         String isbn = "000000000001";
 
-        given(authContext.getUserId()).willReturn(1L);
-
         given(userLibraryService.getUserLibrary(anyLong(), anyString()))
                 .willReturn(createUserLibraryResponse());
 
@@ -88,8 +86,6 @@ public class UserLibraryControllerDocsTest extends RestDocsSupport {
                 .isbn(isbn)
                 .readingStatus("read")
                 .build();
-
-        given(authContext.getUserId()).willReturn(1L);
 
         given(userLibraryService.createUserLibrary(any(UserLibraryCreateServiceRequest.class), anyLong()))
                 .willReturn(createUserLibraryResponse());
@@ -130,8 +126,6 @@ public class UserLibraryControllerDocsTest extends RestDocsSupport {
                 .readingStatus("pause")
                 .build();
 
-        given(authContext.getUserId()).willReturn(1L);
-
         mockMvc.perform(patch("/v1/user-libraries/{userLibraryId}", 1L)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -161,8 +155,6 @@ public class UserLibraryControllerDocsTest extends RestDocsSupport {
     @Test
     @DisplayName("서재 삭제 API")
     public void deleteUserLibrary() throws Exception {
-        given(authContext.getUserId()).willReturn(1L);
-
         mockMvc.perform(delete("/v1/user-libraries/{userLibraryId}", 1L))
                 .andDo(print())
                 .andExpect(status().isOk())

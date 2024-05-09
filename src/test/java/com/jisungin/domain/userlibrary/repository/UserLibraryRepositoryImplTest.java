@@ -47,9 +47,6 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
     @Autowired
     private UserLibraryRepository userLibraryRepository;
 
-    @Autowired
-    private
-
     @AfterEach
     void tearDown() {
         userLibraryRepository.deleteAllInBatch();
@@ -84,6 +81,36 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
                         tuple("bookImage", "제목6", 1.0)
                 );
 
+    }
+
+    @DisplayName("도서와 사용자 아이디와 연관된 서재 정보가 존재하는지 확인한다.")
+    @Test
+    void exitsByUserIdAndBookId() {
+        // given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "0000X"));
+
+        // when
+        Boolean result = userLibraryRepository.existsByUserIdAndBookId(user.getId(), book.getIsbn());
+
+        // then
+        assertThat(result).isFalse();
+    }
+
+    @DisplayName("연관된 서재 정보가 존재하면 TRUE를 반환한다.")
+    @Test
+    void existsByUserIdAndBookIdAlreadyExists() {
+        // given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "0000X"));
+        UserLibrary userLibrary = userLibraryRepository.save(createUserLibrary(user, book, WANT));
+
+
+        // when
+        Boolean result = userLibraryRepository.existsByUserIdAndBookId(user.getId(), book.getIsbn());
+
+        // then
+        assertThat(result).isTrue();
     }
 
     private static User createUser(String oauthId) {

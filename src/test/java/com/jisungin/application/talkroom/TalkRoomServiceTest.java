@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.api.Offset;
-import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
@@ -47,9 +46,6 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     TalkRoomRoleRepository talkRoomRoleRepository;
 
     @Autowired
-    TalkRoomService talkRoomService;
-
-    @Autowired
     BookRepository bookRepository;
 
     @Autowired
@@ -68,7 +64,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     TalkRoomImageRepository talkRoomImageRepository;
 
     @Autowired
-    AuthContext authContext;
+    TalkRoomService talkRoomService;
 
     @AfterEach
     void tearDown() {
@@ -509,8 +505,6 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         commentRepository.save(comment);
 
-        authContext.setUserId(user.getId());
-
         // when
         talkRoomService.deleteTalkRoom(talkRoom.getId(), user.getId());
 
@@ -550,8 +544,6 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         commentRepository.save(comment);
 
-        authContext.setUserId(userB.getId());
-
         // when // then
         assertThatThrownBy(() -> talkRoomService.deleteTalkRoom(talkRoom.getId(), userB.getId()))
                 .isInstanceOf(BusinessException.class)
@@ -572,8 +564,6 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         talkRoomRepository.save(talkRoom);
 
         createTalkRoomRole(talkRoom);
-
-        authContext.setUserId(user.getId());
 
         // when
         talkRoomService.deleteTalkRoom(talkRoom.getId(), user.getId());
@@ -863,16 +853,11 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .readingStatus(List.of("읽는 중"))
                 .build();
 
-        AuthContext authContext = new AuthContext();
-
-        authContext.setUserId(user.getId());
-
         // when
         TalkRoomFindOneResponse response = talkRoomService.createTalkRoom(request, user.getId(), LocalDateTime.now());
 
         // then
         assertThat(response.getImages().get(0)).isEqualTo("image.png");
-
     }
 
     @Test

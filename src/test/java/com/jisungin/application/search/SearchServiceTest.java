@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.test.context.event.RecordApplicationEvents;
 
 import java.util.List;
@@ -29,6 +30,9 @@ public class SearchServiceTest extends RedisTestContainer {
 
     @MockBean
     private S3FileManager s3FileManager;
+
+    @MockBean
+    private ClientRegistrationRepository clientRegistrationRepository;
 
     @DisplayName("사용자가 검색한 키워드의 점수가 1 증가한다.")
     @org.junit.jupiter.api.Test

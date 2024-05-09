@@ -61,8 +61,6 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .imageUrls(List.of("이미지 URL"))
                 .build();
 
-        given(authContext.getUserId()).willReturn(1L);
-
         given(talkRoomService.createTalkRoom(any(TalkRoomCreateServiceRequest.class), anyLong(),
                 any(LocalDateTime.class)))
                 .willReturn(TalkRoomFindOneResponse.builder()
@@ -166,8 +164,6 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .userLikeTalkRoomIds(null)
                 .build();
 
-        given(authContext.getUserId()).willReturn(1L);
-
         given(talkRoomService.findAllTalkRoom(anyLong(), any(Integer.class), anyString(), anyString(), anyString(),
                 anyLong(), any(LocalDateTime.class)))
                 .willReturn(response);
@@ -250,8 +246,6 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
     @Test
     @DisplayName("토론방을 단건 조회하는 API")
     void findOneTalkRoom() throws Exception {
-        given(authContext.getUserId()).willReturn(1L);
-
         given(talkRoomService.findOneTalkRoom(anyLong(), anyLong()))
                 .willReturn(TalkRoomFindOneResponse.builder()
                         .id(1L)
