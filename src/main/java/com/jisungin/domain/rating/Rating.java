@@ -1,4 +1,4 @@
-package com.jisungin.domain.review;
+package com.jisungin.domain.rating;
 
 import com.jisungin.domain.BaseEntity;
 import com.jisungin.domain.book.Book;
@@ -12,12 +12,14 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class Review extends BaseEntity {
+public class Rating extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "review_id")
+    @Column(name = "rating_id")
     private Long id;
+
+    private Double rating;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -27,22 +29,23 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "book_isbn")
     private Book book;
 
-    @Column(name = "review_content", length = 1000)
-    private String content;
-
     @Builder
-    private Review(User user, Book book, String content) {
+    public Rating(Double rating, User user, Book book) {
+        this.rating = rating;
         this.user = user;
         this.book = book;
-        this.content = content;
     }
 
-    public static Review create(User user, Book book, String content) {
-        return Review.builder()
+    public static Rating create(Double rating, User user, Book book) {
+        return Rating.builder()
+                .rating(rating)
                 .user(user)
                 .book(book)
-                .content(content)
                 .build();
+    }
+
+    public void updateRating(Double rating) {
+        this.rating = rating;
     }
 
 }

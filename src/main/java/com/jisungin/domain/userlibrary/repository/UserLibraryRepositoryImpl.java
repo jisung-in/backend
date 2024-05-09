@@ -12,8 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-import static com.jisungin.domain.book.QBook.book;
-import static com.jisungin.domain.review.QReview.review;
+import static com.jisungin.domain.rating.QRating.*;
 import static com.jisungin.domain.userlibrary.QUserLibrary.userLibrary;
 
 @Slf4j
@@ -27,12 +26,11 @@ public class UserLibraryRepositoryImpl implements UserLibraryRepositoryCustom {
             Long userId, ReadingStatus readingStatus, ReadingStatusOrderType orderType, int size, int offset) {
         log.info("--------------start--------------");
         List<UserReadingStatusResponse> userReadingStatuses = queryFactory
-                .select(new QUserReadingStatusResponse(book.imageUrl, book.title, review.rating.avg()))
+                .select(new QUserReadingStatusResponse(userLibrary.book.imageUrl, userLibrary.book.title, rating1.rating.avg()))
                 .from(userLibrary)
-                .join(book).on(userLibrary.book.isbn.eq(book.isbn))
-                .leftJoin(review).on(userLibrary.book.isbn.eq(review.book.isbn))
+                .join(rating1).on(userLibrary.book.eq(rating1.book))
                 .where(userLibrary.user.id.eq(userId), userLibrary.status.eq(readingStatus))
-                .groupBy(book.isbn)
+                .groupBy(userLibrary.book.isbn)
                 .orderBy(createSpecifier(orderType))
                 .offset(offset)
                 .limit(size)
@@ -56,7 +54,7 @@ public class UserLibraryRepositoryImpl implements UserLibraryRepositoryCustom {
 
     private OrderSpecifier createSpecifier(ReadingStatusOrderType orderType) {
         if (orderType.equals(ReadingStatusOrderType.RATING_AVG_DESC)) {
-            return review.rating.avg().desc();
+            return rating1.rating.avg().desc();
         }
 
         return userLibrary.book.title.asc();

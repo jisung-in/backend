@@ -25,17 +25,14 @@ public class ReviewService {
     private final BookRepository bookRepository;
 
     @Transactional
-    public ReviewResponse createReview(ReviewCreateServiceRequest request, Long userId) {
+    public void createReview(ReviewCreateServiceRequest request, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
         Book book = bookRepository.findById(request.getBookIsbn())
                 .orElseThrow(() -> new BusinessException(BOOK_NOT_FOUND));
 
-        Review savedReview = reviewRepository.save(Review.create(
-                user, book, request.getContent(), request.getRating()
-        ));
-        return ReviewResponse.of(savedReview.getBook(), savedReview.getContent(), savedReview.getRating());
+        Review savedReview = reviewRepository.save(Review.create(user, book, request.getContent()));
     }
 
     @Transactional

@@ -96,7 +96,6 @@ class ReviewLikeRepositoryTest extends RepositoryTestSupport {
                 .user(user)
                 .book(book)
                 .content("리뷰 내용" + book.getIsbn())
-                .rating(rating)
                 .build();
     }
 

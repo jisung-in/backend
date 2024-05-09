@@ -149,7 +149,6 @@ class ReviewLikeServiceTest extends ServiceTestSupport {
                 .user(user)
                 .book(book)
                 .content("내용")
-                .rating(4.5)
                 .build();
     }
 
