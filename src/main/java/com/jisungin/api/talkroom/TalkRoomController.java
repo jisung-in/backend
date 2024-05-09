@@ -2,7 +2,8 @@ package com.jisungin.api.talkroom;
 
 import com.jisungin.api.ApiResponse;
 import com.jisungin.api.Offset;
-import com.jisungin.api.oauth.Auth;
+import com.jisungin.api.support.Auth;
+import com.jisungin.api.support.GuestOrAuth;
 import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.application.talkroom.TalkRoomService;
@@ -30,8 +31,9 @@ public class TalkRoomController {
     private final TalkRoomService talkRoomService;
 
     @PostMapping("/talk-rooms")
-    public ApiResponse<TalkRoomFindOneResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request, @Auth
-    Long userId) {
+    public ApiResponse<TalkRoomFindOneResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request,
+                                                               @Auth Long userId
+    ) {
         LocalDateTime registeredDateTime = LocalDateTime.now();
         return ApiResponse.ok(talkRoomService.createTalkRoom(request.toServiceRequest(), userId, registeredDateTime));
     }
@@ -43,7 +45,7 @@ public class TalkRoomController {
             @RequestParam(value = "order", required = false, defaultValue = "recent") String order,
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "day", required = false) String day,
-            @Auth Long userId) {
+            @GuestOrAuth Long userId) {
         LocalDateTime now = LocalDateTime.now();
 
         return ApiResponse.ok(
@@ -54,7 +56,7 @@ public class TalkRoomController {
 
     @GetMapping("/talk-room/{talkRoomId}")
     public ApiResponse<TalkRoomFindOneResponse> findOneTalkRoom(@PathVariable Long talkRoomId,
-                                                                @Auth Long userId) {
+                                                                @GuestOrAuth Long userId) {
         return ApiResponse.ok(talkRoomService.findOneTalkRoom(talkRoomId, userId));
     }
 

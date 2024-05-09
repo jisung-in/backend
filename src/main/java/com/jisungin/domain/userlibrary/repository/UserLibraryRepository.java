@@ -26,6 +26,13 @@ public interface UserLibraryRepository extends JpaRepository<UserLibrary, Long>,
     )
     Optional<UserLibrary> findByIdWithBookAndUser(@Param("id") Long id);
 
-    UserLibrary findByUserAndBook(User user, Book book);
+    @Query(
+            "SELECT ul FROM UserLibrary ul "
+                    + "JOIN FETCH ul.book "
+                    + "JOIN FETCH ul.user "
+                    + "WHERE ul.user.id = :userId AND "
+                    + "ul.book.isbn = :bookIsbn"
+    )
+    Optional<UserLibrary> findByUserIdAndBookId(@Param("userId") Long userId, @Param("bookIsbn") String bookIsbn);
 
 }

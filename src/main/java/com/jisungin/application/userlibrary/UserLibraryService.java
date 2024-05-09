@@ -12,6 +12,7 @@ import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,19 +29,9 @@ public class UserLibraryService {
     private final UserLibraryRepository userLibraryRepository;
 
     public UserLibraryResponse getUserLibrary(Long userId, String isbn) {
-        if (userId == null || isbn == null) {
-            return UserLibraryResponse.empty();
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-        Book book = bookRepository.findById(isbn)
-                .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
-
-        UserLibrary userLibrary = userLibraryRepository.findByUserAndBook(user, book);
-
-        return UserLibraryResponse.of(userLibrary);
+        return userLibraryRepository.findByUserIdAndBookId(userId, isbn)
+                .map(UserLibraryResponse::of)
+                .orElseGet(UserLibraryResponse::empty);
     }
 
     @Transactional
@@ -51,9 +42,11 @@ public class UserLibraryService {
         Book book = bookRepository.findById(request.getIsbn())
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
-        UserLibrary savedUserLibrary = userLibraryRepository.save(request.toEntity(user, book));
+        if (userLibraryRepository.existsByUserIdAndBookId(user.getId(), book.getIsbn())) {
+            throw new BusinessException(ErrorCode.USER_LIBRARY_ALREADY_EXIST);
+        }
 
-        return UserLibraryResponse.of(savedUserLibrary);
+        return UserLibraryResponse.of(userLibraryRepository.save(request.toEntity(user, book)));
     }
 
     @Transactional

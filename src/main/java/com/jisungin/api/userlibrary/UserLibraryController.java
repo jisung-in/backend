@@ -1,7 +1,8 @@
 package com.jisungin.api.userlibrary;
 
 import com.jisungin.api.ApiResponse;
-import com.jisungin.api.oauth.Auth;
+import com.jisungin.api.support.Auth;
+import com.jisungin.api.support.GuestOrAuth;
 import com.jisungin.api.userlibrary.request.UserLibraryCreateRequest;
 import com.jisungin.api.userlibrary.request.UserLibraryEditRequest;
 import com.jisungin.application.userlibrary.UserLibraryService;
@@ -27,7 +28,7 @@ public class UserLibraryController {
 
     @GetMapping("/user-libraries")
     public ApiResponse<UserLibraryResponse> getUserLibrary(@RequestParam String isbn,
-                                                           @Auth Long userId
+                                                           @GuestOrAuth Long userId
     ) {
         return ApiResponse.ok(userLibraryService.getUserLibrary(userId, isbn));
     }

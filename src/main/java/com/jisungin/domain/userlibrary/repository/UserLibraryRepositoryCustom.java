@@ -10,4 +10,6 @@ public interface UserLibraryRepositoryCustom {
     PageResponse<UserReadingStatusResponse> findAllReadingStatusOrderBy(
             Long userId, ReadingStatus readingStatus, ReadingStatusOrderType orderType, int size, int offset);
 
+    Boolean existsByUserIdAndBookId(Long userId, String bookIsbn);
+
 }

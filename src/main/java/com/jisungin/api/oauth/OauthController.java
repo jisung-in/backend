@@ -1,6 +1,7 @@
 package com.jisungin.api.oauth;
 
 import com.jisungin.api.ApiResponse;
+import com.jisungin.api.support.Auth;
 import com.jisungin.application.oauth.OauthService;
 import com.jisungin.domain.oauth.OauthType;
 import jakarta.servlet.http.HttpServletRequest;

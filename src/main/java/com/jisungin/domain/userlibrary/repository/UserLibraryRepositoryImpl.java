@@ -1,5 +1,10 @@
 package com.jisungin.domain.userlibrary.repository;
 
+import static com.jisungin.domain.book.QBook.book;
+import static com.jisungin.domain.rating.QRating.*;
+import static com.jisungin.domain.user.QUser.user;
+import static com.jisungin.domain.userlibrary.QUserLibrary.userLibrary;
+
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.userlibrary.response.QUserReadingStatusResponse;
 import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
@@ -7,13 +12,9 @@ import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.userlibrary.ReadingStatusOrderType;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-
-import static com.jisungin.domain.rating.QRating.*;
-import static com.jisungin.domain.userlibrary.QUserLibrary.userLibrary;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,6 +43,20 @@ public class UserLibraryRepositoryImpl implements UserLibraryRepositoryCustom {
                 .size(size)
                 .build();
 
+    }
+
+    @Override
+    public Boolean existsByUserIdAndBookId(Long userId, String bookIsbn) {
+        Integer fetchOne = queryFactory
+                .selectOne()
+                .from(userLibrary)
+                .join(userLibrary.book, book)
+                .join(userLibrary.user, user)
+                .where(userLibrary.user.id.eq(userId)
+                        .and(userLibrary.book.isbn.eq(bookIsbn)))
+                .fetchFirst();
+
+        return fetchOne != null;
     }
 
     private long getTotalCount(Long userId, ReadingStatus readingStatus) {

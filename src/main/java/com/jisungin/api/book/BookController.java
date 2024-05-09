@@ -4,7 +4,7 @@ import com.jisungin.api.ApiResponse;
 import com.jisungin.api.SearchRequest;
 import com.jisungin.api.book.request.BookCreateRequest;
 import com.jisungin.api.book.request.BookPageRequest;
-import com.jisungin.api.oauth.Auth;
+import com.jisungin.api.support.GuestOrAuth;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.book.BestSellerService;
 import com.jisungin.application.book.BookService;
@@ -44,7 +44,7 @@ public class BookController {
     public ApiResponse<BookRelatedTalkRoomPageResponse> getTalkRoomsByRelatedBook(
             @PathVariable("isbn") String isbn,
             @ModelAttribute BookPageRequest request,
-            @Auth Long userId
+            @GuestOrAuth Long userId
     ) {
         return ApiResponse.ok(bookService.getBookRelatedTalkRooms(isbn, request.toService(), userId));
     }
