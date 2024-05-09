@@ -1,32 +1,31 @@
 package com.jisungin.domain.review.repository;
 
+import static com.jisungin.domain.review.RatingOrderType.RATING_ASC;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+
 import com.jisungin.RepositoryTestSupport;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.review.response.ReviewContentResponse;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
-import com.jisungin.domain.oauth.OauthId;
-import com.jisungin.domain.oauth.OauthType;
 import com.jisungin.domain.rating.Rating;
 import com.jisungin.domain.rating.repository.RatingRepository;
 import com.jisungin.domain.review.Review;
 import com.jisungin.domain.reviewlike.ReviewLike;
 import com.jisungin.domain.reviewlike.repository.ReviewLikeRepository;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static com.jisungin.domain.review.RatingOrderType.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class ReviewRepositoryTest extends RepositoryTestSupport {
 

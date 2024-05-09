@@ -1,7 +1,7 @@
 package com.jisungin.infra.security.oauth;
 
-import com.jisungin.domain.oauth.OauthId;
-import com.jisungin.domain.oauth.OauthType;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.Role;
 import com.jisungin.domain.user.User;
 import java.util.Map;

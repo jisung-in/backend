@@ -1,7 +1,6 @@
 package com.jisungin.domain.user;
 
 import com.jisungin.domain.BaseEntity;
-import com.jisungin.domain.oauth.OauthId;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;

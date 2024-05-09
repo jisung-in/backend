@@ -1,6 +1,6 @@
 package com.jisungin.domain.user.repository;
 
-import com.jisungin.domain.oauth.OauthId;
+import com.jisungin.domain.user.OauthId;
 import com.jisungin.domain.user.User;
 
 import java.util.Optional;
