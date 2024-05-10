@@ -21,7 +21,6 @@ class ReviewControllerTest extends ControllerTestSupport {
         ReviewCreateRequest request = ReviewCreateRequest.builder()
                 .bookIsbn("123456")
                 .content("재밌어요.")
-                .rating("4.5")
                 .build();
 
         //when //then
@@ -43,7 +42,6 @@ class ReviewControllerTest extends ControllerTestSupport {
         //given
         ReviewCreateRequest request = ReviewCreateRequest.builder()
                 .content("재밌어요.")
-                .rating("4.5")
                 .build();
 
         //when //then
@@ -64,7 +62,6 @@ class ReviewControllerTest extends ControllerTestSupport {
         //given
         ReviewCreateRequest request = ReviewCreateRequest.builder()
                 .bookIsbn("123456")
-                .rating("4.5")
                 .build();
 
         //when //then
@@ -76,27 +73,6 @@ class ReviewControllerTest extends ControllerTestSupport {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("400"))
                 .andExpect(jsonPath("$.message").value("리뷰 작성 시 내용은 필수입니다."))
-                .andDo(print());
-    }
-
-    @DisplayName("별점과 함께 리뷰를 등록해야 한다.")
-    @Test
-    void createReviewWithoutRating() throws Exception {
-        //given
-        ReviewCreateRequest request = ReviewCreateRequest.builder()
-                .bookIsbn("123456")
-                .content("재밌어요.")
-                .build();
-
-        //when //then
-        mockMvc.perform(
-                        post("/v1/reviews")
-                                .content(objectMapper.writeValueAsString(request))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .session(mockHttpSession))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("400"))
-                .andExpect(jsonPath("$.message").value("리뷰 작성 시 별점은 필수입니다."))
                 .andDo(print());
     }
 
