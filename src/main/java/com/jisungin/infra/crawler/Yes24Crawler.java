@@ -28,7 +28,8 @@ public class Yes24Crawler implements Crawler {
 
         List<CompletableFuture<Void>> futures = bestSellerBookIds.entrySet().stream()
                 .map(entry -> CompletableFuture.supplyAsync(() -> parser.parseBook(fetcher.fetchBook(entry.getValue())))
-                        .thenAccept(crawlingBook -> bestSellerBooks.put(entry.getKey(), crawlingBook)))
+                        .thenAccept(crawlingBook -> bestSellerBooks.put(entry.getKey(), crawlingBook))
+                        .exceptionally(throwable -> null))
                 .toList();
 
         CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
