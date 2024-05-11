@@ -1,40 +1,47 @@
 package com.jisungin.infra.security.oauth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jisungin.api.ApiResponse;
-import com.nimbusds.jose.util.StandardCharset;
+import static com.jisungin.infra.security.oauth.HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
+
+import com.jisungin.infra.security.util.CookieUtils;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @RequiredArgsConstructor
-public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
+public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final ObjectMapper om;
+    private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
+        String targetUrl = parseTargetUrl(request);
 
-        response.setContentType("application/json");
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setCharacterEncoding(StandardCharset.UTF_8.name());
-        response.getWriter().write(om.writeValueAsString(createApiResponse()));
-        response.getWriter().flush();
+        clearAuthenticationAttributes(request, response);
+        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
-    private ApiResponse<Object> createApiResponse() {
-        return ApiResponse.builder()
-                .status(HttpStatus.OK)
-                .message("로그인 성공")
-                .build();
+    protected String parseTargetUrl(HttpServletRequest request) {
+        Optional<String> redirectUrl = CookieUtils.getCookie(request, REDIRECT_URI_PARAM_COOKIE_NAME)
+                .map(Cookie::getValue);
+
+        return UriComponentsBuilder.fromUriString(redirectUrl.orElse(getDefaultTargetUrl()))
+                .build()
+                .toUriString();
+    }
+
+    private void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
+        super.clearAuthenticationAttributes(request);
+        authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
     }
 
 }
