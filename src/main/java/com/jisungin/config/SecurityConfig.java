@@ -9,7 +9,6 @@ import com.jisungin.infra.security.oauth.HttpCookieOAuth2AuthorizationRequestRep
 import com.jisungin.infra.security.oauth.OAuth2SuccessHandler;
 import com.jisungin.infra.security.util.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,7 +36,8 @@ public class SecurityConfig {
                 .cors(withDefaults())
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
                 .authorizeHttpRequests(request ->
-                        request.requestMatchers(PathRequest.toH2Console()).permitAll()
+                        request
+                                .requestMatchers("/h2-console/**").permitAll()
                                 .requestMatchers("/v1/books/**").permitAll()
                                 .requestMatchers("/v1/search/rank").permitAll()
                                 .requestMatchers(GET, "v1/talk-rooms").permitAll()
