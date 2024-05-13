@@ -45,6 +45,7 @@ public class SecurityConfig {
                                 .requestMatchers(GET, "v1/{talkRoomId}/comments").permitAll()
                                 .requestMatchers(GET, "/v1/user-libraries").permitAll()
                                 .requestMatchers("/v1/oauth2/**").permitAll()
+                                .requestMatchers("/docs/**").permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(exceptionHandlingConfigurer ->
                         exceptionHandlingConfigurer.authenticationEntryPoint(entryPoint))
