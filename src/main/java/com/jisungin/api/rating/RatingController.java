@@ -1,9 +1,9 @@
 package com.jisungin.api.rating;
 
 import com.jisungin.api.ApiResponse;
-import com.jisungin.api.oauth.Auth;
 import com.jisungin.api.rating.request.RatingCreateRequest;
 import com.jisungin.api.rating.request.RatingUpdateRequest;
+import com.jisungin.api.support.Auth;
 import com.jisungin.application.rating.RatingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

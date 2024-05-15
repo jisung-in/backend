@@ -1,4 +1,4 @@
-package com.jisungin.domain.oauth;
+package com.jisungin.domain.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

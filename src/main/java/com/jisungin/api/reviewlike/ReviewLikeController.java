@@ -1,11 +1,14 @@
 package com.jisungin.api.reviewlike;
 
 import com.jisungin.api.ApiResponse;
-import com.jisungin.api.oauth.Auth;
-import com.jisungin.api.oauth.AuthContext;
+import com.jisungin.api.support.Auth;
 import com.jisungin.application.reviewlike.ReviewLikeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/v1/reviews")
 @RequiredArgsConstructor
@@ -17,18 +20,18 @@ public class ReviewLikeController {
     @PostMapping("/{reviewId}/likes")
     public ApiResponse<Void> likeReview(
             @PathVariable Long reviewId,
-            @Auth AuthContext authContext
+            @Auth Long userId
     ) {
-        reviewLikeService.likeReview(authContext.getUserId(), reviewId);
+        reviewLikeService.likeReview(userId, reviewId);
         return ApiResponse.ok(null);
     }
 
     @DeleteMapping("/{reviewId}/likes")
     public ApiResponse<Void> unlikeReview(
             @PathVariable Long reviewId,
-            @Auth AuthContext authContext
+            @Auth Long userId
     ) {
-        reviewLikeService.unlikeReview(authContext.getUserId(), reviewId);
+        reviewLikeService.unlikeReview(userId, reviewId);
         return ApiResponse.ok(null);
     }
 

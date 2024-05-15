@@ -1,10 +1,11 @@
 package com.jisungin.domain.user;
 
 import com.jisungin.domain.BaseEntity;
-import com.jisungin.domain.oauth.OauthId;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -42,18 +43,38 @@ public class User extends BaseEntity {
     @Column(name = "user_name")
     private String name;
 
+    @Column(name = "user_email")
+    private String email;
+
     @Column(name = "user_profile_image")
     private String profileImage;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_role")
+    private Role role;
+
     @Builder
-    public User(OauthId oauthId, String name, String profileImage) {
+    public User(OauthId oauthId, String name, String email, String profileImage, Role role) {
         this.oauthId = oauthId;
         this.name = name;
+        this.email = email;
         this.profileImage = profileImage;
+        this.role = role;
     }
 
     public boolean isMe(Long userId) {
         return this.id.equals(userId);
+    }
+
+    public String getRoleKey() {
+        return this.role.getKey();
+    }
+
+    public User update(String name, String profileImage) {
+        this.name = name;
+        this.profileImage = profileImage;
+
+        return this;
     }
 
 }

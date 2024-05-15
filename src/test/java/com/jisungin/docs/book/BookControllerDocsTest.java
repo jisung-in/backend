@@ -161,8 +161,6 @@ public class BookControllerDocsTest extends RestDocsSupport {
         BookRelatedTalkRoomPageResponse response = BookRelatedTalkRoomPageResponse.of(pageResponse,
                 List.of(1L, 2L, 3L));
 
-        given(authContext.getUserId())
-                .willReturn(1L);
         given(bookService.getBookRelatedTalkRooms(anyString(), any(BookServicePageRequest.class), anyLong()))
                 .willReturn(response);
 

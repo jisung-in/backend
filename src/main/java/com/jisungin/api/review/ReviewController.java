@@ -1,7 +1,7 @@
 package com.jisungin.api.review;
 
 import com.jisungin.api.ApiResponse;
-import com.jisungin.api.oauth.Auth;
+import com.jisungin.api.support.Auth;
 import com.jisungin.api.review.request.ReviewCreateRequest;
 import com.jisungin.application.review.ReviewService;
 import jakarta.validation.Valid;

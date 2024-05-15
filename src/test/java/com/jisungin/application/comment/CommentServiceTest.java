@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
-import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.request.CommentEditServiceRequest;
 import com.jisungin.application.comment.response.CommentPageResponse;
@@ -18,8 +17,8 @@ import com.jisungin.domain.commentimage.CommentImage;
 import com.jisungin.domain.commentimage.repository.CommentImageRepository;
 import com.jisungin.domain.commentlike.CommentLike;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
-import com.jisungin.domain.oauth.OauthId;
-import com.jisungin.domain.oauth.OauthType;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
@@ -71,9 +70,6 @@ class CommentServiceTest extends ServiceTestSupport {
 
     @Autowired
     CommentImageRepository commentImageRepository;
-
-    @Autowired
-    AuthContext authContext;
 
     @AfterEach
     void tearDown() {
@@ -535,8 +531,6 @@ class CommentServiceTest extends ServiceTestSupport {
                 .build()).collect(Collectors.toList());
 
         commentLikeRepository.saveAll(likes);
-
-        authContext.setUserId(user.getId());
 
         // when
         CommentPageResponse response = commentService.findAllComments(talkRoom.getId(), user.getId());

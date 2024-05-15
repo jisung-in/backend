@@ -5,6 +5,10 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.patch;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
@@ -32,7 +36,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 public class CommentControllerDocsTest extends RestDocsSupport {
@@ -53,8 +56,6 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .imageUrls(List.of("이미지 URL"))
                 .build();
 
-        given(authContext.getUserId()).willReturn(1L);
-
         given(commentService.writeComment(any(CommentCreateServiceRequest.class), any(Long.class),
                 anyLong()))
                 .willReturn(CommentResponse.builder()
@@ -64,7 +65,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                         .build());
 
         mockMvc.perform(
-                        RestDocumentationRequestBuilders.post("/v1/{talkRoomId}/comments", talkRoomId)
+                        post("/v1/{talkRoomId}/comments", talkRoomId)
                                 .content(objectMapper.writeValueAsString(request))
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -119,8 +120,6 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .totalCount(1L)
                 .build();
 
-        given(authContext.getUserId()).willReturn(1L);
-
         given(commentService.findAllComments(anyLong(), anyLong()))
                 .willReturn(CommentPageResponse.builder()
                         .response(response)
@@ -128,7 +127,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                         .build());
 
         mockMvc.perform(
-                        RestDocumentationRequestBuilders.get("/v1/{talkRoomId}/comments", 1L)
+                        get("/v1/{talkRoomId}/comments", 1L)
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())
@@ -182,8 +181,6 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .removeImage(List.of("삭제할 이미지 URL"))
                 .build();
 
-        given(authContext.getUserId()).willReturn(1L);
-
         given(commentService.editComment(any(Long.class), any(CommentEditServiceRequest.class),
                 anyLong()))
                 .willReturn(CommentResponse.builder()
@@ -193,7 +190,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                         .build());
 
         mockMvc.perform(
-                        RestDocumentationRequestBuilders.patch("/v1/comments/{commentId}", commentId)
+                        patch("/v1/comments/{commentId}", commentId)
                                 .content(objectMapper.writeValueAsString(request))
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -239,7 +236,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
         Long commentId = 1L;
 
         mockMvc.perform(
-                        RestDocumentationRequestBuilders.delete("/v1/comments/{commentId}", commentId)
+                        delete("/v1/comments/{commentId}", commentId)
                 )
                 .andDo(print())
                 .andExpect(status().isOk())

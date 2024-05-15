@@ -3,7 +3,8 @@ package com.jisungin.api.comment;
 import com.jisungin.api.ApiResponse;
 import com.jisungin.api.comment.request.CommentCreateRequest;
 import com.jisungin.api.comment.request.CommentEditRequest;
-import com.jisungin.api.oauth.Auth;
+import com.jisungin.api.support.Auth;
+import com.jisungin.api.support.GuestOrAuth;
 import com.jisungin.application.comment.CommentService;
 import com.jisungin.application.comment.response.CommentPageResponse;
 import com.jisungin.application.comment.response.CommentResponse;
@@ -35,7 +36,7 @@ public class CommentController {
 
     @GetMapping("{talkRoomId}/comments")
     public ApiResponse<CommentPageResponse> findAllComments(@PathVariable Long talkRoomId,
-                                                            @Auth Long userId) {
+                                                            @GuestOrAuth Long userId) {
         return ApiResponse.ok(commentService.findAllComments(talkRoomId, userId));
     }
 

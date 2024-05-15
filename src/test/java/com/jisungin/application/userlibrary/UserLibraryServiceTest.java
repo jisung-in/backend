@@ -11,8 +11,8 @@ import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.userlibrary.UserLibrary;
-import com.jisungin.domain.oauth.OauthId;
-import com.jisungin.domain.oauth.OauthType;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
@@ -83,40 +83,17 @@ public class UserLibraryServiceTest extends ServiceTestSupport {
     @DisplayName("서재 정보 조회 시 isbn이 없는 경우 빈 응답을 받는다.")
     public void getUserLibraryWithNonIsbn() {
         // given
-        User user = userRepository.save(createUser());
-
-        // when
-        UserLibraryResponse response = userLibraryService.getUserLibrary(user.getId(), null);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.getHasReadingStatus()).isFalse();
-    }
-
-    @Test
-    @DisplayName("서재 정보 조회 시 사용자 정보가 존재해야 한다.")
-    public void getUserLibraryWithoutUser() {
-        // given
-        Long invalidUserId = -1L;
-        Book book = bookRepository.save(createBook());
-
-        // when // then
-        assertThatThrownBy(() -> userLibraryService.getUserLibrary(invalidUserId, book.getIsbn()))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("사용자를 찾을 수 없습니다.");
-    }
-
-    @Test
-    @DisplayName("서재 정보 조회 시 책 정보가 존재해야 한다.")
-    public void getUserLibraryWithoutBook() {
-        // given
         String invalidIsbn = "0000X";
         User user = userRepository.save(createUser());
 
-        // when // then
-        assertThatThrownBy(() -> userLibraryService.getUserLibrary(user.getId(), invalidIsbn))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("책을 찾을 수 없습니다.");
+        // when
+        UserLibraryResponse response = userLibraryService.getUserLibrary(user.getId(), invalidIsbn);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isNull();
+        assertThat(response.getStatus()).isNull();
+        assertThat(response.getHasReadingStatus()).isFalse();
     }
 
     @Test
@@ -192,6 +169,25 @@ public class UserLibraryServiceTest extends ServiceTestSupport {
         assertThatThrownBy(() -> userLibraryService.createUserLibrary(request, user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("책을 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("서재 등록 시 동일한 정보의 서재가 존재하지 않아야 한다.")
+    public void createUserLibraryAlreadyExists() {
+        // given
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
+
+        UserLibraryCreateServiceRequest request = UserLibraryCreateServiceRequest.builder()
+                .isbn(book.getIsbn())
+                .readingStatus("reading")
+                .build();
+
+        // when // then
+        assertThatThrownBy(() -> userLibraryService.createUserLibrary(request, user.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("이미 등록된 서재 정보 입니다.");
     }
 
     @Test

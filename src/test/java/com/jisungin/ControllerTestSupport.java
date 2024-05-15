@@ -1,16 +1,14 @@
 package com.jisungin;
 
-import static org.mockito.ArgumentMatchers.anyString;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jisungin.api.book.BookController;
 import com.jisungin.api.comment.CommentController;
 import com.jisungin.api.commentlike.CommentLikeController;
 import com.jisungin.api.image.ImageController;
-import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.api.review.ReviewController;
 import com.jisungin.api.reviewlike.ReviewLikeController;
 import com.jisungin.api.search.SearchController;
+import com.jisungin.api.support.SessionUser;
 import com.jisungin.api.talkroom.TalkRoomController;
 import com.jisungin.api.talkroomlike.TalkRoomLikeController;
 import com.jisungin.api.user.UserController;
@@ -27,16 +25,16 @@ import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroomlike.TalkRoomLikeService;
 import com.jisungin.application.user.UserService;
 import com.jisungin.application.userlibrary.UserLibraryService;
+import com.jisungin.config.SecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
-import org.mockito.BDDMockito;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 @WebMvcTest(controllers = {
         TalkRoomController.class,
@@ -50,7 +48,12 @@ import org.springframework.web.context.WebApplicationContext;
         ImageController.class,
         SearchController.class,
         UserLibraryController.class
-})
+},
+        excludeFilters = {
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
+        },
+        excludeAutoConfiguration = SecurityAutoConfiguration.class
+)
 public abstract class ControllerTestSupport {
 
     @Autowired
@@ -58,15 +61,6 @@ public abstract class ControllerTestSupport {
 
     @Autowired
     protected ObjectMapper objectMapper;
-
-    @MockBean
-    protected AuthContext authContext;
-
-    @Autowired
-    protected WebApplicationContext context;
-
-    @MockBean
-    protected MockHttpSession session;
 
     @MockBean
     protected TalkRoomService talkRoomService;
@@ -104,13 +98,20 @@ public abstract class ControllerTestSupport {
     @MockBean
     protected UserLibraryService userLibraryService;
 
+    protected MockHttpSession mockHttpSession;
+
     @BeforeEach
-    void setUp() {
-        authContext = Mockito.mock(AuthContext.class);
+    public void setUp() {
+        mockHttpSession = new MockHttpSession();
 
-        BDDMockito.given(session.getAttribute(anyString())).willReturn("1L");
-
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+        mockHttpSession.setAttribute("JSESSIONID", createSessionUser());
     }
+
+    private SessionUser createSessionUser() {
+        return SessionUser.builder()
+                .id(1L)
+                .build();
+    }
+
 
 }

@@ -4,13 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
-import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
-import com.jisungin.domain.oauth.OauthId;
-import com.jisungin.domain.oauth.OauthType;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
@@ -51,9 +50,6 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
     @Autowired
     TalkRoomLikeRepository talkRoomLikeRepository;
 
-    @Autowired
-    AuthContext authContext;
-
     @AfterEach
     void tearDown() {
         talkRoomLikeRepository.deleteAllInBatch();
@@ -78,10 +74,8 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
 
         createTalkRoomRole(talkRoom);
 
-        authContext.setUserId(user.getId());
-
         // when
-        talkRoomLikeService.likeTalkRoom(talkRoom.getId(), authContext);
+        talkRoomLikeService.likeTalkRoom(talkRoom.getId(), user.getId());
 
         // then
         List<TalkRoomLike> talkRoomLikes = talkRoomLikeRepository.findAll();
@@ -95,10 +89,8 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
         User user = createUser();
         userRepository.save(user);
 
-        authContext.setUserId(user.getId());
-
         // when // then
-        assertThatThrownBy(() -> talkRoomLikeService.likeTalkRoom(1L, authContext))
+        assertThatThrownBy(() -> talkRoomLikeService.likeTalkRoom(1L, user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("토크방을 찾을 수 없습니다.");
     }
@@ -107,6 +99,8 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
     @DisplayName("로그인을 하지 않는 상태에선 좋아요를 누를 수 없다.")
     void likeTalkRoomWithUserEmpty() {
         // given
+        Long invalidUserId = 1000L;
+
         User user = createUser();
         userRepository.save(user);
 
@@ -118,9 +112,8 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
 
         createTalkRoomRole(talkRoom);
 
-        authContext.setUserId(1000L);
         // when // then
-        assertThatThrownBy(() -> talkRoomLikeService.likeTalkRoom(talkRoom.getId(), authContext))
+        assertThatThrownBy(() -> talkRoomLikeService.likeTalkRoom(talkRoom.getId(), invalidUserId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
     }
@@ -143,10 +136,8 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
         TalkRoomLike talkRoomLike = createTalkRoomLike(talkRoom, user);
         talkRoomLikeRepository.save(talkRoomLike);
 
-        authContext.setUserId(user.getId());
-
         // when
-        talkRoomLikeService.unLikeTalkRoom(talkRoom.getId(), authContext);
+        talkRoomLikeService.unLikeTalkRoom(talkRoom.getId(), user.getId());
 
         // then
         List<TalkRoomLike> talkRoomLikes = talkRoomLikeRepository.findAll();
@@ -183,10 +174,8 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
         TalkRoomLike talkRoomLike = createTalkRoomLike(talkRoom, user);
         talkRoomLikeRepository.save(talkRoomLike);
 
-        authContext.setUserId(userB.getId());
-
         // when // then
-        assertThatThrownBy(() -> talkRoomLikeService.unLikeTalkRoom(talkRoom.getId(), authContext))
+        assertThatThrownBy(() -> talkRoomLikeService.unLikeTalkRoom(talkRoom.getId(), userB.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("토크방 좋아요를 찾을 수 없습니다.");
     }

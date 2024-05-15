@@ -1,6 +1,5 @@
 package com.jisungin.application.talkroomlike;
 
-import com.jisungin.api.oauth.AuthContext;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroomlike.TalkRoomLike;
@@ -23,11 +22,11 @@ public class TalkRoomLikeService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void likeTalkRoom(Long talkRoomId, AuthContext authContext) {
+    public void likeTalkRoom(Long talkRoomId, Long userId) {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        User user = userRepository.findById(authContext.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (talkRoomLikeRepository.findByTalkRoomIdAndUserId(talkRoom.getId(), user.getId()).isPresent()) {
@@ -39,13 +38,12 @@ public class TalkRoomLikeService {
         talkRoomLikeRepository.save(talkRoomLike);
     }
 
-
     @Transactional
-    public void unLikeTalkRoom(Long talkRoomId, AuthContext authContext) {
+    public void unLikeTalkRoom(Long talkRoomId, Long userId) {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        User user = userRepository.findById(authContext.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
         TalkRoomLike talkRoomLike = talkRoomLikeRepository.findByTalkRoomIdAndUserId(talkRoom.getId(), user.getId())

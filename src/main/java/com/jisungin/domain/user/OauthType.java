@@ -1,4 +1,4 @@
-package com.jisungin.domain.oauth;
+package com.jisungin.domain.user;
 
 import java.util.Locale;
 

@@ -22,10 +22,6 @@ public class UserLibraryResponse {
     }
 
     public static UserLibraryResponse of(UserLibrary userLibrary) {
-        if (userLibrary == null) {
-            return empty();
-        }
-
         return UserLibraryResponse.builder()
                 .id(userLibrary.getId())
                 .status(userLibrary.getStatus().getText())

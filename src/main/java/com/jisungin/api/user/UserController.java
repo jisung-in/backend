@@ -1,7 +1,7 @@
 package com.jisungin.api.user;
 
 import com.jisungin.api.ApiResponse;
-import com.jisungin.api.oauth.Auth;
+import com.jisungin.api.support.Auth;
 import com.jisungin.api.user.request.ReviewContentGetAllRequest;
 import com.jisungin.api.user.request.UserRatingGetAllRequest;
 import com.jisungin.api.user.request.UserReadingStatusGetAllRequest;

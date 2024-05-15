@@ -1,5 +1,15 @@
 package com.jisungin.application.user;
 
+import static com.jisungin.domain.ReadingStatus.PAUSE;
+import static com.jisungin.domain.ReadingStatus.READ;
+import static com.jisungin.domain.ReadingStatus.READING;
+import static com.jisungin.domain.ReadingStatus.STOP;
+import static com.jisungin.domain.ReadingStatus.WANT;
+import static com.jisungin.domain.review.RatingOrderType.RATING_ASC;
+import static com.jisungin.domain.userlibrary.ReadingStatusOrderType.DICTIONARY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.rating.response.RatingGetResponse;
@@ -11,34 +21,27 @@ import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
-import com.jisungin.domain.oauth.OauthId;
-import com.jisungin.domain.oauth.OauthType;
 import com.jisungin.domain.rating.Rating;
 import com.jisungin.domain.rating.repository.RatingRepository;
 import com.jisungin.domain.review.Review;
 import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.domain.reviewlike.ReviewLike;
 import com.jisungin.domain.reviewlike.repository.ReviewLikeRepository;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.domain.userlibrary.UserLibrary;
 import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static com.jisungin.domain.ReadingStatus.*;
-import static com.jisungin.domain.review.RatingOrderType.*;
-import static com.jisungin.domain.userlibrary.ReadingStatusOrderType.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class UserServiceTest extends ServiceTestSupport {
 
