@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.api.Offset;
+import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
@@ -15,8 +16,6 @@ import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
-import com.jisungin.domain.user.OauthId;
-import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
@@ -24,6 +23,8 @@ import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.talkroomimage.repository.TalkRoomImageRepository;
 import com.jisungin.domain.talkroomlike.TalkRoomLike;
 import com.jisungin.domain.talkroomlike.repository.TalkRoomLikeRepository;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
@@ -870,6 +871,81 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // then
         Assertions.assertThat(response.getResponse().getQueryResponse()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("하루 전에 토론방을 조회하면 데이터 총 개수는 10개이어야 한다.")
+    void findAllTalkRoomWithDay() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        LocalDateTime yesterdayWithSec = LocalDateTime.of(2024, 4, 28, 23, 59, 59);
+        LocalDateTime yesterday = LocalDateTime.of(2024, 4, 29, 0, 0);
+        LocalDateTime now = LocalDateTime.of(2024, 4, 30, 0, 0);
+
+        List<TalkRoom> talkRoom1 = IntStream.range(0, 5)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(yesterdayWithSec)
+                        .build())
+                .toList();
+
+        List<TalkRoom> talkRoom2 = IntStream.range(5, 10)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(yesterday)
+                        .build())
+                .toList();
+
+        List<TalkRoom> talkRoom3 = IntStream.range(10, 15)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(now)
+                        .build())
+                .toList();
+
+        talkRoomRepository.saveAll(talkRoom1);
+        talkRoomRepository.saveAll(talkRoom2);
+        talkRoomRepository.saveAll(talkRoom3);
+
+        for (TalkRoom t : talkRoom1) {
+            createTalkRoomRole(t);
+        }
+        for (TalkRoom t : talkRoom2) {
+            createTalkRoomRole(t);
+        }
+        for (TalkRoom t : talkRoom3) {
+            createTalkRoomRole(t);
+        }
+
+        SearchServiceRequest search = SearchServiceRequest.builder()
+                .page(1)
+                .size(10)
+                .day("1d")
+                .order("recent")
+                .build();
+
+        // when
+        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(search.getOffset(),
+                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), null, now);
+
+        // then
+        List<TalkRoom> talkRoomAll = talkRoomRepository.findAll();
+        assertThat(10L).isEqualTo(response.getResponse().getTotalCount());
+        assertThat(15L).isEqualTo(talkRoomAll.size());
     }
 
     private static List<User> listUsers() {

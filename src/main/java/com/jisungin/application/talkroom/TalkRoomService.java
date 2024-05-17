@@ -84,7 +84,7 @@ public class TalkRoomService {
 
         Map<Long, List<ReadingStatus>> talkRoomRoleMap = talkRoomRoleRepository.findTalkRoomRoleByIds(talkRoomIds);
 
-        Long totalCount = talkRoomRepository.countTalkRooms();
+        Long totalCount = talkRoomRepository.countTalkRooms(day, now);
 
         List<TalkRoomFindAllResponse> response = TalkRoomFindAllResponse.create(talkRooms,
                 talkRoomRoleMap);
