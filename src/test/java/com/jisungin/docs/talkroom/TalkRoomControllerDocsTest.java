@@ -266,7 +266,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
         Long request = 1L;
 
         mockMvc.perform(
-                        get("/v1/talk-room/{talkRoomId}", request)
+                        get("/v1/talk-rooms/{talkRoomId}", request)
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())

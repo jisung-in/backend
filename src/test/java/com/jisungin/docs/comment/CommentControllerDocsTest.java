@@ -65,7 +65,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                         .build());
 
         mockMvc.perform(
-                        post("/v1/{talkRoomId}/comments", talkRoomId)
+                        post("/v1/talk-rooms/{talkRoomId}/comments", talkRoomId)
                                 .content(objectMapper.writeValueAsString(request))
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -127,7 +127,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                         .build());
 
         mockMvc.perform(
-                        get("/v1/{talkRoomId}/comments", 1L)
+                        get("/v1/talk-rooms/{talkRoomId}/comments", 1L)
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())

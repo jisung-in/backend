@@ -27,14 +27,14 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    @PostMapping("{talkRoomId}/comments")
+    @PostMapping("/talk-rooms/{talkRoomId}/comments")
     public ApiResponse<CommentResponse> writeComment(@PathVariable("talkRoomId") Long talkRoomId,
                                                      @Valid @RequestBody CommentCreateRequest request,
                                                      @Auth Long userId) {
         return ApiResponse.ok(commentService.writeComment(request.toService(), talkRoomId, userId));
     }
 
-    @GetMapping("{talkRoomId}/comments")
+    @GetMapping("/talk-rooms/{talkRoomId}/comments")
     public ApiResponse<CommentPageResponse> findAllComments(@PathVariable Long talkRoomId,
                                                             @GuestOrAuth Long userId) {
         return ApiResponse.ok(commentService.findAllComments(talkRoomId, userId));
