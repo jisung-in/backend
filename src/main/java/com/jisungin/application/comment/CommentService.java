@@ -22,6 +22,7 @@ import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,12 +48,12 @@ public class CommentService {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        ReadingStatus userReadingStatus = userLibraryRepository.findByUserId(user.getId());
+        Optional<ReadingStatus> userReadingStatus = userLibraryRepository.findByUserId(user.getId());
 
         List<ReadingStatus> talkRoomReadingStatus = talkRoomRoleRepository.findTalkRoomRoleByTalkRoomId(
                 talkRoom.getId());
 
-        checkPermissionToWriteComment(talkRoomReadingStatus, userReadingStatus);
+        checkPermissionToWriteComment(talkRoomReadingStatus, userReadingStatus.orElse(ReadingStatus.NONE));
 
         Comment comment = Comment.create(request, user, talkRoom);
 

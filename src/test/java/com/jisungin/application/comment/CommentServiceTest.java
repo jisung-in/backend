@@ -17,13 +17,13 @@ import com.jisungin.domain.commentimage.CommentImage;
 import com.jisungin.domain.commentimage.repository.CommentImageRepository;
 import com.jisungin.domain.commentlike.CommentLike;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
-import com.jisungin.domain.user.OauthId;
-import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.talkroomimage.repository.TalkRoomImageRepository;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.domain.userlibrary.UserLibrary;
@@ -183,6 +183,37 @@ class CommentServiceTest extends ServiceTestSupport {
         assertThatThrownBy(() -> commentService.writeComment(request, talkRoom.getId(), user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("의견을 쓸 권한이 없습니다.");
+    }
+
+    @Test
+    @DisplayName("토론방의 참가조건이 상관없음이면 유저는 책에 대한 상태가 없어도 의견을 작성할 수 있다.")
+    void writeCommentWithEmpty() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        TalkRoomRole role = TalkRoomRole.builder()
+                .talkRoom(talkRoom)
+                .readingStatus(ReadingStatus.NONE)
+                .build();
+
+        talkRoomRoleRepository.save(role);
+
+        CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
+                .content("의견 남기기")
+                .build();
+
+        // when
+        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId());
+
+        // then
+        assertThat(response.getContent()).isEqualTo("의견 남기기");
     }
 
     @Test
