@@ -1,20 +1,28 @@
 package com.jisungin.domain.review.repository;
 
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.SliceResponse;
 import com.jisungin.application.review.response.QReviewContentResponse;
+import com.jisungin.application.review.response.QReviewWithRatingResponse;
 import com.jisungin.application.review.response.ReviewContentResponse;
+import com.jisungin.application.review.response.ReviewWithRatingResponse;
 import com.jisungin.domain.review.RatingOrderType;
+import com.jisungin.domain.review.ReviewOrderType;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+import static com.jisungin.domain.book.QBook.*;
 import static com.jisungin.domain.rating.QRating.*;
 import static com.jisungin.domain.review.QReview.review;
 import static com.jisungin.domain.review.RatingOrderType.*;
+import static com.jisungin.domain.reviewlike.QReviewLike.*;
+import static com.jisungin.domain.user.QUser.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,6 +42,37 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .totalCount(getTotalCount(userId, null)) // 리뷰 전체 개수, 쿼리 1회
                 .size(size)
                 .build();
+    }
+
+    @Override
+    public SliceResponse<ReviewWithRatingResponse> findAllByBookId(String isbn, Integer offset, Integer limit,
+                                                                   String order) {
+        ReviewOrderType orderType = ReviewOrderType.fromString(order);
+
+        JPAQuery<ReviewWithRatingResponse> query = queryFactory.
+                select(new QReviewWithRatingResponse(
+                        review.id.as("reviewId"),
+                        rating1.id.as("ratingId"),
+                        user.name.as("username"),
+                        user.profileImage.as("profileImage"),
+                        review.content.as("reviewContent"),
+                        rating1.rating.as("starRating"),
+                        reviewLike.id.count().as("likeCount")
+                ))
+                .from(review)
+                .join(review.user, user)
+                .join(review.book, book)
+                .leftJoin(reviewLike).on(review.eq(reviewLike.review))
+                .groupBy(review.id)
+                .orderBy(orderType.getOrderSpecifier())
+                .offset(offset)
+                .limit(limit + 1);
+
+        orderType.applyJoinStrategy(query);
+
+        List<ReviewWithRatingResponse> content = query.fetch();
+
+        return SliceResponse.of(content, offset, limit, hasNextPage(content, limit));
     }
 
     private List<ReviewContentResponse> getReviewContents(
@@ -83,6 +122,16 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             return null;
         }
         return rating1.rating.eq(rating);
+    }
+
+    private <T> boolean hasNextPage(List<T> content, int limit) {
+        boolean hasNext = content.size() > limit;
+
+        if (hasNext) {
+            content.remove(limit);
+        }
+
+        return hasNext;
     }
 
 }
