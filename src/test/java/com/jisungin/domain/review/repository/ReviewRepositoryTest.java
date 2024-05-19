@@ -6,7 +6,9 @@ import static org.assertj.core.groups.Tuple.tuple;
 
 import com.jisungin.RepositoryTestSupport;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.SliceResponse;
 import com.jisungin.application.review.response.ReviewContentResponse;
+import com.jisungin.application.review.response.ReviewWithRatingResponse;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.rating.Rating;
@@ -60,8 +62,8 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
         User user1 = userRepository.save(createUser("1"));
         User user2 = userRepository.save(createUser("2"));
         List<Book> books = bookRepository.saveAll(createBooks());
-        List<Review> reviews = reviewRepository.saveAll(createReviews(user1, books));
-        List<Rating> ratings = ratingRepository.saveAll(createRatings(user1, books));
+        List<Review> reviews = reviewRepository.saveAll(createReviewsForUser(user1, books));
+        List<Rating> ratings = ratingRepository.saveAll(createRatingsForUserWithBooks(user1, books));
         List<ReviewLike> reviewLikesWithUser1 = reviewLikeRepository.saveAll(createReviewLikes(user1, reviews));
         List<ReviewLike> reviewLikesWithUser2 = reviewLikeRepository.saveAll(createReviewLikes(user2, reviews));
 
@@ -80,6 +82,162 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
                         tuple("userImage", "김도형", 1.0, "리뷰 내용16", "16", "제목16", "bookImage"),
                         tuple("userImage", "김도형", 1.0, "리뷰 내용6", "6", "제목6", "bookImage")
                 );
+    }
+
+    @DisplayName("도서와 연관된 리뷰를 조회한다.")
+    @Test
+    void findAllByBookById() {
+        // given
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        List<User> users = userRepository.saveAll(createUsers());
+        List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
+        List<Rating> ratings = ratingRepository.saveAll(createRatingsForBookWithUsers(users, book));
+        List<ReviewLike> reviewLikes = reviewLikeRepository.saveAll(
+                createReviewLikesForReviewWithUsers(users, reviews.get(0)));
+
+        // when
+        SliceResponse<ReviewWithRatingResponse> result = reviewRepository.findAllByBookId(book.getIsbn(), 0, 5,
+                "like");
+
+        // then
+        assertThat(result.isHasContent()).isTrue();
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.isLast()).isFalse();
+        assertThat(result.getNumber()).isEqualTo(1);
+        assertThat(result.getSize()).isEqualTo(5);
+        assertThat(result.getContent()).hasSize(5)
+                .extracting("likeCount")
+                .containsExactly(20L, 0L, 0L, 0L, 0L);
+    }
+
+    @DisplayName("도서와 연관된 리뷰를 최근 생성된 순으로 조회한다.")
+    @Test
+    void findAllByBookIdOrderByRecent() {
+        // given
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        List<User> users = userRepository.saveAll(createUsers());
+        List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
+        List<Rating> ratings = ratingRepository.saveAll(createRatingsForBookWithUsers(users, book));
+        List<ReviewLike> reviewLikes = reviewLikeRepository.saveAll(
+                createReviewLikesForReviewWithUsers(users, reviews.get(0)));
+
+        // when
+        SliceResponse<ReviewWithRatingResponse> result = reviewRepository.findAllByBookId(book.getIsbn(), 0, 5,
+                "recent");
+
+        // then
+        assertThat(result.isHasContent()).isTrue();
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.isLast()).isFalse();
+        assertThat(result.getNumber()).isEqualTo(1);
+        assertThat(result.getSize()).isEqualTo(5);
+        assertThat(result.getContent()).hasSize(5)
+                .extracting("reviewId", "ratingId")
+                .contains(
+                        tuple(reviews.get(reviews.size() - 1).getId(), ratings.get(ratings.size() - 1).getId()),
+                        tuple(reviews.get(reviews.size() - 2).getId(), ratings.get(ratings.size() - 2).getId()),
+                        tuple(reviews.get(reviews.size() - 3).getId(), ratings.get(ratings.size() - 3).getId()),
+                        tuple(reviews.get(reviews.size() - 4).getId(), ratings.get(ratings.size() - 4).getId()),
+                        tuple(reviews.get(reviews.size() - 5).getId(), ratings.get(ratings.size() - 5).getId())
+                );
+    }
+
+    @DisplayName("도서와 연관된 리뷰를 별점 많은 순으로 조회한다.")
+    @Test
+    public void findAllBookIdOrderByRatingDesc() {
+        // given
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        List<User> users = userRepository.saveAll(createUsers());
+        List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
+        List<Rating> ratings = ratingRepository.saveAll(createRatingsForBookWithUsers(users, book));
+        List<ReviewLike> reviewLikes = reviewLikeRepository.saveAll(
+                createReviewLikesForReviewWithUsers(users, reviews.get(0)));
+
+        // when
+        SliceResponse<ReviewWithRatingResponse> result = reviewRepository.findAllByBookId(book.getIsbn(), 0, 5,
+                "rating_desc");
+
+        // then
+        assertThat(result.isHasContent()).isTrue();
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.isLast()).isFalse();
+        assertThat(result.getNumber()).isEqualTo(1);
+        assertThat(result.getSize()).isEqualTo(5);
+        assertThat(result.getContent()).hasSize(5)
+                .extracting("starRating")
+                .containsExactly(5.0, 5.0, 5.0, 5.0, 4.0);
+    }
+
+    @DisplayName("도서와 연관된 리뷰를 별점 높은 순으로 조회 시 별점이 없는 리뷰는 조회되지 않는다.")
+    @Test
+    public void findAllBookIdOrderByRatingDescWithoutRating() {
+        // given
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        List<User> users = userRepository.saveAll(createUsers());
+        List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
+        List<ReviewLike> reviewLikes = reviewLikeRepository.saveAll(
+                createReviewLikesForReviewWithUsers(users, reviews.get(0)));
+
+        // when
+        SliceResponse<ReviewWithRatingResponse> result = reviewRepository.findAllByBookId(book.getIsbn(), 0, 5,
+                "rating_desc");
+
+        // then
+        assertThat(result.isHasContent()).isFalse();
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.isLast()).isTrue();
+        assertThat(result.getNumber()).isEqualTo(1);
+        assertThat(result.getSize()).isEqualTo(0);
+        assertThat(result.getContent()).hasSize(0);
+    }
+
+    @DisplayName("도서와 연관된 리뷰를 별점 낮은 순으로 조회한다.")
+    @Test
+    public void findAllBookIdOrderByRatingAsc() {
+        // given
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        List<User> users = userRepository.saveAll(createUsers());
+        List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
+        List<Rating> ratings = ratingRepository.saveAll(createRatingsForBookWithUsers(users, book));
+        List<ReviewLike> reviewLikes = reviewLikeRepository.saveAll(
+                createReviewLikesForReviewWithUsers(users, reviews.get(0)));
+
+        // when
+        SliceResponse<ReviewWithRatingResponse> result = reviewRepository.findAllByBookId(book.getIsbn(), 0, 5,
+                "rating_asc");
+
+        // then
+        assertThat(result.isHasContent()).isTrue();
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.isLast()).isFalse();
+        assertThat(result.getNumber()).isEqualTo(1);
+        assertThat(result.getSize()).isEqualTo(5);
+        assertThat(result.getContent()).hasSize(5)
+                .extracting("starRating")
+                .containsExactly(1.0, 1.0, 1.0, 1.0, 2.0);
+    }
+
+    @DisplayName("도서와 연관된 리뷰를 별점 낮은 순으로 조회 시 별점이 없는 경우 조회되지 않는다.")
+    @Test
+    public void findAllBookIdOrderByRatingAscWithoutRating() {
+        // given
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        List<User> users = userRepository.saveAll(createUsers());
+        List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
+        List<ReviewLike> reviewLikes = reviewLikeRepository.saveAll(
+                createReviewLikesForReviewWithUsers(users, reviews.get(0)));
+
+        // when
+        SliceResponse<ReviewWithRatingResponse> result = reviewRepository.findAllByBookId(book.getIsbn(), 0, 5,
+                "rating_asc");
+
+        // then
+        assertThat(result.isHasContent()).isFalse();
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.isLast()).isTrue();
+        assertThat(result.getNumber()).isEqualTo(1);
+        assertThat(result.getSize()).isEqualTo(0);
+        assertThat(result.getContent()).hasSize(0);
     }
 
     private static List<Book> createBooks() {
@@ -101,16 +259,22 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
                 .build();
     }
 
-    private static List<Review> createReviews(User user, List<Book> books) {
+    private static List<Review> createReviewsForUser(User user, List<Book> books) {
         return IntStream.range(0, 20)
                 .mapToObj(i -> {
                     double rating = i % 5 + 1.0; // 1.0, 2.0, 3.0, 4.0, 5.0이 순환되도록 설정
-                    return createReview(user, books.get(i), rating); // Review 객체 생성
+                    return createReview(user, books.get(i)); // Review 객체 생성
                 })
                 .collect(Collectors.toList());
     }
 
-    private static Review createReview(User user, Book book, Double rating) {
+    private static List<Review> createReviewsForBook(List<User> users, Book book) {
+        return IntStream.range(0, 20)
+                .mapToObj(i -> createReview(users.get(i), book))
+                .toList();
+    }
+
+    private static Review createReview(User user, Book book) {
         return Review.builder()
                 .user(user)
                 .book(book)
@@ -123,6 +287,13 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
                 .map(review -> createReviewLike(user, review))
                 .toList();
     }
+
+    private List<ReviewLike> createReviewLikesForReviewWithUsers(List<User> users, Review review) {
+        return users.stream()
+                .map(user -> createReviewLike(user, review))
+                .toList();
+    }
+
 
     private static ReviewLike createReviewLike(User user, Review review) {
         return ReviewLike.builder()
@@ -144,13 +315,41 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
                 .build();
     }
 
-    private static List<Rating> createRatings(User user, List<Book> books) {
+    private static User createUserWithId(int id) {
+        return User.builder()
+                .name("사용자" + id)
+                .profileImage("www.profileImage.com/" + id)
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId(String.valueOf(id))
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .build();
+    }
+
+    private static List<User> createUsers() {
+        return IntStream.range(0, 20)
+                .mapToObj(i -> createUserWithId(i))
+                .toList();
+    }
+
+    private static List<Rating> createRatingsForUserWithBooks(User user, List<Book> books) {
         return IntStream.range(0, 20)
                 .mapToObj(i -> {
                     double rating = i % 5 + 1.0;
                     return createRating(user, books.get(i), rating);
                 })
                 .collect(Collectors.toList());
+    }
+
+    private static List<Rating> createRatingsForBookWithUsers(List<User> users, Book book) {
+        return IntStream.range(0, 20)
+                .mapToObj(i -> {
+                    double rating = i % 5 + 1.0;
+                    return createRating(users.get(i), book, rating);
+                })
+                .toList();
     }
 
     private static Rating createRating(User user, Book book, Double rating) {
