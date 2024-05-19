@@ -112,7 +112,8 @@ class CommentServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId());
+        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId(),
+                LocalDateTime.now());
 
         // then
         assertThat(response)
@@ -148,7 +149,8 @@ class CommentServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        assertThatThrownBy(() -> commentService.writeComment(request, talkRoom.getId(), user.getId()))
+        assertThatThrownBy(
+                () -> commentService.writeComment(request, talkRoom.getId(), user.getId(), LocalDateTime.now()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("의견을 쓸 권한이 없습니다.");
     }
@@ -180,7 +182,8 @@ class CommentServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        assertThatThrownBy(() -> commentService.writeComment(request, talkRoom.getId(), user.getId()))
+        assertThatThrownBy(
+                () -> commentService.writeComment(request, talkRoom.getId(), user.getId(), LocalDateTime.now()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("의견을 쓸 권한이 없습니다.");
     }
@@ -210,7 +213,8 @@ class CommentServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId());
+        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId(),
+                LocalDateTime.now());
 
         // then
         assertThat(response.getContent()).isEqualTo("의견 남기기");
@@ -245,7 +249,8 @@ class CommentServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId());
+        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId(),
+                LocalDateTime.now());
 
         // then
         assertThat(response)

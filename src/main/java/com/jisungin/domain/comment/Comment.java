@@ -11,8 +11,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,18 +39,23 @@ public class Comment extends BaseEntity {
     @Column(name = "comment_content", length = 2000)
     private String content;
 
+    @Column(name = "comment_registered_datetime")
+    private LocalDateTime registeredDateTime;
+
     @Builder
-    private Comment(User user, TalkRoom talkRoom, String content) {
+    private Comment(User user, TalkRoom talkRoom, String content, LocalDateTime registeredDateTime) {
         this.user = user;
         this.talkRoom = talkRoom;
         this.content = content;
+        this.registeredDateTime = registeredDateTime;
     }
 
-    public static Comment create(CommentCreateServiceRequest request, User user, TalkRoom talkRoom) {
+    public static Comment create(CommentCreateServiceRequest request, User user, TalkRoom talkRoom, LocalDateTime now) {
         return Comment.builder()
                 .content(request.getContent())
                 .user(user)
                 .talkRoom(talkRoom)
+                .registeredDateTime(now)
                 .build();
     }
 

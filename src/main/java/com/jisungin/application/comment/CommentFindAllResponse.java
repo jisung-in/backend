@@ -49,7 +49,7 @@ public class CommentFindAllResponse {
                             .content(comment.getContent())
                             .commentLikeCount(comment.getCommentLikeCount())
                             .commentImages(commentImageUrls)
-                            .registeredDateTime(comment.getCreateTime())
+                            .registeredDateTime(comment.getRegisteredDateTime())
                             .build();
                 })
                 .collect(Collectors.toList());

@@ -20,6 +20,7 @@ import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,8 @@ public class CommentService {
     private final CommentImageRepository commentImageRepository;
 
     @Transactional
-    public CommentResponse writeComment(CommentCreateServiceRequest request, Long talkRoomId, Long userId) {
+    public CommentResponse writeComment(CommentCreateServiceRequest request, Long talkRoomId, Long userId,
+                                        LocalDateTime now) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -56,7 +58,7 @@ public class CommentService {
 
         checkPermissionToWriteComment(talkRoomReadingStatus, userReadingStatus.orElse(ReadingStatus.NONE));
 
-        Comment comment = Comment.create(request, user, talkRoom);
+        Comment comment = Comment.create(request, user, talkRoom, now);
 
         commentRepository.save(comment);
 

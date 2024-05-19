@@ -57,7 +57,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .build();
 
         given(commentService.writeComment(any(CommentCreateServiceRequest.class), any(Long.class),
-                anyLong()))
+                anyLong(), any(LocalDateTime.class)))
                 .willReturn(CommentResponse.builder()
                         .content("의견 내용")
                         .userName("user")
