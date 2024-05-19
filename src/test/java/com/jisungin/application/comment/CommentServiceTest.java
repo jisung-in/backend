@@ -529,6 +529,54 @@ class CommentServiceTest extends ServiceTestSupport {
     }
 
     @Test
+    @DisplayName("의견을 조회할 때 이미지도 같이 조회 된다.")
+    void findAllCommentsWithImage() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        List<Comment> comments = IntStream.range(1, 6)
+                .mapToObj(i -> Comment.builder()
+                        .talkRoom(talkRoom)
+                        .user(user)
+                        .content("의견 " + i)
+                        .build())
+                .toList();
+
+        for (int i = 0; i < 5; i++) {
+            commentRepository.save(comments.get(i));
+        }
+
+        List<CommentImage> images = IntStream.range(1, 6)
+                .mapToObj(i -> CommentImage.builder()
+                        .comment(comments.get(i - 1))
+                        .imageUrl("이미지 " + i)
+                        .build())
+                .toList();
+
+        commentImageRepository.saveAll(images);
+
+        // when
+        CommentPageResponse response = commentService.findAllComments(talkRoom.getId(), user.getId());
+
+        // then
+        assertThat(5L).isEqualTo(response.getResponse().getTotalCount());
+        assertThat("이미지 5").isEqualTo(response.getResponse().getQueryResponse().get(0).getCommentImages().get(0));
+        assertThat("이미지 4").isEqualTo(response.getResponse().getQueryResponse().get(1).getCommentImages().get(0));
+        assertThat("이미지 3").isEqualTo(response.getResponse().getQueryResponse().get(2).getCommentImages().get(0));
+        assertThat("이미지 2").isEqualTo(response.getResponse().getQueryResponse().get(3).getCommentImages().get(0));
+        assertThat("이미지 1").isEqualTo(response.getResponse().getQueryResponse().get(4).getCommentImages().get(0));
+    }
+
+    @Test
     @DisplayName("유저가 로그인을 한 상태에서 의견을 조회하면 본인이 좋아요한 의견을 확인할 수 있다.")
     void findAllCommentsWithLike() throws Exception {
         // given

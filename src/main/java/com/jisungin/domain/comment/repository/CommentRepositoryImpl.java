@@ -21,6 +21,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
         return queryFactory.select(new QCommentQueryResponse(
                         comment.id.as("commentId"),
                         user.name.as("userName"),
+                        user.profileImage,
                         comment.content,
                         commentLike.count().as("commentLiKeCount"),
                         comment.createDateTime

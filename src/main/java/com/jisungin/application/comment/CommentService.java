@@ -22,6 +22,7 @@ import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -79,12 +80,18 @@ public class CommentService {
 
         List<CommentQueryResponse> findComment = commentRepository.findAllComments(talkRoom.getId());
 
+        List<Long> commentIds = findComment.stream().map(CommentQueryResponse::getCommentId).toList();
+
+        Map<Long, List<CommentImage>> commentImages = commentImageRepository.findCommentImageByIds(commentIds);
+
         Long totalCount = commentRepository.commentTotalCount(talkRoom.getId());
+
+        List<CommentFindAllResponse> response = CommentFindAllResponse.create(findComment, commentImages);
 
         List<Long> userLikeCommentIds =
                 (user.getId() != null) ? commentLikeRepository.userLikeComments(user.getId()) : Collections.emptyList();
 
-        return CommentPageResponse.of(PageResponse.of(findComment.size(), totalCount, findComment), userLikeCommentIds);
+        return CommentPageResponse.of(PageResponse.of(findComment.size(), totalCount, response), userLikeCommentIds);
     }
 
     @Transactional

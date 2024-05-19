@@ -24,11 +24,11 @@ import com.jisungin.api.comment.CommentController;
 import com.jisungin.api.comment.request.CommentCreateRequest;
 import com.jisungin.api.comment.request.CommentEditRequest;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.comment.CommentFindAllResponse;
 import com.jisungin.application.comment.CommentService;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.request.CommentEditServiceRequest;
 import com.jisungin.application.comment.response.CommentPageResponse;
-import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.jisungin.application.comment.response.CommentResponse;
 import com.jisungin.docs.RestDocsSupport;
 import java.time.LocalDateTime;
@@ -106,15 +106,17 @@ public class CommentControllerDocsTest extends RestDocsSupport {
     @Test
     @DisplayName("의견을 조화하는 API")
     void getComments() throws Exception {
-        CommentQueryResponse query = CommentQueryResponse.builder()
+        CommentFindAllResponse query = CommentFindAllResponse.builder()
                 .commentId(1L)
                 .userName("유저 이름")
+                .profileImage("프로필 이미지")
                 .content("의견 내용")
                 .commentLikeCount(0L)
-                .createTime(LocalDateTime.now())
+                .commentImages(List.of("이미지 URL"))
+                .registeredDateTime(LocalDateTime.now())
                 .build();
 
-        PageResponse<CommentQueryResponse> response = PageResponse.<CommentQueryResponse>builder()
+        PageResponse<CommentFindAllResponse> response = PageResponse.<CommentFindAllResponse>builder()
                 .queryResponse(List.of(query))
                 .size(50)
                 .totalCount(1L)
@@ -154,12 +156,17 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                                         .description("의견 ID"),
                                 fieldWithPath("data.response.queryResponse[].userName").type(JsonFieldType.STRING)
                                         .description("작성자 이름"),
+                                fieldWithPath("data.response.queryResponse[].profileImage").type(JsonFieldType.STRING)
+                                        .description("프로필 이미지"),
                                 fieldWithPath("data.response.queryResponse[].content").type(JsonFieldType.STRING)
                                         .description("의견 내용"),
                                 fieldWithPath("data.response.queryResponse[].commentLikeCount").type(
                                                 JsonFieldType.NUMBER)
                                         .description("의견 좋아요 개수"),
-                                fieldWithPath("data.response.queryResponse[].createTime").type(JsonFieldType.ARRAY)
+                                fieldWithPath("data.response.queryResponse[].commentImages").type(JsonFieldType.ARRAY)
+                                        .description("의견 이미지 URL"),
+                                fieldWithPath("data.response.queryResponse[].registeredDateTime").type(
+                                                JsonFieldType.ARRAY)
                                         .description("의견 생성 시간"),
                                 fieldWithPath("data.response.totalCount").type(JsonFieldType.NUMBER)
                                         .description("의견 총 개수"),
