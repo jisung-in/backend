@@ -1,5 +1,6 @@
 package com.jisungin.application.talkroomlike;
 
+import com.jisungin.application.talkroomlike.response.TalkRoomIds;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroomlike.TalkRoomLike;
@@ -20,6 +21,13 @@ public class TalkRoomLikeService {
     private final TalkRoomLikeRepository talkRoomLikeRepository;
     private final TalkRoomRepository talkRoomRepository;
     private final UserRepository userRepository;
+
+    public TalkRoomIds findTalkRoomIds(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        return TalkRoomIds.of(talkRoomLikeRepository.findTalkRoomIdsByUserId(user.getId()));
+    }
 
     @Transactional
     public void likeTalkRoom(Long talkRoomId, Long userId) {
