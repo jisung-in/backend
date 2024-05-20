@@ -26,7 +26,7 @@ class CommentControllerTest extends ControllerTestSupport {
                 .build();
 
         // when // then
-        mockMvc.perform(post("/v1/1/comments")
+        mockMvc.perform(post("/v1/talk-rooms/1/comments")
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
                         .session(mockHttpSession)
@@ -46,7 +46,7 @@ class CommentControllerTest extends ControllerTestSupport {
                 .build();
 
         // when // then
-        mockMvc.perform(post("/v1/1/comments")
+        mockMvc.perform(post("/v1/talk-rooms/1/comments")
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
                         .session(mockHttpSession)
@@ -97,7 +97,7 @@ class CommentControllerTest extends ControllerTestSupport {
     @DisplayName("의견을 조회한다.")
     void getComments() throws Exception {
         // when // then
-        mockMvc.perform(get("/v1/1/comments")
+        mockMvc.perform(get("/v1/talk-rooms/1/comments")
                         .contentType(APPLICATION_JSON)
                         .session(mockHttpSession)
                 )

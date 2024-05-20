@@ -54,7 +54,7 @@ public class TalkRoomController {
                         now));
     }
 
-    @GetMapping("/talk-room/{talkRoomId}")
+    @GetMapping("/talk-rooms/{talkRoomId}")
     public ApiResponse<TalkRoomFindOneResponse> findOneTalkRoom(@PathVariable Long talkRoomId,
                                                                 @GuestOrAuth Long userId) {
         return ApiResponse.ok(talkRoomService.findOneTalkRoom(talkRoomId, userId));

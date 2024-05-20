@@ -9,6 +9,7 @@ import com.jisungin.application.comment.CommentService;
 import com.jisungin.application.comment.response.CommentPageResponse;
 import com.jisungin.application.comment.response.CommentResponse;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,14 +28,15 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    @PostMapping("{talkRoomId}/comments")
+    @PostMapping("/talk-rooms/{talkRoomId}/comments")
     public ApiResponse<CommentResponse> writeComment(@PathVariable("talkRoomId") Long talkRoomId,
                                                      @Valid @RequestBody CommentCreateRequest request,
                                                      @Auth Long userId) {
-        return ApiResponse.ok(commentService.writeComment(request.toService(), talkRoomId, userId));
+        LocalDateTime now = LocalDateTime.now();
+        return ApiResponse.ok(commentService.writeComment(request.toService(), talkRoomId, userId, now));
     }
 
-    @GetMapping("{talkRoomId}/comments")
+    @GetMapping("/talk-rooms/{talkRoomId}/comments")
     public ApiResponse<CommentPageResponse> findAllComments(@PathVariable Long talkRoomId,
                                                             @GuestOrAuth Long userId) {
         return ApiResponse.ok(commentService.findAllComments(talkRoomId, userId));

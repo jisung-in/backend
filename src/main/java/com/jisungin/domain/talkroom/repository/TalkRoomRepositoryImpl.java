@@ -31,12 +31,13 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     @Override
-    public Long countTalkRooms() {
+    public Long countTalkRooms(String day, LocalDateTime now) {
         return queryFactory
                 .select(talkRoom.count())
                 .from(talkRoom)
                 .join(talkRoom.user, user)
                 .join(talkRoom.book, book)
+                .where(dataTimeEq(OrderDay.of(day), now))
                 .fetchOne();
     }
 

@@ -20,8 +20,11 @@ import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,21 +43,22 @@ public class CommentService {
     private final CommentImageRepository commentImageRepository;
 
     @Transactional
-    public CommentResponse writeComment(CommentCreateServiceRequest request, Long talkRoomId, Long userId) {
+    public CommentResponse writeComment(CommentCreateServiceRequest request, Long talkRoomId, Long userId,
+                                        LocalDateTime now) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        ReadingStatus userReadingStatus = userLibraryRepository.findByUserId(user.getId());
+        Optional<ReadingStatus> userReadingStatus = userLibraryRepository.findByUserId(user.getId());
 
         List<ReadingStatus> talkRoomReadingStatus = talkRoomRoleRepository.findTalkRoomRoleByTalkRoomId(
                 talkRoom.getId());
 
-        checkPermissionToWriteComment(talkRoomReadingStatus, userReadingStatus);
+        checkPermissionToWriteComment(talkRoomReadingStatus, userReadingStatus.orElse(ReadingStatus.NONE));
 
-        Comment comment = Comment.create(request, user, talkRoom);
+        Comment comment = Comment.create(request, user, talkRoom, now);
 
         commentRepository.save(comment);
 
@@ -74,16 +78,20 @@ public class CommentService {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
         List<CommentQueryResponse> findComment = commentRepository.findAllComments(talkRoom.getId());
+
+        List<Long> commentIds = findComment.stream().map(CommentQueryResponse::getCommentId).toList();
+
+        Map<Long, List<CommentImage>> commentImages = commentImageRepository.findCommentImageByIds(commentIds);
 
         Long totalCount = commentRepository.commentTotalCount(talkRoom.getId());
 
-        List<Long> userLikeCommentIds =
-                (user.getId() != null) ? commentLikeRepository.userLikeComments(user.getId()) : Collections.emptyList();
+        List<CommentFindAllResponse> response = CommentFindAllResponse.create(findComment, commentImages);
 
-        return CommentPageResponse.of(PageResponse.of(findComment.size(), totalCount, findComment), userLikeCommentIds);
+        List<Long> userLikeCommentIds =
+                (userId != null) ? commentLikeRepository.userLikeComments(userId, commentIds) : Collections.emptyList();
+
+        return CommentPageResponse.of(PageResponse.of(findComment.size(), totalCount, response), userLikeCommentIds);
     }
 
     @Transactional

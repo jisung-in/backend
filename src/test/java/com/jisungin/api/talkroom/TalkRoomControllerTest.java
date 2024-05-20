@@ -198,7 +198,7 @@ class TalkRoomControllerTest extends ControllerTestSupport {
     @DisplayName("토크방 단건 조회를 한다.")
     void findOneTalkRoom() throws Exception {
         // when // then
-        mockMvc.perform(get("/v1/talk-room/1")
+        mockMvc.perform(get("/v1/talk-rooms/1")
                         .contentType(APPLICATION_JSON)
                 )
                 .andDo(print())

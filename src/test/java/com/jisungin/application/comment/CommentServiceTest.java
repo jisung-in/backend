@@ -17,13 +17,13 @@ import com.jisungin.domain.commentimage.CommentImage;
 import com.jisungin.domain.commentimage.repository.CommentImageRepository;
 import com.jisungin.domain.commentlike.CommentLike;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
-import com.jisungin.domain.user.OauthId;
-import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.talkroomimage.repository.TalkRoomImageRepository;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.domain.userlibrary.UserLibrary;
@@ -112,7 +112,8 @@ class CommentServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId());
+        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId(),
+                LocalDateTime.now());
 
         // then
         assertThat(response)
@@ -148,7 +149,8 @@ class CommentServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        assertThatThrownBy(() -> commentService.writeComment(request, talkRoom.getId(), user.getId()))
+        assertThatThrownBy(
+                () -> commentService.writeComment(request, talkRoom.getId(), user.getId(), LocalDateTime.now()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("의견을 쓸 권한이 없습니다.");
     }
@@ -180,9 +182,42 @@ class CommentServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        assertThatThrownBy(() -> commentService.writeComment(request, talkRoom.getId(), user.getId()))
+        assertThatThrownBy(
+                () -> commentService.writeComment(request, talkRoom.getId(), user.getId(), LocalDateTime.now()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("의견을 쓸 권한이 없습니다.");
+    }
+
+    @Test
+    @DisplayName("토론방의 참가조건이 상관없음이면 유저는 책에 대한 상태가 없어도 의견을 작성할 수 있다.")
+    void writeCommentWithEmpty() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        TalkRoomRole role = TalkRoomRole.builder()
+                .talkRoom(talkRoom)
+                .readingStatus(ReadingStatus.NONE)
+                .build();
+
+        talkRoomRoleRepository.save(role);
+
+        CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
+                .content("의견 남기기")
+                .build();
+
+        // when
+        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId(),
+                LocalDateTime.now());
+
+        // then
+        assertThat(response.getContent()).isEqualTo("의견 남기기");
     }
 
     @Test
@@ -214,7 +249,8 @@ class CommentServiceTest extends ServiceTestSupport {
                 .build();
 
         // when
-        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId());
+        CommentResponse response = commentService.writeComment(request, talkRoom.getId(), user.getId(),
+                LocalDateTime.now());
 
         // then
         assertThat(response)
@@ -495,6 +531,54 @@ class CommentServiceTest extends ServiceTestSupport {
         assertThat("의견 3").isEqualTo(response.getResponse().getQueryResponse().get(2).getContent());
         assertThat("의견 2").isEqualTo(response.getResponse().getQueryResponse().get(3).getContent());
         assertThat("의견 1").isEqualTo(response.getResponse().getQueryResponse().get(4).getContent());
+    }
+
+    @Test
+    @DisplayName("의견을 조회할 때 이미지도 같이 조회 된다.")
+    void findAllCommentsWithImage() throws Exception {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        TalkRoom talkRoom = createTalkRoom(book, user);
+        talkRoomRepository.save(talkRoom);
+
+        createTalkRoomRole(talkRoom);
+
+        List<Comment> comments = IntStream.range(1, 6)
+                .mapToObj(i -> Comment.builder()
+                        .talkRoom(talkRoom)
+                        .user(user)
+                        .content("의견 " + i)
+                        .build())
+                .toList();
+
+        for (int i = 0; i < 5; i++) {
+            commentRepository.save(comments.get(i));
+        }
+
+        List<CommentImage> images = IntStream.range(1, 6)
+                .mapToObj(i -> CommentImage.builder()
+                        .comment(comments.get(i - 1))
+                        .imageUrl("이미지 " + i)
+                        .build())
+                .toList();
+
+        commentImageRepository.saveAll(images);
+
+        // when
+        CommentPageResponse response = commentService.findAllComments(talkRoom.getId(), user.getId());
+
+        // then
+        assertThat(5L).isEqualTo(response.getResponse().getTotalCount());
+        assertThat("이미지 5").isEqualTo(response.getResponse().getQueryResponse().get(0).getCommentImages().get(0));
+        assertThat("이미지 4").isEqualTo(response.getResponse().getQueryResponse().get(1).getCommentImages().get(0));
+        assertThat("이미지 3").isEqualTo(response.getResponse().getQueryResponse().get(2).getCommentImages().get(0));
+        assertThat("이미지 2").isEqualTo(response.getResponse().getQueryResponse().get(3).getCommentImages().get(0));
+        assertThat("이미지 1").isEqualTo(response.getResponse().getQueryResponse().get(4).getCommentImages().get(0));
     }
 
     @Test

@@ -9,7 +9,7 @@ public interface TalkRoomRepositoryCustom {
     List<TalkRoomQueryResponse> findAllTalkRoom(long offset, int size, String order, String search, String day,
                                                 LocalDateTime now);
 
-    Long countTalkRooms();
+    Long countTalkRooms(String day, LocalDateTime now);
 
     List<TalkRoomQueryResponse> findTalkRoomsRelatedBook(String isbn, long offset, Integer size);
 
