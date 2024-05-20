@@ -168,4 +168,22 @@ public class TalkRoomService {
         talkRoomRepository.delete(talkRoom);
     }
 
+    public TalkRoomPageResponse findUserTalkRoom(Long offset, Integer size, String order,
+                                                 Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        List<TalkRoomQueryResponse> findTalkRoom = talkRoomRepository.findByTalkRoomOwner(offset, size, order,
+                user.getId());
+
+        Map<Long, List<ReadingStatus>> talkRoomRoleMap = talkRoomRoleRepository.findTalkRoomRoleByIds(
+                findTalkRoom.stream().map(TalkRoomQueryResponse::getId).toList());
+
+        Long totalCount = talkRoomRepository.countTalkRoomsByUserId(user.getId());
+
+        List<Long> likeTalkRoomIds = talkRoomLikeRepository.userLikeTalkRooms(userId);
+
+        return TalkRoomPageResponse.of(PageResponse.of(findTalkRoom.size(), totalCount,
+                TalkRoomFindAllResponse.create(findTalkRoom, talkRoomRoleMap)), likeTalkRoomIds);
+    }
+
 }

@@ -42,6 +42,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     // 책과 연관된 TalkRoomResponse 조회
+
     @Override
     public List<TalkRoomQueryResponse> findTalkRoomsRelatedBook(String isbn, long offset, Integer size) {
         return queryFactory.select(new QTalkRoomQueryResponse(
@@ -81,6 +82,42 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     @Override
     public TalkRoomQueryResponse findOneTalkRoom(Long talkRoomId) {
         return findTalkRoomByTalkRoomId(talkRoomId);
+    }
+
+    @Override
+    public List<TalkRoomQueryResponse> findByTalkRoomOwner(Long offset, Integer size, String order, Long id) {
+        return queryFactory.select(new QTalkRoomQueryResponse(
+                        talkRoom.id,
+                        user.profileImage,
+                        user.name.as("username"),
+                        talkRoom.title,
+                        talkRoom.content,
+                        book.title.as("bookName"),
+                        book.authors.as("bookAuthor"),
+                        book.thumbnail.as("bookThumbnail"),
+                        talkRoomLike.count().as("likeCount"),
+                        talkRoom.registeredDateTime.as("registeredDateTime")
+                ))
+                .from(talkRoom)
+                .join(talkRoom.user, user)
+                .join(talkRoom.book, book)
+                .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
+                .where(talkRoom.user.id.eq(id))
+                .groupBy(talkRoom.id)
+                .offset(offset)
+                .limit(size)
+                .orderBy(condition(OrderType.convertToOrderType(order)))
+                .fetch();
+    }
+
+    @Override
+    public Long countTalkRoomsByUserId(Long userId) {
+        return queryFactory
+                .select(talkRoom.count())
+                .from(talkRoom)
+                .join(talkRoom.user, user)
+                .where(user.id.eq(userId))
+                .fetchOne();
     }
 
     // 토크룸 페이징 조회 쿼리

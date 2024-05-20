@@ -81,4 +81,13 @@ public class TalkRoomController {
                 .build();
     }
 
+    @GetMapping("/users/talk-rooms")
+    public ApiResponse<TalkRoomPageResponse> findUserTalkRoom(
+            @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") Integer size,
+            @RequestParam(value = "order", required = false, defaultValue = "recent") String order,
+            @Auth Long userId) {
+        return ApiResponse.ok(talkRoomService.findUserTalkRoom(Offset.of(page, size), size, order, userId));
+    }
+
 }
