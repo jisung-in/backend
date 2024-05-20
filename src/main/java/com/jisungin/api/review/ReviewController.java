@@ -16,8 +16,7 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
-    public ApiResponse<Void> createReview(@Valid @RequestBody ReviewCreateRequest request,
-                                          @Auth Long userId) {
+    public ApiResponse<Void> createReview(@Valid @RequestBody ReviewCreateRequest request, @Auth Long userId) {
         reviewService.createReview(request.toServiceRequest(), userId);
         return ApiResponse.ok();
     }

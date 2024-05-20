@@ -17,14 +17,14 @@ public class RatingController {
     private final RatingService ratingService;
 
     @PostMapping
-    public ApiResponse<Void> createRating(@Auth Long userId, @Valid RatingCreateRequest request) {
+    public ApiResponse<Void> createRating(@Auth Long userId, @Valid @RequestBody RatingCreateRequest request) {
         ratingService.creatingRating(userId, request.toServiceRequest());
         return ApiResponse.ok();
     }
 
     @PatchMapping("/{ratingId}")
     public ApiResponse<Void> updateRating(
-            @Auth Long userId, @PathVariable Long ratingId, @Valid RatingUpdateRequest request) {
+            @Auth Long userId, @PathVariable Long ratingId, @Valid @RequestBody RatingUpdateRequest request) {
         ratingService.updateRating(userId, ratingId, request.toServiceRequest());
         return ApiResponse.ok();
     }

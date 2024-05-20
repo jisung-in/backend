@@ -1,0 +1,38 @@
+[[raiting-create]]
+=== 별점 생성
+
+==== HTTP Request
+
+include::{snippets}/rating/create/http-request.adoc[]
+include::{snippets}/rating/create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/rating/create/http-response.adoc[]
+include::{snippets}/rating/create/response-fields.adoc[]
+
+[[raiting-delete]]
+=== 별점 삭제
+
+==== HTTP Request
+
+include::{snippets}/rating/delete/http-request.adoc[]
+include::{snippets}/rating/delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/rating/delete/http-response.adoc[]
+include::{snippets}/rating/delete/response-fields.adoc[]
+
+[[rating-findAll]]
+=== 별점 페이지 조회
+
+==== HTTP Request
+
+include::{snippets}/rating/findAll/http-request.adoc[]
+include::{snippets}/rating/findAll/query-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/rating/findAll/http-response.adoc[]
+include::{snippets}/rating/findAll/response-fields.adoc[]
