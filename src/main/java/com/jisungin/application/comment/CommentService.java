@@ -78,8 +78,6 @@ public class CommentService {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
         List<CommentQueryResponse> findComment = commentRepository.findAllComments(talkRoom.getId());
 
         List<Long> commentIds = findComment.stream().map(CommentQueryResponse::getCommentId).toList();
@@ -91,7 +89,7 @@ public class CommentService {
         List<CommentFindAllResponse> response = CommentFindAllResponse.create(findComment, commentImages);
 
         List<Long> userLikeCommentIds =
-                (user.getId() != null) ? commentLikeRepository.userLikeComments(user.getId()) : Collections.emptyList();
+                (userId != null) ? commentLikeRepository.userLikeComments(userId, commentIds) : Collections.emptyList();
 
         return CommentPageResponse.of(PageResponse.of(findComment.size(), totalCount, response), userLikeCommentIds);
     }
