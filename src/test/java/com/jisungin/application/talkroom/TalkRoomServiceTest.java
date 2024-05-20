@@ -948,6 +948,52 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         assertThat(15L).isEqualTo(talkRoomAll.size());
     }
 
+    @Test
+    @DisplayName("유저 본인이 생성한 토론방을 조회 한다.")
+    void getTalkRoomsOwner() {
+        // given
+        User user1 = createUser();
+        userRepository.save(user1);
+
+        User user2 = User.builder()
+                .email("user2@gmail.com")
+                .name("userB")
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId("oauthId2")
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .profileImage("sssss")
+                .build();
+
+        userRepository.save(user2);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<TalkRoom> talkRoom1 = listTalkRooms(10, user1, book);
+        List<TalkRoom> talkRoom2 = listTalkRooms(10, user2, book);
+
+        talkRoomRepository.saveAll(talkRoom1);
+        talkRoomRepository.saveAll(talkRoom2);
+
+        for (TalkRoom t : talkRoom1) {
+            createTalkRoomRole(t);
+        }
+
+        for (TalkRoom t : talkRoom2) {
+            createTalkRoomRole(t);
+        }
+
+        // when
+        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, "recent", user1.getId());
+
+        // then
+        assertThat(10).isEqualTo(response.getResponse().getTotalCount());
+        assertThat(20).isEqualTo(talkRoomRepository.findAll().size());
+    }
+
     private static List<User> listUsers() {
         return IntStream.range(0, 10)
                 .mapToObj(i -> User.builder()
