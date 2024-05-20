@@ -85,7 +85,8 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     @Override
-    public List<TalkRoomQueryResponse> findByTalkRoomOwner(Long offset, Integer size, String order, Long id) {
+    public List<TalkRoomQueryResponse> findByTalkRoomOwner(Long offset, Integer size, boolean commentFilter,
+                                                           boolean likeFilter, Long userId) {
         return queryFactory.select(new QTalkRoomQueryResponse(
                         talkRoom.id,
                         user.profileImage,
@@ -102,21 +103,30 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .join(talkRoom.user, user)
                 .join(talkRoom.book, book)
                 .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
-                .where(talkRoom.user.id.eq(id))
+                .leftJoin(comment).on(talkRoom.eq(comment.talkRoom))
+                .where(talkRoom.user.id.eq(userId), commentEq(commentFilter, userId), likeEq(likeFilter, userId))
                 .groupBy(talkRoom.id)
                 .offset(offset)
                 .limit(size)
-                .orderBy(condition(OrderType.convertToOrderType(order)))
+                .orderBy(talkRoom.registeredDateTime.desc())
                 .fetch();
     }
 
+    private BooleanExpression commentEq(boolean commentFilter, Long userId) {
+        return commentFilter ? comment.user.id.eq(userId) : null;
+    }
+
+    private BooleanExpression likeEq(boolean likeFilter, Long userId) {
+        return likeFilter ? talkRoomLike.user.id.eq(userId) : null;
+    }
+
     @Override
-    public Long countTalkRoomsByUserId(Long userId) {
+    public Long countTalkRoomsByUserId(Long userId, boolean commentFilter, boolean likeFilter) {
         return queryFactory
                 .select(talkRoom.count())
                 .from(talkRoom)
                 .join(talkRoom.user, user)
-                .where(user.id.eq(userId))
+                .where(user.id.eq(userId), commentEq(commentFilter, userId), likeEq(likeFilter, userId))
                 .fetchOne();
     }
 

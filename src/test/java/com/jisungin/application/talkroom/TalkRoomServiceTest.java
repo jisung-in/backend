@@ -987,7 +987,8 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         }
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, "recent", user1.getId());
+        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, false, false,
+                user1.getId());
 
         // then
         assertThat(10).isEqualTo(response.getResponse().getTotalCount());

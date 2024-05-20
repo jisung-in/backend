@@ -1,6 +1,7 @@
 package com.jisungin.docs.talkroom;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -411,14 +412,15 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .userLikeTalkRoomIds(null)
                 .build();
 
-        given(talkRoomService.findUserTalkRoom(anyLong(), any(Integer.class), anyString(), anyLong()))
+        given(talkRoomService.findUserTalkRoom(anyLong(), any(Integer.class), anyBoolean(), anyBoolean(), anyLong()))
                 .willReturn(response);
 
         mockMvc.perform(
                         get("/v1/users/talk-rooms")
                                 .param("page", "1")
                                 .param("size", "10")
-                                .param("order", "sort")
+                                .param("commentFilter", "false")
+                                .param("likeFilter", "false")
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())
@@ -431,9 +433,11 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("페이지 번호"),
                                 parameterWithName("size")
                                         .description("페이지 사이즈"),
-                                parameterWithName("order")
+                                parameterWithName("commentFilter")
                                         .description(
-                                                "정렬 기준 : recent(최신순), recommend(좋아요순)")
+                                                "내가 작성한 토크방에 의견을 단 경우 true, 아닌 경우 false"),
+                                parameterWithName("likeFilter")
+                                        .description("내가 작성한 토크방에 좋아요를 누른 경우 true, 아닌 경우 false")
                         ),
                         responseFields(
                                 fieldWithPath("code").type(JsonFieldType.NUMBER)

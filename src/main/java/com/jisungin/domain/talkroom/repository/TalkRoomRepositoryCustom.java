@@ -17,7 +17,8 @@ public interface TalkRoomRepositoryCustom {
 
     TalkRoomQueryResponse findOneTalkRoom(Long talkRoomId);
 
-    List<TalkRoomQueryResponse> findByTalkRoomOwner(Long offset, Integer size, String order, Long id);
+    List<TalkRoomQueryResponse> findByTalkRoomOwner(Long offset, Integer size, boolean commentFilter,
+                                                    boolean likeFilter, Long id);
 
-    Long countTalkRoomsByUserId(Long userId);
+    Long countTalkRoomsByUserId(Long userId, boolean commentFilter, boolean likeFilter);
 }
