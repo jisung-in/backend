@@ -1,4 +1,4 @@
-package com.jisungin.domain.talkRoomLike.repository;
+package com.jisungin.domain.talkroomlike.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -10,7 +10,6 @@ import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroomlike.TalkRoomLike;
-import com.jisungin.domain.talkroomlike.repository.TalkRoomLikeRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -18,6 +17,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +36,14 @@ public class TalkRoomLikeRepositoryTest extends RepositoryTestSupport {
     @Autowired
     private TalkRoomLikeRepository talkRoomLikeRepository;
 
+    @AfterEach
+    void tearDown() {
+        talkRoomLikeRepository.deleteAllInBatch();
+        talkRoomRepository.deleteAllInBatch();
+        bookRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+    }
+
     @Test
     @DisplayName("사용자가 좋아요한 토크방 아이디 조회")
     public void findLikeTalkRoomIdsByUserId() {
@@ -50,17 +58,42 @@ public class TalkRoomLikeRepositoryTest extends RepositoryTestSupport {
         List<TalkRoomLike> talkRoomLikes = talkRoomLikeRepository.saveAll(createTalkRoomLikes(user, talkRooms));
 
         // when
-        List<Long> response = talkRoomLikeRepository.findLikeTalkRoomIdsByUserId(user.getId(),
+        List<Long> result = talkRoomLikeRepository.findLikeTalkRoomIdsByUserId(user.getId(),
                 talkRoomIds);
 
         // then
-        assertThat(response).contains(
+        assertThat(result).hasSize(5)
+                .containsExactly(
                 talkRooms.get(0).getId(),
                 talkRooms.get(1).getId(),
                 talkRooms.get(2).getId(),
                 talkRooms.get(3).getId(),
                 talkRooms.get(4).getId()
         );
+    }
+
+    @DisplayName("사용자가 좋아요 한 토크방 아이디 조회")
+    @Test
+    public void findTalkRoomIdsByUserId() {
+        // given
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+
+        List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(user, book));
+        List<TalkRoomLike> talkRoomLikes = talkRoomLikeRepository.saveAll(createTalkRoomLikes(user, talkRooms));
+
+        // when
+        List<Long> result = talkRoomLikeRepository.findTalkRoomIdsByUserId(user.getId());
+
+        // then
+        assertThat(result).hasSize(5)
+                .containsExactly(
+                        talkRooms.get(0).getId(),
+                        talkRooms.get(1).getId(),
+                        talkRooms.get(2).getId(),
+                        talkRooms.get(3).getId(),
+                        talkRooms.get(4).getId()
+                );
     }
 
     @NotNull
