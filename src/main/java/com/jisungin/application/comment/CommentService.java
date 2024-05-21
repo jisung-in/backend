@@ -7,6 +7,8 @@ import com.jisungin.application.comment.response.CommentPageResponse;
 import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.jisungin.application.comment.response.CommentResponse;
 import com.jisungin.domain.ReadingStatus;
+import com.jisungin.domain.book.Book;
+import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.commentimage.CommentImage;
@@ -41,6 +43,7 @@ public class CommentService {
     private final UserLibraryRepository userLibraryRepository;
     private final TalkRoomRoleRepository talkRoomRoleRepository;
     private final CommentImageRepository commentImageRepository;
+    private final BookRepository bookRepository;
 
     @Transactional
     public CommentResponse writeComment(CommentCreateServiceRequest request, Long talkRoomId, Long userId,
@@ -51,7 +54,10 @@ public class CommentService {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        Optional<ReadingStatus> userReadingStatus = userLibraryRepository.findByUserId(user.getId());
+        Book book = bookRepository.findById(request.getIsbn())
+                .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
+
+        Optional<ReadingStatus> userReadingStatus = userLibraryRepository.findByUserId(user.getId(), book.getIsbn());
 
         List<ReadingStatus> talkRoomReadingStatus = talkRoomRoleRepository.findTalkRoomRoleByTalkRoomId(
                 talkRoom.getId());

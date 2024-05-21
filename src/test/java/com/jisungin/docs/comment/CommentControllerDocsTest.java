@@ -54,6 +54,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
         CommentCreateRequest request = CommentCreateRequest.builder()
                 .content("의견 내용")
                 .imageUrls(List.of("이미지 URL"))
+                .isbn("isbn")
                 .build();
 
         given(commentService.writeComment(any(CommentCreateServiceRequest.class), any(Long.class),
@@ -82,7 +83,9 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("content").type(JsonFieldType.STRING)
                                         .description("의견 내용"),
                                 fieldWithPath("imageUrls").type(JsonFieldType.ARRAY)
-                                        .description("이미지 URL").optional()
+                                        .description("이미지 URL").optional(),
+                                fieldWithPath("isbn").type(JsonFieldType.STRING)
+                                        .description("ISBN")
                         ),
                         responseFields(
                                 fieldWithPath("code").type(JsonFieldType.NUMBER)

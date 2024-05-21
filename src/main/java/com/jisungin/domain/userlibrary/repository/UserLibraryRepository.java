@@ -10,9 +10,9 @@ import org.springframework.data.repository.query.Param;
 public interface UserLibraryRepository extends JpaRepository<UserLibrary, Long>, UserLibraryRepositoryCustom {
 
     @Query(
-            "SELECT ul.status FROM UserLibrary ul JOIN ul.user u WHERE u.id = :id"
+            "SELECT ul.status FROM UserLibrary ul JOIN ul.user u JOIN ul.book b WHERE u.id = :id AND b.isbn = :isbn"
     )
-    Optional<ReadingStatus> findByUserId(@Param("id") Long userId);
+    Optional<ReadingStatus> findByUserId(@Param("id") Long userId, @Param("isbn") String isbn);
 
     @Query(
             "SELECT ul FROM UserLibrary ul "

@@ -109,6 +109,7 @@ class CommentServiceTest extends ServiceTestSupport {
 
         CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
                 .content("의견 남기기")
+                .isbn(book.getIsbn())
                 .build();
 
         // when
@@ -146,6 +147,7 @@ class CommentServiceTest extends ServiceTestSupport {
 
         CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
                 .content("의견 남기기")
+                .isbn(book.getIsbn())
                 .build();
 
         // when
@@ -179,6 +181,7 @@ class CommentServiceTest extends ServiceTestSupport {
 
         CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
                 .content("의견 남기기")
+                .isbn(book.getIsbn())
                 .build();
 
         // when
@@ -210,6 +213,7 @@ class CommentServiceTest extends ServiceTestSupport {
 
         CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
                 .content("의견 남기기")
+                .isbn(book.getIsbn())
                 .build();
 
         // when
@@ -246,6 +250,7 @@ class CommentServiceTest extends ServiceTestSupport {
         CommentCreateServiceRequest request = CommentCreateServiceRequest.builder()
                 .content("의견 남기기")
                 .imageUrls(List.of("이미지 URL"))
+                .isbn(book.getIsbn())
                 .build();
 
         // when

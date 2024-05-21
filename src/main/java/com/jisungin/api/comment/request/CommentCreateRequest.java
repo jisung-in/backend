@@ -17,10 +17,14 @@ public class CommentCreateRequest {
 
     private List<String> imageUrls = new ArrayList<>();
 
+    @NotBlank(message = "isbn은 필수 입니다.")
+    private String isbn;
+
     @Builder
-    private CommentCreateRequest(String content, List<String> imageUrls) {
+    private CommentCreateRequest(String content, List<String> imageUrls, String isbn) {
         this.content = content;
         this.imageUrls = imageUrls;
+        this.isbn = isbn;
     }
 
     public CommentCreateServiceRequest toService() {
