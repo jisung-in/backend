@@ -118,7 +118,7 @@ class CommentServiceTest extends ServiceTestSupport {
         // then
         assertThat(response)
                 .extracting("content", "userName", "imageUrls")
-                .contains("의견 남기기", "user@gmail.com", List.of());
+                .contains("의견 남기기", "user@gmail.com", List.of("NOT IMAGE"));
     }
 
     @Test

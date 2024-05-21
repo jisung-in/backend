@@ -67,6 +67,8 @@ public class CommentService {
             request.getImageUrls().stream()
                     .map(url -> CommentImage.createImages(comment, url))
                     .forEach(commentImageRepository::save);
+        } else {
+            commentImageRepository.save(CommentImage.createImages(comment, "NOT IMAGE"));
         }
 
         List<String> imageUrls = commentImageRepository.findByCommentIdWithImageUrl(comment.getId());
