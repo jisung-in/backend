@@ -14,13 +14,10 @@ public class CommentCreateServiceRequest {
 
     private List<String> imageUrls = new ArrayList<>();
 
-    private String isbn;
-
     @Builder
-    private CommentCreateServiceRequest(String content, List<String> imageUrls, String isbn) {
+    private CommentCreateServiceRequest(String content, List<String> imageUrls) {
         this.content = content;
         this.imageUrls = imageUrls;
-        this.isbn = isbn;
     }
 
 }

@@ -23,7 +23,6 @@ class CommentControllerTest extends ControllerTestSupport {
         // given
         CommentCreateRequest request = CommentCreateRequest.builder()
                 .content("의견을 작성하다")
-                .isbn("isbn")
                 .build();
 
         // when // then
@@ -44,7 +43,6 @@ class CommentControllerTest extends ControllerTestSupport {
     void writeCommentWithEmptyContent() throws Exception {
         // given
         CommentCreateRequest request = CommentCreateRequest.builder()
-                .isbn("isbn")
                 .build();
 
         // when // then
