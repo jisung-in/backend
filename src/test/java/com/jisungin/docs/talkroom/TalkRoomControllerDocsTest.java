@@ -412,13 +412,15 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .userLikeTalkRoomIds(null)
                 .build();
 
-        given(talkRoomService.findUserTalkRoom(anyLong(), any(Integer.class), anyBoolean(), anyBoolean(), anyLong()))
+        given(talkRoomService.findUserTalkRoom(anyLong(), any(Integer.class), anyBoolean(), anyBoolean(), anyBoolean(),
+                anyLong()))
                 .willReturn(response);
 
         mockMvc.perform(
                         get("/v1/users/talk-rooms")
                                 .param("page", "1")
                                 .param("size", "10")
+                                .param("userTalkRoomsFilter", "true")
                                 .param("commentFilter", "false")
                                 .param("likeFilter", "false")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -433,6 +435,8 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("페이지 번호"),
                                 parameterWithName("size")
                                         .description("페이지 사이즈"),
+                                parameterWithName("userTalkRoomsFilter")
+                                        .description("내가 작성한 토크방인 경우 true, 아닌 경우 false"),
                                 parameterWithName("commentFilter")
                                         .description(
                                                 "내가 작성한 토크방에 의견을 단 경우 true, 아닌 경우 false"),

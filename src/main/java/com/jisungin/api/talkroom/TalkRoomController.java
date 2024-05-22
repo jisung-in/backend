@@ -85,11 +85,13 @@ public class TalkRoomController {
     public ApiResponse<TalkRoomPageResponse> findUserTalkRoom(
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "size", required = false, defaultValue = "10") Integer size,
+            @RequestParam(value = "userTalkRoomsFilter", required = false) boolean userTalkRoomsFilter,
             @RequestParam(value = "commentedFilter", required = false) boolean commentedFilter,
             @RequestParam(value = "likedFilter", required = false) boolean likedFilter,
             @Auth Long userId) {
         return ApiResponse.ok(
-                talkRoomService.findUserTalkRoom(Offset.of(page, size), size, commentedFilter, likedFilter, userId));
+                talkRoomService.findUserTalkRoom(Offset.of(page, size), size, userTalkRoomsFilter, commentedFilter,
+                        likedFilter, userId));
     }
 
 }

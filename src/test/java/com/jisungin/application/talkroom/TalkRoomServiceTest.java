@@ -140,6 +140,37 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     }
 
     @Test
+    @DisplayName("토크방을 생성할 때 참가 조건이 None으로 생성할 수 있다.")
+    void createTalkRoomWithNone() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<Book> books = bookRepository.findAll();
+
+        TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
+                .bookIsbn(books.get(0).getIsbn())
+                .title("토크방")
+                .content("내용")
+                .readingStatus(List.of("상관없음"))
+                .build();
+
+        // when
+        TalkRoomFindOneResponse response = talkRoomService.createTalkRoom(request, user.getId(), LocalDateTime.now());
+
+        // then
+        List<String> readingStatuses = response.getReadingStatuses();
+        assertThat(response)
+                .extracting("id", "profileImage", "username", "title", "content", "bookName", "bookThumbnail",
+                        "likeCount", "likeTalkRoom")
+                .contains(response.getId(), "image", "user@gmail.com", "토크방", "내용", "제목", "이미지", 0L, false);
+        assertThat(readingStatuses.size()).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("토크방을 생성했던 사용자가 토크방의 제목을 수정한다.")
     void editTalkRoom() {
         // given
@@ -987,7 +1018,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         }
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, false, false,
+        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, true, false, false,
                 user1.getId());
 
         // then

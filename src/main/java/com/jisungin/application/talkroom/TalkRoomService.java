@@ -168,24 +168,28 @@ public class TalkRoomService {
         talkRoomRepository.delete(talkRoom);
     }
 
-    public TalkRoomPageResponse findUserTalkRoom(Long offset, Integer size, boolean commentedFilter,
+    public TalkRoomPageResponse findUserTalkRoom(Long offset, Integer size, boolean userTalkRoomsFilter,
+                                                 boolean commentedFilter,
                                                  boolean likedFilter,
                                                  Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        List<TalkRoomQueryResponse> findTalkRoom = talkRoomRepository.findByTalkRoomOwner(offset, size, commentedFilter,
+        List<TalkRoomQueryResponse> findTalkRoom = talkRoomRepository.findByTalkRoomOwner(offset, size,
+                userTalkRoomsFilter, commentedFilter,
                 likedFilter,
                 user.getId());
 
         Map<Long, List<ReadingStatus>> talkRoomRoleMap = talkRoomRoleRepository.findTalkRoomRoleByIds(
                 findTalkRoom.stream().map(TalkRoomQueryResponse::getId).toList());
 
+        List<TalkRoomFindAllResponse> response = TalkRoomFindAllResponse.create(findTalkRoom,
+                talkRoomRoleMap);
+
         Long totalCount = talkRoomRepository.countTalkRoomsByUserId(user.getId(), commentedFilter, likedFilter);
 
         List<Long> likeTalkRoomIds = talkRoomLikeRepository.userLikeTalkRooms(userId);
 
-        return TalkRoomPageResponse.of(PageResponse.of(findTalkRoom.size(), totalCount,
-                TalkRoomFindAllResponse.create(findTalkRoom, talkRoomRoleMap)), likeTalkRoomIds);
+        return TalkRoomPageResponse.of(PageResponse.of(findTalkRoom.size(), totalCount, response), likeTalkRoomIds);
     }
 
 }

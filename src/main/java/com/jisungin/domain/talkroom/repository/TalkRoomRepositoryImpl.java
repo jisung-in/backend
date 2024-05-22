@@ -85,7 +85,8 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     @Override
-    public List<TalkRoomQueryResponse> findByTalkRoomOwner(Long offset, Integer size, boolean commentFilter,
+    public List<TalkRoomQueryResponse> findByTalkRoomOwner(Long offset, Integer size, boolean userTalkRoomsFilter,
+                                                           boolean commentFilter,
                                                            boolean likeFilter, Long userId) {
         return queryFactory.select(new QTalkRoomQueryResponse(
                         talkRoom.id,
@@ -104,12 +105,17 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .join(talkRoom.book, book)
                 .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
                 .leftJoin(comment).on(talkRoom.eq(comment.talkRoom))
-                .where(talkRoom.user.id.eq(userId), commentEq(commentFilter, userId), likeEq(likeFilter, userId))
+                .where(userTalkRoomEq(userTalkRoomsFilter), commentEq(commentFilter, userId),
+                        likeEq(likeFilter, userId))
                 .groupBy(talkRoom.id)
                 .offset(offset)
                 .limit(size)
                 .orderBy(talkRoom.registeredDateTime.desc())
                 .fetch();
+    }
+
+    private BooleanExpression userTalkRoomEq(boolean userTalkRoomsFilter) {
+        return userTalkRoomsFilter ? talkRoom.user.id.eq(user.id) : null;
     }
 
     private BooleanExpression commentEq(boolean commentFilter, Long userId) {

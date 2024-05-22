@@ -754,7 +754,8 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         commentRepository.saveAll(comments);
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findByTalkRoomOwner(Offset.of(0, 10), 10, true, false,
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findByTalkRoomOwner(Offset.of(0, 10), 10, true, true,
+                false,
                 user.getId());
 
         // then
@@ -799,7 +800,8 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findByTalkRoomOwner(Offset.of(0, 10), 10, false, true,
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findByTalkRoomOwner(Offset.of(0, 10), 10, true, false,
+                true,
                 user.getId());
 
         // then
@@ -855,6 +857,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         // when
         List<TalkRoomQueryResponse> response = talkRoomRepository.findByTalkRoomOwner(Offset.of(0, 10), 10, true, true,
+                true,
                 user.getId());
 
         // then
