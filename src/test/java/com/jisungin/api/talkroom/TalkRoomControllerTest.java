@@ -223,4 +223,19 @@ class TalkRoomControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.message").value("삭제 성공"));
     }
 
+    @Test
+    @DisplayName("유저가 생성한 토크방을 조회한다.")
+    void getTalkRoomsOwner() throws Exception {
+        // when // then
+        mockMvc.perform(get("/v1/users/talk-rooms?page=1&size=10&order=recent")
+                        .contentType(APPLICATION_JSON)
+                        .session(mockHttpSession)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"));
+    }
+
 }

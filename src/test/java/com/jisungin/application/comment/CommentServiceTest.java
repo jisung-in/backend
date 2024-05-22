@@ -118,7 +118,7 @@ class CommentServiceTest extends ServiceTestSupport {
         // then
         assertThat(response)
                 .extracting("content", "userName", "imageUrls")
-                .contains("의견 남기기", "user@gmail.com", List.of());
+                .contains("의견 남기기", "user@gmail.com", List.of(""));
     }
 
     @Test
@@ -514,6 +514,7 @@ class CommentServiceTest extends ServiceTestSupport {
                         .talkRoom(talkRoom)
                         .user(user)
                         .content("의견 " + i)
+                        .registeredDateTime(LocalDateTime.now())
                         .build())
                 .collect(Collectors.toList());
 
@@ -553,6 +554,7 @@ class CommentServiceTest extends ServiceTestSupport {
                         .talkRoom(talkRoom)
                         .user(user)
                         .content("의견 " + i)
+                        .registeredDateTime(LocalDateTime.now())
                         .build())
                 .toList();
 
@@ -601,6 +603,7 @@ class CommentServiceTest extends ServiceTestSupport {
                         .talkRoom(talkRoom)
                         .user(user)
                         .content("의견 " + i)
+                        .registeredDateTime(LocalDateTime.now())
                         .build())
                 .collect(Collectors.toList());
 
@@ -652,6 +655,7 @@ class CommentServiceTest extends ServiceTestSupport {
                 .title("토크방")
                 .content("내용")
                 .user(user)
+                .registeredDateTime(LocalDateTime.now())
                 .build();
     }
 

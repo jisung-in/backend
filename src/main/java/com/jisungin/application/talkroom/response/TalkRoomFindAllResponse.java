@@ -62,7 +62,7 @@ public class TalkRoomFindAllResponse {
                             .bookThumbnail(talkRoom.getBookThumbnail())
                             .likeCount(talkRoom.getLikeCount())
                             .readingStatuses(talkRoomReadingStatus)
-                            .registeredDateTime(talkRoom.getRegisteredDateTime())
+                            .registeredDateTime(talkRoom.getRegisteredDateTime().withNano(0))
                             .build();
                 })
                 .toList();

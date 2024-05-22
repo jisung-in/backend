@@ -62,3 +62,16 @@ include::{snippets}/talkroom/delete/path-parameters.adoc[]
 
 include::{snippets}/talkroom/delete/http-response.adoc[]
 include::{snippets}/talkroom/delete/response-fields.adoc[]
+
+[[talkroom-findAllByUser]]
+=== 나의 토크방 모아보기
+
+==== HTTP Request
+
+include::{snippets}/talkroom/findUserTalkRoom/http-request.adoc[]
+include::{snippets}/talkroom/findUserTalkRoom/query-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/talkroom/findUserTalkRoom/http-response.adoc[]
+include::{snippets}/talkroom/findUserTalkRoom/response-fields.adoc[]

@@ -140,6 +140,37 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     }
 
     @Test
+    @DisplayName("토크방을 생성할 때 참가 조건이 None으로 생성할 수 있다.")
+    void createTalkRoomWithNone() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<Book> books = bookRepository.findAll();
+
+        TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
+                .bookIsbn(books.get(0).getIsbn())
+                .title("토크방")
+                .content("내용")
+                .readingStatus(List.of("상관없음"))
+                .build();
+
+        // when
+        TalkRoomFindOneResponse response = talkRoomService.createTalkRoom(request, user.getId(), LocalDateTime.now());
+
+        // then
+        List<String> readingStatuses = response.getReadingStatuses();
+        assertThat(response)
+                .extracting("id", "profileImage", "username", "title", "content", "bookName", "bookThumbnail",
+                        "likeCount", "likeTalkRoom")
+                .contains(response.getId(), "image", "user@gmail.com", "토크방", "내용", "제목", "이미지", 0L, false);
+        assertThat(readingStatuses.size()).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("토크방을 생성했던 사용자가 토크방의 제목을 수정한다.")
     void editTalkRoom() {
         // given
@@ -779,6 +810,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .book(book)
                 .title("검색어")
                 .content("내용")
+                .registeredDateTime(LocalDateTime.now())
                 .build();
 
         TalkRoom talkRoom2 = TalkRoom.builder()
@@ -786,6 +818,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .book(book)
                 .title("아무내용 검색어 아무내용")
                 .content("내용")
+                .registeredDateTime(LocalDateTime.now())
                 .build();
 
         TalkRoom talkRoom3 = TalkRoom.builder()
@@ -793,6 +826,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .book(book)
                 .title("아무내용 아무내용 검색어")
                 .content("내용")
+                .registeredDateTime(LocalDateTime.now())
                 .build();
 
         talkRoomRepository.save(talkRoom1);
@@ -948,6 +982,207 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         assertThat(15L).isEqualTo(talkRoomAll.size());
     }
 
+    @Test
+    @DisplayName("유저 본인이 생성한 토론방을 조회 한다.")
+    void getTalkRoomsOwner() {
+        // given
+        User user1 = createUser();
+        userRepository.save(user1);
+
+        User user2 = User.builder()
+                .email("user2@gmail.com")
+                .name("userB")
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId("oauthId2")
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .profileImage("sssss")
+                .build();
+
+        userRepository.save(user2);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<TalkRoom> talkRoom1 = listTalkRooms(10, user1, book);
+        List<TalkRoom> talkRoom2 = listTalkRooms(10, user2, book);
+
+        talkRoomRepository.saveAll(talkRoom1);
+        talkRoomRepository.saveAll(talkRoom2);
+
+        for (TalkRoom t : talkRoom1) {
+            createTalkRoomRole(t);
+        }
+
+        for (TalkRoom t : talkRoom2) {
+            createTalkRoomRole(t);
+        }
+
+        // when
+        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, true, false, false,
+                user1.getId());
+
+        // then
+        assertThat(10).isEqualTo(response.getResponse().getTotalCount());
+        assertThat(20).isEqualTo(talkRoomRepository.findAll().size());
+    }
+
+    @Test
+    @DisplayName("유저 본인이 생성한 토크방 중 좋아요 누른 토크방을 조회한다.")
+    void getTalkRoomsOwnerWithLike() {
+        // given
+        User user1 = createUser();
+        userRepository.save(user1);
+
+        User user2 = User.builder()
+                .email("user2@gmail.com")
+                .name("userB")
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId("oauthId2")
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .profileImage("sssss")
+                .build();
+
+        userRepository.save(user2);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<TalkRoom> talkRoom1 = listTalkRooms(10, user1, book);
+        List<TalkRoom> talkRoom2 = listTalkRooms(10, user2, book);
+
+        talkRoomRepository.saveAll(talkRoom1);
+        talkRoomRepository.saveAll(talkRoom2);
+
+        for (TalkRoom t : talkRoom1) {
+            createTalkRoomRole(t);
+        }
+
+        for (TalkRoom t : talkRoom2) {
+            createTalkRoomRole(t);
+        }
+
+        List<TalkRoomLike> likes = IntStream.range(0, 5).mapToObj(i -> TalkRoomLike.builder()
+                        .user(user1)
+                        .talkRoom(talkRoom1.get(i))
+                        .build())
+                .toList();
+
+        talkRoomLikeRepository.saveAll(likes);
+
+        // when
+        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, true, false, true,
+                user1.getId());
+
+        // then
+        assertThat(5).isEqualTo(response.getResponse().getTotalCount());
+        assertThat(20).isEqualTo(talkRoomRepository.findAll().size());
+    }
+
+    @Test
+    @DisplayName("유저가 좋아요 누른 토크방을 조회한다.")
+    void getTalkRoomsWithLike() {
+        // given
+        User user1 = createUser();
+        userRepository.save(user1);
+
+        User user2 = User.builder()
+                .email("user2@gmail.com")
+                .name("userB")
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId("oauthId2")
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .profileImage("sssss")
+                .build();
+
+        userRepository.save(user2);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<TalkRoom> talkRoom2 = listTalkRooms(10, user2, book);
+
+        talkRoomRepository.saveAll(talkRoom2);
+
+        for (TalkRoom t : talkRoom2) {
+            createTalkRoomRole(t);
+        }
+
+        List<TalkRoomLike> likes = IntStream.range(0, 8).mapToObj(i -> TalkRoomLike.builder()
+                        .user(user1)
+                        .talkRoom(talkRoom2.get(i))
+                        .build())
+                .toList();
+
+        talkRoomLikeRepository.saveAll(likes);
+
+        // when
+        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, false, false, true,
+                user1.getId());
+
+        // then
+        assertThat(8).isEqualTo(response.getResponse().getTotalCount());
+        assertThat(10).isEqualTo(talkRoomRepository.findAll().size());
+    }
+
+    @Test
+    @DisplayName("유저가 좋아요 누른 토크방을 조회한다.")
+    void getTalkRoomsWithComment() {
+        // given
+        User user1 = createUser();
+        userRepository.save(user1);
+
+        User user2 = User.builder()
+                .email("user2@gmail.com")
+                .name("userB")
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId("oauthId2")
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .profileImage("sssss")
+                .build();
+
+        userRepository.save(user2);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<TalkRoom> talkRoom = listTalkRooms(10, user2, book);
+
+        talkRoomRepository.saveAll(talkRoom);
+
+        for (TalkRoom t : talkRoom) {
+            createTalkRoomRole(t);
+        }
+
+        List<Comment> comments = IntStream.range(0, 8).mapToObj(i -> Comment.builder()
+                        .user(user1)
+                        .talkRoom(talkRoom.get(i))
+                        .content("의견")
+                        .build())
+                .toList();
+
+        commentRepository.saveAll(comments);
+
+        // when
+        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, false, true, false,
+                user1.getId());
+
+        // then
+        assertThat(8).isEqualTo(response.getResponse().getTotalCount());
+        assertThat(10).isEqualTo(talkRoomRepository.findAll().size());
+    }
+
     private static List<User> listUsers() {
         return IntStream.range(0, 10)
                 .mapToObj(i -> User.builder()
@@ -969,6 +1204,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                         .book(book)
                         .title("토론방 " + i)
                         .content("내용 " + i)
+                        .registeredDateTime(LocalDateTime.now())
                         .build())
                 .toList();
     }
@@ -998,6 +1234,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .title("토크방")
                 .content("내용")
                 .user(user)
+                .registeredDateTime(LocalDateTime.now())
                 .build();
     }
 

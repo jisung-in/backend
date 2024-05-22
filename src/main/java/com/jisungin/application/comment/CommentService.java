@@ -51,7 +51,8 @@ public class CommentService {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        Optional<ReadingStatus> userReadingStatus = userLibraryRepository.findByUserId(user.getId());
+        Optional<ReadingStatus> userReadingStatus = userLibraryRepository.findByUserId(user.getId(),
+                talkRoom.getBook().getIsbn());
 
         List<ReadingStatus> talkRoomReadingStatus = talkRoomRoleRepository.findTalkRoomRoleByTalkRoomId(
                 talkRoom.getId());
@@ -66,6 +67,8 @@ public class CommentService {
             request.getImageUrls().stream()
                     .map(url -> CommentImage.createImages(comment, url))
                     .forEach(commentImageRepository::save);
+        } else {
+            commentImageRepository.save(CommentImage.createImages(comment, ""));
         }
 
         List<String> imageUrls = commentImageRepository.findByCommentIdWithImageUrl(comment.getId());
