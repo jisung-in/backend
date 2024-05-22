@@ -185,7 +185,8 @@ public class TalkRoomService {
         List<TalkRoomFindAllResponse> response = TalkRoomFindAllResponse.create(findTalkRoom,
                 talkRoomRoleMap);
 
-        Long totalCount = talkRoomRepository.countTalkRoomsByUserId(user.getId(), commentedFilter, likedFilter);
+        Long totalCount = talkRoomRepository.countTalkRoomsByUserId(user.getId(), userTalkRoomsFilter, commentedFilter,
+                likedFilter);
 
         List<Long> likeTalkRoomIds = talkRoomLikeRepository.userLikeTalkRooms(userId);
 

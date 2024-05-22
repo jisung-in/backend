@@ -21,5 +21,5 @@ public interface TalkRoomRepositoryCustom {
                                                     boolean commentFilter,
                                                     boolean likeFilter, Long id);
 
-    Long countTalkRoomsByUserId(Long userId, boolean commentFilter, boolean likeFilter);
+    Long countTalkRoomsByUserId(Long userId, boolean userTalkRoomsFilter, boolean commentFilter, boolean likeFilter);
 }

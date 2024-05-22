@@ -42,7 +42,6 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     // 책과 연관된 TalkRoomResponse 조회
-
     @Override
     public List<TalkRoomQueryResponse> findTalkRoomsRelatedBook(String isbn, long offset, Integer size) {
         return queryFactory.select(new QTalkRoomQueryResponse(
@@ -105,7 +104,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .join(talkRoom.book, book)
                 .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
                 .leftJoin(comment).on(talkRoom.eq(comment.talkRoom))
-                .where(userTalkRoomEq(userTalkRoomsFilter), commentEq(commentFilter, userId),
+                .where(userTalkRoomEq(userTalkRoomsFilter, userId), commentEq(commentFilter, userId),
                         likeEq(likeFilter, userId))
                 .groupBy(talkRoom.id)
                 .offset(offset)
@@ -114,29 +113,23 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .fetch();
     }
 
-    private BooleanExpression userTalkRoomEq(boolean userTalkRoomsFilter) {
-        return userTalkRoomsFilter ? talkRoom.user.id.eq(user.id) : null;
-    }
-
-    private BooleanExpression commentEq(boolean commentFilter, Long userId) {
-        return commentFilter ? comment.user.id.eq(userId) : null;
-    }
-
-    private BooleanExpression likeEq(boolean likeFilter, Long userId) {
-        return likeFilter ? talkRoomLike.user.id.eq(userId) : null;
-    }
-
     @Override
-    public Long countTalkRoomsByUserId(Long userId, boolean commentFilter, boolean likeFilter) {
+    public Long countTalkRoomsByUserId(Long userId, boolean userTalkRoomsFilter, boolean commentFilter,
+                                       boolean likeFilter) {
         return queryFactory
                 .select(talkRoom.count())
                 .from(talkRoom)
+                .join(talkRoom.book, book)
+                .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
+                .leftJoin(comment).on(talkRoom.eq(comment.talkRoom))
                 .join(talkRoom.user, user)
-                .where(user.id.eq(userId), commentEq(commentFilter, userId), likeEq(likeFilter, userId))
+                .where(userTalkRoomEq(userTalkRoomsFilter, userId), commentEq(commentFilter, userId),
+                        likeEq(likeFilter, userId))
                 .fetchOne();
     }
 
     // 토크룸 페이징 조회 쿼리
+
     private List<TalkRoomQueryResponse> findTalkRoomBySearch(long offset, int size, String order, String search,
                                                              String day, LocalDateTime now) {
         JPAQuery<TalkRoomQueryResponse> jpaQuery = queryFactory.select(new QTalkRoomQueryResponse(
@@ -167,6 +160,18 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .fetch();
 
         return response;
+    }
+
+    private BooleanExpression userTalkRoomEq(boolean userTalkRoomsFilter, Long userId) {
+        return userTalkRoomsFilter ? talkRoom.user.id.eq(userId) : null;
+    }
+
+    private BooleanExpression commentEq(boolean commentFilter, Long userId) {
+        return commentFilter ? comment.user.id.eq(userId) : null;
+    }
+
+    private BooleanExpression likeEq(boolean likeFilter, Long userId) {
+        return likeFilter ? talkRoomLike.user.id.eq(userId) : null;
     }
 
     private void addJoinByOrder(JPAQuery<?> jpaQuery, OrderType orderType) {

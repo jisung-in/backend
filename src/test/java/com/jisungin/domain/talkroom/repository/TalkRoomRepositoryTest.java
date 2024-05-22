@@ -864,6 +864,90 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         assertThat(5L).isEqualTo(response.size());
     }
 
+    @Test
+    @DisplayName("querydsl 필터 적용 테스트 -> 좋아요")
+    void filterWithLike2() {
+        // given
+        User user = createUser();
+        userRepository.save(user);
+
+        User user1 = User.builder()
+                .name("user1")
+                .email("user1")
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId("oauthId1")
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .profileImage("image")
+                .build();
+
+        userRepository.save(user1);
+
+        Book book = createBook();
+        bookRepository.save(book);
+
+        List<TalkRoom> talkRoom = IntStream.range(0, 5)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(LocalDateTime.now())
+                        .build())
+                .toList();
+
+        talkRoomRepository.saveAll(talkRoom);
+
+        List<TalkRoom> talkRoom1 = IntStream.range(5, 10)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(user1)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(LocalDateTime.now())
+                        .build())
+                .toList();
+
+        talkRoomRepository.saveAll(talkRoom1);
+
+        for (TalkRoom t : talkRoom) {
+            createTalkRoomRole(t);
+        }
+
+        for (TalkRoom t : talkRoom1) {
+            createTalkRoomRole(t);
+        }
+
+        List<TalkRoomLike> likes = IntStream.range(0, 5)
+                .mapToObj(i -> TalkRoomLike.builder()
+                        .user(user)
+                        .talkRoom(talkRoom.get(i))
+                        .build())
+                .toList();
+
+        List<TalkRoomLike> likes1 = IntStream.range(0, 5)
+                .mapToObj(i -> TalkRoomLike.builder()
+                        .user(user)
+                        .talkRoom(talkRoom1.get(i))
+                        .build())
+                .toList();
+        talkRoomLikeRepository.saveAll(likes);
+        talkRoomLikeRepository.saveAll(likes1);
+        // when
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findByTalkRoomOwner(Offset.of(0, 10), 10, false,
+                false,
+                true,
+                user.getId());
+
+        List<TalkRoomLike> all = talkRoomLikeRepository.findAll();
+        // then
+        assertThat(10L).isEqualTo(response.size());
+        assertThat("토론방 9").isEqualTo(response.get(0).getTitle());
+        assertThat("토론방 8").isEqualTo(response.get(1).getTitle());
+    }
+
     private static Comment createComment(TalkRoom talkRoom, User user) {
         return Comment.builder()
                 .talkRoom(talkRoom)
