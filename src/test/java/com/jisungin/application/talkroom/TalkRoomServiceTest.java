@@ -810,6 +810,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .book(book)
                 .title("검색어")
                 .content("내용")
+                .registeredDateTime(LocalDateTime.now())
                 .build();
 
         TalkRoom talkRoom2 = TalkRoom.builder()
@@ -817,6 +818,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .book(book)
                 .title("아무내용 검색어 아무내용")
                 .content("내용")
+                .registeredDateTime(LocalDateTime.now())
                 .build();
 
         TalkRoom talkRoom3 = TalkRoom.builder()
@@ -824,6 +826,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .book(book)
                 .title("아무내용 아무내용 검색어")
                 .content("내용")
+                .registeredDateTime(LocalDateTime.now())
                 .build();
 
         talkRoomRepository.save(talkRoom1);
@@ -1201,6 +1204,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                         .book(book)
                         .title("토론방 " + i)
                         .content("내용 " + i)
+                        .registeredDateTime(LocalDateTime.now())
                         .build())
                 .toList();
     }
@@ -1230,6 +1234,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .title("토크방")
                 .content("내용")
                 .user(user)
+                .registeredDateTime(LocalDateTime.now())
                 .build();
     }
 
