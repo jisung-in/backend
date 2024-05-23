@@ -2,6 +2,7 @@ package com.jisungin.api.commentlike;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -12,6 +13,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class CommentLikeControllerTest extends ControllerTestSupport {
+
+    @Test
+    @DisplayName("유저가 좋아요를 누른 의견 아이디를 조회한다.")
+    void findLikeCommentIds() throws Exception {
+        // when // then
+        mockMvc.perform(get("/v1/comments/likes")
+                .accept(APPLICATION_JSON)
+                .session(mockHttpSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
 
     @Test
     @DisplayName("유저가 의견에 좋아요를 누를 수 있다.")

@@ -4,8 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
-import com.jisungin.application.talkroom.TalkRoomService;
-import com.jisungin.application.talkroomlike.TalkRoomLikeService;
+import com.jisungin.application.commentlike.response.CommentIds;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
@@ -25,6 +24,7 @@ import com.jisungin.exception.BusinessException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,25 +39,19 @@ class CommentLikeServiceTest extends ServiceTestSupport {
     TalkRoomRoleRepository talkRoomRoleRepository;
 
     @Autowired
-    TalkRoomService talkRoomService;
-
-    @Autowired
     BookRepository bookRepository;
 
     @Autowired
     UserRepository userRepository;
 
     @Autowired
-    TalkRoomLikeService talkRoomLikeService;
-
-    @Autowired
-    CommentLikeService commentLikeService;
-
-    @Autowired
     CommentRepository commentRepository;
 
     @Autowired
     CommentLikeRepository commentLikeRepository;
+
+    @Autowired
+    CommentLikeService commentLikeService;
 
     @AfterEach
     void tearDown() {
@@ -67,6 +61,43 @@ class CommentLikeServiceTest extends ServiceTestSupport {
         talkRoomRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
+    }
+
+    @Test
+    @DisplayName("유저가 좋아요 한 의견 아이디를 조회한다.")
+    void findLikeCommentIds() {
+        // given
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
+
+        List<Comment> comments = commentRepository.saveAll(createComments(user, talkRoom));
+        List<CommentLike> commentLikes = commentLikeRepository.saveAll(createCommentLikes(user, comments));
+
+        // when
+        CommentIds result = commentLikeService.findCommentIds(user.getId());
+
+        // then
+        assertThat(result.getCommentIds()).hasSize(5)
+                .contains(
+                        comments.get(0).getId(),
+                        comments.get(1).getId(),
+                        comments.get(2).getId(),
+                        comments.get(3).getId(),
+                        comments.get(4).getId()
+                );
+    }
+
+    @Test
+    @DisplayName("유저가 좋아요 한 의견 아이디 조회 시 존재하는 유저여야 한다.")
+    void findLikeCommentIdsWithoutUser() {
+        // given
+        Long invalidUserId = 1L;
+
+        // when // then
+        assertThatThrownBy(() -> commentLikeService.findCommentIds(invalidUserId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("사용자를 찾을 수 없습니다.");
     }
 
     @Test
@@ -201,6 +232,12 @@ class CommentLikeServiceTest extends ServiceTestSupport {
                 .build();
     }
 
+    private static List<Comment> createComments(User user, TalkRoom talkRoom) {
+        return IntStream.range(0, 5)
+                .mapToObj(i -> createComment(user, talkRoom))
+                .toList();
+    }
+
     private void createTalkRoomRole(TalkRoom talkRoom) {
         List<String> request = new ArrayList<>();
         request.add("읽는 중");
@@ -244,6 +281,19 @@ class CommentLikeServiceTest extends ServiceTestSupport {
                 .dateTime(LocalDateTime.now())
                 .imageUrl("www")
                 .build();
+    }
+
+    private static CommentLike createCommentLike(User user, Comment comment) {
+        return CommentLike.builder()
+                .user(user)
+                .comment(comment)
+                .build();
+    }
+
+    private static List<CommentLike> createCommentLikes(User user, List<Comment> comments) {
+        return IntStream.range(0, 5)
+                .mapToObj(i -> createCommentLike(user, comments.get(i)))
+                .toList();
     }
 
 }
