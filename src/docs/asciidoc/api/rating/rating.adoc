@@ -11,6 +11,32 @@ include::{snippets}/rating/create/request-fields.adoc[]
 include::{snippets}/rating/create/http-response.adoc[]
 include::{snippets}/rating/create/response-fields.adoc[]
 
+[[raiting-get]]
+=== 별점 단일 조회
+
+==== HTTP Request
+
+include::{snippets}/rating/get/http-request.adoc[]
+include::{snippets}/rating/get/query-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/rating/get/http-response.adoc[]
+include::{snippets}/rating/get/response-fields.adoc[]
+
+[[raiting-update]]
+=== 별점 수정
+
+==== HTTP Request
+
+include::{snippets}/rating/update/http-request.adoc[]
+include::{snippets}/rating/update/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/rating/update/http-response.adoc[]
+include::{snippets}/rating/update/response-fields.adoc[]
+
 [[raiting-delete]]
 === 별점 삭제
 

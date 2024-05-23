@@ -2,6 +2,8 @@ package com.jisungin.application.rating;
 
 import com.jisungin.application.rating.request.RatingCreateServiceRequest;
 import com.jisungin.application.rating.request.RatingUpdateServiceRequest;
+import com.jisungin.application.rating.response.RatingCreateResponse;
+import com.jisungin.application.rating.response.RatingGetOneResponse;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.rating.Rating;
@@ -13,6 +15,8 @@ import com.jisungin.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.jisungin.exception.ErrorCode.*;
 
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -26,14 +30,33 @@ public class RatingService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void creatingRating(Long userId, RatingCreateServiceRequest request) {
+    public RatingCreateResponse creatingRating(Long userId, RatingCreateServiceRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Book book = bookRepository.findById(request.getBookIsbn())
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
-        ratingRepository.save(Rating.create(request.getRating(), user, book));
+        if (ratingRepository.existsByUserAndBook(user, book)) {
+            throw new BusinessException(RATING_ALREADY_EXIST);
+        }
+
+        Rating rating = ratingRepository.save(Rating.create(request.getRating(), user, book));
+
+        return RatingCreateResponse.of(rating.getId(), rating.getRating(), book.getIsbn());
+    }
+
+    public RatingGetOneResponse getRating(Long userId, String isbn) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Book book = bookRepository.findById(isbn)
+                .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
+
+        Rating rating = ratingRepository.findRatingByUserAndBook(user, book)
+                .orElseThrow(() -> new BusinessException(RATING_NOT_FOUND));
+
+        return RatingGetOneResponse.of(rating.getId(), rating.getRating(), book.getIsbn());
     }
 
     @Transactional

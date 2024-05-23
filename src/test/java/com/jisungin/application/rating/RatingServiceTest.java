@@ -2,6 +2,8 @@ package com.jisungin.application.rating;
 
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.rating.request.RatingCreateServiceRequest;
+import com.jisungin.application.rating.request.RatingUpdateServiceRequest;
+import com.jisungin.application.rating.response.RatingGetOneResponse;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.rating.Rating;
@@ -10,6 +12,7 @@ import com.jisungin.domain.user.OauthId;
 import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
+import com.jisungin.exception.BusinessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,6 +64,81 @@ class RatingServiceTest extends ServiceTestSupport {
         assertThat(result).hasSize(1);
         Rating rating = result.get(0);
         assertThat(rating.getRating()).isEqualTo(3.5);
+    }
+
+    @DisplayName("중복된 정보로 책 별점을 추가한다.")
+    @Test
+    void createRatingTwice() {
+        //given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook("제목1", "내용1", "1234"));
+        ratingRepository.save(Rating.create(3.5, user, book));
+
+        RatingCreateServiceRequest request = RatingCreateServiceRequest.builder()
+                .bookIsbn(book.getIsbn())
+                .rating(4.5)
+                .build();
+
+        //when //then
+        assertThatThrownBy(() -> ratingService.creatingRating(user.getId(), request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("이미 별점이 존재합니다.");
+    }
+
+    @DisplayName("유저가 해당 책의 별점을 조회한다.")
+    @Test
+    void getRating() {
+        //given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook("제목1", "내용1", "1234"));
+        Rating savadRating = ratingRepository.save(Rating.create(3.5, user, book));
+
+        //when
+        RatingGetOneResponse result = ratingService.getRating(user.getId(), book.getIsbn());
+
+        //then
+        assertThat(result.getId()).isEqualTo(savadRating.getId());
+        assertThat(result.getRating()).isEqualTo(savadRating.getRating());
+        assertThat(result.getIsbn()).isEqualTo(savadRating.getBook().getIsbn());
+    }
+
+    @DisplayName("유저가 별점을 수정한다.")
+    @Test
+    void updateRating() {
+        //given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook("제목1", "내용1", "1234"));
+        Rating savadRating = ratingRepository.save(Rating.create(3.5, user, book));
+
+        RatingUpdateServiceRequest request = RatingUpdateServiceRequest.builder()
+                .bookIsbn("1234")
+                .rating(4.5)
+                .build();
+
+        //when
+        ratingService.updateRating(user.getId(), savadRating.getId(), request);
+
+        //then
+        List<Rating> result = ratingRepository.findAll();
+        assertThat(result).hasSize(1);
+        Rating rating = result.get(0);
+        assertThat(rating.getRating()).isEqualTo(4.5);
+    }
+
+    @DisplayName("유저가 별점을 삭제한다.")
+    @Test
+    void deleteRating() {
+        //given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook("제목1", "내용1", "1234"));
+        Rating savadRating = ratingRepository.save(Rating.create(3.5, user, book));
+
+        //when
+        ratingService.deleteRating(user.getId(), savadRating.getId());
+
+        //then
+        List<Rating> result = ratingRepository.findAll();
+        assertThat(result).isEmpty();
     }
 
     private static User createUser(String oauthId) {
