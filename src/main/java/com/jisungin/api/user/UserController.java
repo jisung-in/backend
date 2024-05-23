@@ -57,7 +57,7 @@ public class UserController {
         return ApiResponse.ok(response);
     }
 
-    @GetMapping
+    @GetMapping("/me")
     public ApiResponse<UserInfoResponse> getUserInfo(@Auth Long userId) {
         UserInfoResponse userInfo = userService.getUserInfo(userId);
         return ApiResponse.ok(userInfo);

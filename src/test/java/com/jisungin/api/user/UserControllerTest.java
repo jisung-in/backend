@@ -64,7 +64,7 @@ class UserControllerTest extends ControllerTestSupport {
     void getUserInfo() throws Exception {
         //given
         //when //then
-        mockMvc.perform(get("/v1/users")
+        mockMvc.perform(get("/v1/users/me")
                         .contentType(APPLICATION_JSON)
                         .session(mockHttpSession)
                 )
