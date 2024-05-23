@@ -1,3 +1,14 @@
+=== 좋아요한 의견 ID 조회
+
+==== HTTP Request
+
+include::{snippets}/commentlike/get-like/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/commentlike/get-like/http-response.adoc[]
+include::{snippets}/commentlike/get-like/response-fields.adoc[]
+
 === 토크방 의견 좋아요 생성
 
 ==== HTTP Request
