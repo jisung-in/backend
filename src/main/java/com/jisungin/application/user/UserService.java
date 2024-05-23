@@ -7,6 +7,7 @@ import com.jisungin.application.review.response.ReviewContentResponse;
 import com.jisungin.application.user.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.application.user.request.UserRatingGetAllServiceRequest;
 import com.jisungin.application.user.request.UserReadingStatusGetAllServiceRequest;
+import com.jisungin.application.user.response.UserInfoResponse;
 import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
 import com.jisungin.domain.rating.repository.RatingRepository;
 import com.jisungin.domain.review.repository.ReviewRepository;
@@ -69,6 +70,13 @@ public class UserService {
 
         return userLibraryRepository.findAllReadingStatusOrderBy(
                 user.getId(), request.getReadingStatus(), request.getOrderType(), request.getSize(), request.getOffset());
+    }
+
+    public UserInfoResponse getUserInfo(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        return UserInfoResponse.of(user.getName(), user.getProfileImage());
     }
 
 }

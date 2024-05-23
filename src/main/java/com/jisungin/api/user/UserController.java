@@ -9,6 +9,7 @@ import com.jisungin.application.PageResponse;
 import com.jisungin.application.rating.response.RatingGetResponse;
 import com.jisungin.application.review.response.ReviewContentGetAllResponse;
 import com.jisungin.application.user.UserService;
+import com.jisungin.application.user.response.UserInfoResponse;
 import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,6 +55,12 @@ public class UserController {
                 .getUserReadingStatuses(userId, request.toService());
 
         return ApiResponse.ok(response);
+    }
+
+    @GetMapping
+    public ApiResponse<UserInfoResponse> getUserInfo(@Auth Long userId) {
+        UserInfoResponse userInfo = userService.getUserInfo(userId);
+        return ApiResponse.ok(userInfo);
     }
 
 }
