@@ -1,5 +1,6 @@
 package com.jisungin.application.commentlike;
 
+import com.jisungin.application.commentlike.response.CommentIds;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.commentlike.CommentLike;
@@ -22,6 +23,13 @@ public class CommentLikeService {
     private final CommentRepository commentRepository;
 
     private final UserRepository userRepository;
+
+    public CommentIds findCommentIds(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        return CommentIds.of(commentLikeRepository.findCommentIdsByUserId(user.getId()));
+    }
 
     @Transactional
     public void likeComment(Long commentId, Long userId) {
