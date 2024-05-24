@@ -63,6 +63,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .join(review.user, user)
                 .join(review.book, book)
                 .leftJoin(reviewLike).on(review.eq(reviewLike.review))
+                .where(book.isbn.eq(isbn))
                 .groupBy(review.id)
                 .orderBy(orderType.getOrderSpecifier())
                 .offset(offset)
