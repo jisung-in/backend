@@ -39,6 +39,18 @@ include::api/image/image.adoc[]
 
 include::api/book/book.adoc[]
 
+[[User-API]]
+== User API
+include::api/user/user.adoc[]
+
 [[UserLibrary-API]]
 == UserLibrary API
 include::api/userlibrary/userlibrary.adoc[]
+
+[[Rating-API]]
+== Rating API
+include::api/rating/rating.adoc[]
+
+[[Review-API]]
+== Review API
+include::api/review/review.adoc[]

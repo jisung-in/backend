@@ -1,0 +1,38 @@
+[[review-create]]
+=== 한줄평 생성
+
+==== HTTP Request
+
+include::{snippets}/review/create/http-request.adoc[]
+include::{snippets}/review/create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/rating/create/http-response.adoc[]
+include::{snippets}/rating/create/response-fields.adoc[]
+
+[[review-delete]]
+=== 한줄평 삭제
+
+==== HTTP Request
+
+include::{snippets}/review/delete/http-request.adoc[]
+include::{snippets}/review/delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/rating/delete/http-response.adoc[]
+include::{snippets}/rating/delete/response-fields.adoc[]
+
+[[review-findAll]]
+=== 한줄평 페이지 조회
+
+==== HTTP Request
+
+include::{snippets}/review/findAll/http-request.adoc[]
+include::{snippets}/review/findAll/query-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/review/findAll/http-response.adoc[]
+include::{snippets}/review/findAll/response-fields.adoc[]

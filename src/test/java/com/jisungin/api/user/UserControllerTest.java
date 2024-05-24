@@ -59,4 +59,20 @@ class UserControllerTest extends ControllerTestSupport {
                 .andDo(print());
     }
 
+    @DisplayName("사용자 정보를 조회한다.")
+    @Test
+    void getUserInfo() throws Exception {
+        //given
+        //when //then
+        mockMvc.perform(get("/v1/users/me")
+                        .contentType(APPLICATION_JSON)
+                        .session(mockHttpSession)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
+
 }

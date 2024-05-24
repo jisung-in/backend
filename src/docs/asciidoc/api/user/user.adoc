@@ -1,0 +1,11 @@
+[[user-get]]
+=== 유저 상세 조회
+
+==== HTTP Request
+
+include::{snippets}/user/get/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/user/get/http-response.adoc[]
+include::{snippets}/user/get/response-fields.adoc[]

@@ -17,6 +17,7 @@ import com.jisungin.application.review.response.ReviewContentGetAllResponse;
 import com.jisungin.application.user.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.application.user.request.UserRatingGetAllServiceRequest;
 import com.jisungin.application.user.request.UserReadingStatusGetAllServiceRequest;
+import com.jisungin.application.user.response.UserInfoResponse;
 import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -33,11 +34,13 @@ import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.domain.userlibrary.UserLibrary;
 import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -174,6 +177,22 @@ class UserServiceTest extends ServiceTestSupport {
                         tuple("bookImage", "제목6", 1.0)
                 );
     }
+
+
+    @DisplayName("해당 사용자 정보를 조회한다.")
+    @Test
+    void getUserInfo() {
+        //given
+        User user = userRepository.save(createUser("1"));
+
+        //when
+        UserInfoResponse result = userService.getUserInfo(user.getId());
+
+        //then
+        assertThat(result.getUserName()).isEqualTo(user.getName());
+        assertThat(result.getUserImage()).isEqualTo(user.getProfileImage());
+    }
+
 
     private static List<Book> createBooks() {
         return IntStream.rangeClosed(1, 20)

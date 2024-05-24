@@ -30,7 +30,8 @@ public enum ErrorCode {
     USER_LIBRARY_NOT_FOUND(404, "서재 정보를 찾을 수 없습니다."),
     INVALID_PARAMS_VALUE(400, "유효하지 않은 파라미터 입니다."),
     RATING_NOT_FOUND(400, "별점을 찾을 수 없습니다."),
-    USER_LIBRARY_ALREADY_EXIST(400, "이미 등록된 서재 정보 입니다.");
+    USER_LIBRARY_ALREADY_EXIST(400, "이미 등록된 서재 정보 입니다."),
+    RATING_ALREADY_EXIST(400,"이미 별점이 존재합니다.");
 
     private final int code;
     private final String message;
