@@ -4,6 +4,7 @@ import com.jisungin.api.ApiResponse;
 import com.jisungin.api.rating.request.RatingCreateRequest;
 import com.jisungin.api.rating.request.RatingUpdateRequest;
 import com.jisungin.api.support.Auth;
+import com.jisungin.api.support.GuestOrAuth;
 import com.jisungin.application.rating.RatingService;
 import com.jisungin.application.rating.response.RatingCreateResponse;
 import com.jisungin.application.rating.response.RatingGetOneResponse;
@@ -24,7 +25,7 @@ public class RatingController {
     }
 
     @GetMapping
-    public ApiResponse<RatingGetOneResponse> getRating(@Auth Long userId, @RequestParam String isbn) {
+    public ApiResponse<RatingGetOneResponse> getRating(@GuestOrAuth Long userId, @RequestParam String isbn) {
         return ApiResponse.ok(ratingService.getRating(userId, isbn));
     }
 
