@@ -1,6 +1,7 @@
 package com.jisungin.application.reviewlike;
 
 import com.jisungin.ServiceTestSupport;
+import com.jisungin.application.reviewlike.response.ReviewIds;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.user.OauthId;
@@ -12,6 +13,7 @@ import com.jisungin.domain.reviewlike.repository.ReviewLikeRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,6 +47,23 @@ class ReviewLikeServiceTest extends ServiceTestSupport {
         reviewRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
+    }
+
+    @DisplayName("사용자가 좋아요 누른 리뷰 아이디를 조회한다.")
+    @Test
+    void findLikeReviewIds() {
+        // given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook());
+
+        List<Review> reviews = reviewRepository.saveAll(createReviews(user, book));
+        List<ReviewLike> reviewLikes = reviewLikeRepository.saveAll(createReviewLikes(user, reviews));
+
+        // when
+        ReviewIds result = reviewLikeService.findLikeReviewIds(user.getId());
+
+        // then
+        assertThat(result.getReviewIds()).hasSize(20);
     }
 
     @DisplayName("사용자가 리뷰 좋아요를 누른다.")
@@ -119,6 +138,12 @@ class ReviewLikeServiceTest extends ServiceTestSupport {
         return ReviewLike.likeReview(user, review);
     }
 
+    private static List<ReviewLike> createReviewLikes(User user, List<Review> reviews) {
+        return IntStream.range(0, 20)
+                .mapToObj(i -> createReviewLike(user, reviews.get(i)))
+                .toList();
+    }
+
     private static User createUser(String oauthId) {
         return User.builder()
                 .name("김도형")
@@ -150,6 +175,12 @@ class ReviewLikeServiceTest extends ServiceTestSupport {
                 .book(book)
                 .content("내용")
                 .build();
+    }
+
+    private static List<Review> createReviews(User user, Book book) {
+        return IntStream.range(0, 20)
+                .mapToObj(i -> createReview(user, book))
+                .toList();
     }
 
 }

@@ -44,6 +44,25 @@ class ReviewLikeRepositoryTest extends RepositoryTestSupport {
         userRepository.deleteAllInBatch();
     }
 
+    @DisplayName("사용자가 좋아요한 리뷰 아이디를 조회한다.")
+    @Test
+    void findLikeReviewIdsByUserId() {
+        // given
+        User user1 = userRepository.save(createUser("1"));
+        User user2 = userRepository.save(createUser("2"));
+
+        List<Book> books = bookRepository.saveAll(createBooks());
+        List<Review> reviews = reviewRepository.saveAll(createReviews(user1, books));
+        List<ReviewLike> reviewLikesWithUser1 = reviewLikeRepository.saveAll(createReviewLikes(user1, reviews));
+        List<ReviewLike> reviewLikesWithUser2 = reviewLikeRepository.saveAll(createReviewLikes(user2, reviews));
+
+        // when
+        List<Long> result = reviewLikeRepository.findReviewIdsByUserId(user1.getId());
+
+        // then
+        assertThat(result).hasSize(20);
+    }
+
     @DisplayName("사용자가 좋아요한 리뷰를 가져온다.")
     @Test
     void findLikeReviewByReviewId() {
