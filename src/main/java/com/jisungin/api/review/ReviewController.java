@@ -3,25 +3,39 @@ package com.jisungin.api.review;
 import com.jisungin.api.ApiResponse;
 import com.jisungin.api.support.Auth;
 import com.jisungin.api.review.request.ReviewCreateRequest;
+import com.jisungin.application.OffsetLimit;
+import com.jisungin.application.SliceResponse;
 import com.jisungin.application.review.ReviewService;
+import com.jisungin.application.review.response.ReviewWithRatingResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/v1/reviews")
+@RequestMapping("/v1")
 @RequiredArgsConstructor
 @RestController
 public class ReviewController {
 
     private final ReviewService reviewService;
 
-    @PostMapping
-    public ApiResponse<Void> createReview(@Valid @RequestBody ReviewCreateRequest request, @Auth Long userId) {
+    @GetMapping("/books/{isbn}/reviews")
+    public ApiResponse<SliceResponse<ReviewWithRatingResponse>> findBookReviews(
+            @PathVariable String isbn,
+            @RequestParam(required = false, defaultValue = "1") Integer page,
+            @RequestParam(required = false, defaultValue = "8") Integer size,
+            @RequestParam(required = false, defaultValue = "like") String order
+    ) {
+        return ApiResponse.ok(reviewService.findBookReviews(isbn, OffsetLimit.of(page, size, order)));
+    }
+
+    @PostMapping("/reviews")
+    public ApiResponse<Void> createReview(@Valid @RequestBody ReviewCreateRequest request,
+                                          @Auth Long userId) {
         reviewService.createReview(request.toServiceRequest(), userId);
         return ApiResponse.ok();
     }
 
-    @DeleteMapping("/{reviewId}")
+    @DeleteMapping("/reviews/{reviewId}")
     public ApiResponse<Void> deleteReview(@PathVariable Long reviewId, @Auth Long userId) {
         reviewService.deleteReview(reviewId, userId);
         return ApiResponse.ok();

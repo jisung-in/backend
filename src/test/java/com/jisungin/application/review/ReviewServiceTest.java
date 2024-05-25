@@ -1,9 +1,14 @@
 package com.jisungin.application.review;
 
 import com.jisungin.ServiceTestSupport;
+import com.jisungin.application.OffsetLimit;
+import com.jisungin.application.SliceResponse;
 import com.jisungin.application.review.request.ReviewCreateServiceRequest;
+import com.jisungin.application.review.response.ReviewWithRatingResponse;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
+import com.jisungin.domain.reviewlike.ReviewLike;
+import com.jisungin.domain.reviewlike.repository.ReviewLikeRepository;
 import com.jisungin.domain.user.OauthId;
 import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.review.Review;
@@ -11,6 +16,7 @@ import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,6 +33,9 @@ class ReviewServiceTest extends ServiceTestSupport {
     private ReviewRepository reviewRepository;
 
     @Autowired
+    private ReviewLikeRepository reviewLikeRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -37,9 +46,50 @@ class ReviewServiceTest extends ServiceTestSupport {
 
     @AfterEach
     void tearDown() {
+        reviewLikeRepository.deleteAllInBatch();
         reviewRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
+    }
+
+    @DisplayName("도서와 연관된 리뷰를 조회한다.")
+    @Test
+    void findBookReviews() {
+        // given
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 5, "like");
+
+        Book book = bookRepository.save(createBook());
+        List<User> users = userRepository.saveAll(createUsers());
+        List<Review> reviews = reviewRepository.saveAll(createReviews(users, book));
+        List<ReviewLike> reviewLikes = reviewLikeRepository.saveAll(
+                createReviewLikesForReviewWithUsers(users, reviews.get(0)));
+
+        // when
+        SliceResponse<ReviewWithRatingResponse> result = reviewService.findBookReviews(book.getIsbn(),
+                offsetLimit);
+
+        // then
+        assertThat(result.isHasContent()).isTrue();
+        assertThat(result.isFirst()).isTrue();
+        assertThat(result.isLast()).isFalse();
+        assertThat(result.getNumber()).isEqualTo(1L);
+        assertThat(result.getSize()).isEqualTo(5);
+        assertThat(result.getContent()).hasSize(5)
+                .extracting("likeCount")
+                .containsExactly(20L, 0L, 0L, 0L, 0L);
+    }
+
+    @DisplayName("도서와 연관된 리뷰 조회 시 도서가 존재해야 한다.")
+    @Test
+    void findBookReviewsWithoutBook() {
+        // given
+        String invalidBookIsbn = "0000X";
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 10);
+
+        // when // then
+        assertThatThrownBy(() -> reviewService.findBookReviews(invalidBookIsbn, offsetLimit))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("책을 찾을 수 없습니다.");
     }
 
     @DisplayName("유저가 리뷰를 등록한다.")
@@ -133,12 +183,32 @@ class ReviewServiceTest extends ServiceTestSupport {
                 .hasMessage("권한이 없는 사용자입니다.");
     }
 
+    private static ReviewLike createReviewLike(User user, Review review) {
+        return ReviewLike.builder()
+                .user(user)
+                .review(review)
+                .build();
+    }
+
+    private static List<ReviewLike> createReviewLikesForReviewWithUsers(List<User> users, Review review) {
+        return IntStream.range(0, 20)
+                .mapToObj(i -> createReviewLike(users.get(i), review))
+                .toList();
+    }
+
+
     private static Review createReview(User user, Book book) {
         return Review.builder()
                 .user(user)
                 .book(book)
                 .content("내용")
                 .build();
+    }
+
+    private static List<Review> createReviews(List<User> users, Book book) {
+        return IntStream.range(0, 20)
+                .mapToObj(i -> createReview(users.get(i), book))
+                .toList();
     }
 
     private static User createUser(String oauthId) {
@@ -152,6 +222,12 @@ class ReviewServiceTest extends ServiceTestSupport {
                                 .build()
                 )
                 .build();
+    }
+
+    private static List<User> createUsers() {
+        return IntStream.range(0, 20)
+                .mapToObj(i -> createUser(String.valueOf(i)))
+                .toList();
     }
 
     private static Book createBook() {

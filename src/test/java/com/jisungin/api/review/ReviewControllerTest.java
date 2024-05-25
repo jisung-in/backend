@@ -1,6 +1,7 @@
 package com.jisungin.api.review;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -13,6 +14,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
 class ReviewControllerTest extends ControllerTestSupport {
+
+    @DisplayName("도서와 연관된 리뷰를 조회한다.")
+    void findBookReviews() throws Exception {
+        // given
+        String isbn = "000000000000";
+
+        // when // then
+        mockMvc.perform(get("/v1/books/{isbn}/reviews", isbn)
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("order", "like")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 
     @DisplayName("유저가 리뷰를 등록한다.")
     @Test
