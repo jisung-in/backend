@@ -54,3 +54,7 @@ include::api/rating/rating.adoc[]
 [[Review-API]]
 == Review API
 include::api/review/review.adoc[]
+
+[[ReviewLike-API]]
+== ReviewLike API
+include::api/reviewlike/reviewlike.adoc[]
