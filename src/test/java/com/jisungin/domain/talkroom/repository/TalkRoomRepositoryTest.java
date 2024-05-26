@@ -4,8 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
 import com.jisungin.RepositoryTestSupport;
-import com.jisungin.api.Offset;
-import com.jisungin.application.SearchServiceRequest;
+import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -68,11 +67,8 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
     @DisplayName("querydsl 페이징 조회 테스트")
     void pageTest() {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         List<TalkRoom> talkRoom = IntStream.range(0, 20)
                 .mapToObj(i -> TalkRoom.builder()
@@ -89,15 +85,11 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
             createTalkRoomRole(t);
         }
 
-        SearchServiceRequest search = SearchServiceRequest.builder()
-                .page(1)
-                .size(10)
-                .order("recent")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 10, "recent");
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), LocalDateTime.now());
+        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), offsetLimit.getOrder(), null, null, LocalDateTime.now());
 
         // then
         assertThat(10L).isEqualTo(response.size());
@@ -123,8 +115,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         userRepository.saveAll(users);
 
-        Book book = createBook();
-        bookRepository.save(book);
+        Book book = bookRepository.save(createBook());
 
         List<TalkRoom> talkRoom = IntStream.range(0, 20)
                 .mapToObj(i -> TalkRoom.builder()
@@ -159,18 +150,15 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
-        SearchServiceRequest search = SearchServiceRequest.builder()
-                .page(2)
-                .size(10)
-                .order("recent")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(2, 10, "recent");
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), LocalDateTime.now());
+        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), offsetLimit.getOrder(),
+                null, null, LocalDateTime.now());
 
         // then
-        assertThat(5L).isEqualTo(response.get(9).getLikeCount());
+        assertThat(result.get(9).getLikeCount()).isEqualTo(5L);
     }
 
     @Test
@@ -251,8 +239,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         userRepository.saveAll(users);
 
-        Book book = createBook();
-        bookRepository.save(book);
+        Book book = bookRepository.save(createBook());
 
         List<TalkRoom> talkRoom = IntStream.range(0, 20)
                 .mapToObj(i -> TalkRoom.builder()
@@ -287,18 +274,13 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
-        SearchServiceRequest search = SearchServiceRequest.builder()
-                .page(1)
-                .size(10)
-                .order("recommend")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 10, "recommend");
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), LocalDateTime.now());
-
+        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), offsetLimit.getOrder(), null, null, LocalDateTime.now());
         // then
-        assertThat(10L).isEqualTo(response.get(0).getLikeCount());
+        assertThat(result.get(0).getLikeCount()).isEqualTo(10L);
     }
 
     @Test
@@ -319,8 +301,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         userRepository.saveAll(users);
 
-        Book book = createBook();
-        bookRepository.save(book);
+        Book book = bookRepository.save(createBook());
 
         List<TalkRoom> talkRoom = IntStream.range(0, 20)
                 .mapToObj(i -> TalkRoom.builder()
@@ -380,20 +361,16 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
-        SearchServiceRequest search = SearchServiceRequest.builder()
-                .page(1)
-                .size(10)
-                .query("검색어")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 10);
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), LocalDateTime.now());
+        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), null, "검색어", null, LocalDateTime.now());
 
         // then
-        assertThat(talkRoom1.getTitle()).isEqualTo(response.get(0).getTitle());
-        assertThat(talkRoom2.getTitle()).isEqualTo(response.get(1).getTitle());
-        assertThat(talkRoom3.getTitle()).isEqualTo(response.get(2).getTitle());
+        assertThat(result.get(0).getTitle()).isEqualTo(talkRoom1.getTitle());
+        assertThat(result.get(1).getTitle()).isEqualTo(talkRoom2.getTitle());
+        assertThat(result.get(2).getTitle()).isEqualTo(talkRoom3.getTitle());
     }
 
     @Test
@@ -526,11 +503,8 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
     @DisplayName("querydsl 특정 날짜에 생성된 토크방 조회 -> 하루 전")
     void findAllTalkRoomWithDay() throws Exception {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         LocalDateTime yesterdayWithSec = LocalDateTime.of(2024, 4, 28, 23, 59, 59);
         LocalDateTime yesterday = LocalDateTime.of(2024, 4, 29, 0, 0);
@@ -570,32 +544,24 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         talkRoomRepository.saveAll(talkRoom2);
         talkRoomRepository.saveAll(talkRoom3);
 
-        SearchServiceRequest search = SearchServiceRequest.builder()
-                .page(1)
-                .size(10)
-                .day("1d")
-                .order("recent")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 10, "recent");
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), now);
+        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), offsetLimit.getOrder(), null, "1d", now);
 
         // then
-        assertThat(10L).isEqualTo(response.size());
-        assertThat("토론방 14").isEqualTo(response.get(0).getTitle());
-        assertThat("내용 14").isEqualTo(response.get(0).getContent());
+        assertThat(result).hasSize(10);
+        assertThat(result.get(0).getTitle()).isEqualTo("토론방 14");
+        assertThat(result.get(0).getContent()).isEqualTo("내용 14");
     }
 
     @Test
     @DisplayName("querydsl 특정 날짜에 생성된 토크방 조회 -> 일주일 전")
     void findAllTalkRoomWithWeek() throws Exception {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         LocalDateTime oneWeekWithSec = LocalDateTime.of(2024, 4, 22, 23, 59, 59);
         LocalDateTime oneWeek = LocalDateTime.of(2024, 4, 23, 0, 0);
@@ -635,32 +601,24 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         talkRoomRepository.saveAll(talkRoom2);
         talkRoomRepository.saveAll(talkRoom3);
 
-        SearchServiceRequest search = SearchServiceRequest.builder()
-                .page(1)
-                .size(10)
-                .day("1w")
-                .order("recent")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 10, "recent");
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), now);
+        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), offsetLimit.getOrder(), null, "1w", now);
 
         // then
-        assertThat(10L).isEqualTo(response.size());
-        assertThat("토론방 14").isEqualTo(response.get(0).getTitle());
-        assertThat("내용 14").isEqualTo(response.get(0).getContent());
+        assertThat(result).hasSize(10);
+        assertThat(result.get(0).getTitle()).isEqualTo("토론방 14");
+        assertThat(result.get(0).getContent()).isEqualTo("내용 14");
     }
 
     @Test
     @DisplayName("querydsl 특정 날짜에 생성된 토크방 조회 -> 한달 전")
     void findAllTalkRoomWithMonth() throws Exception {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         LocalDateTime monthWithSec = LocalDateTime.of(2024, 3, 29, 23, 59, 59);
         LocalDateTime month = LocalDateTime.of(2024, 3, 30, 0, 0);
@@ -700,32 +658,24 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         talkRoomRepository.saveAll(talkRoom2);
         talkRoomRepository.saveAll(talkRoom3);
 
-        SearchServiceRequest search = SearchServiceRequest.builder()
-                .page(1)
-                .size(10)
-                .day("1m")
-                .order("recent")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 10, "recent");
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), now);
+        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), offsetLimit.getOrder(), null, "1m", now);
 
         // then
-        assertThat(10L).isEqualTo(response.size());
-        assertThat("토론방 14").isEqualTo(response.get(0).getTitle());
-        assertThat("내용 14").isEqualTo(response.get(0).getContent());
+        assertThat(result).hasSize(10);
+        assertThat(result.get(0).getTitle()).isEqualTo("토론방 14");
+        assertThat(result.get(0).getContent()).isEqualTo("내용 14");
     }
 
     @Test
     @DisplayName("querydsl 필터 적용 테스트 -> 의견을 남긴")
     void filterWithComment() {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         List<TalkRoom> talkRoom = IntStream.range(0, 20)
                 .mapToObj(i -> TalkRoom.builder()
@@ -753,26 +703,24 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         commentRepository.saveAll(comments);
 
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 10);
+
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findByTalkRoomOwner(Offset.of(0, 10), 10, true, true,
-                false,
-                user.getId());
+        List<TalkRoomQueryResponse> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), true, true, false, user.getId());
 
         // then
-        assertThat(2L).isEqualTo(response.size());
-        assertThat("토론방 1").isEqualTo(response.get(0).getTitle());
-        assertThat("토론방 0").isEqualTo(response.get(1).getTitle());
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getTitle()).isEqualTo("토론방 1");
+        assertThat(result.get(1).getTitle()).isEqualTo("토론방 0");
     }
 
     @Test
     @DisplayName("querydsl 필터 적용 테스트 -> 좋아요")
     void filterWithLike() {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         List<TalkRoom> talkRoom = IntStream.range(0, 20)
                 .mapToObj(i -> TalkRoom.builder()
@@ -799,26 +747,24 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 10);
+
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findByTalkRoomOwner(Offset.of(0, 10), 10, true, false,
-                true,
-                user.getId());
+        List<TalkRoomQueryResponse> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), true, false, true, user.getId());
 
         // then
-        assertThat(2L).isEqualTo(response.size());
-        assertThat("토론방 1").isEqualTo(response.get(0).getTitle());
-        assertThat("토론방 0").isEqualTo(response.get(1).getTitle());
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getTitle()).isEqualTo("토론방 1");
+        assertThat(result.get(1).getTitle()).isEqualTo("토론방 0");
     }
 
     @Test
     @DisplayName("querydsl 필터 적용 테스트 -> 의견을 남기고 좋아요를 누른 경우")
     void filterWithCommentAndLike() {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         List<TalkRoom> talkRoom = IntStream.range(0, 20)
                 .mapToObj(i -> TalkRoom.builder()
@@ -855,46 +801,32 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         talkRoomLikeRepository.saveAll(likes);
 
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 10);
+
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findByTalkRoomOwner(Offset.of(0, 10), 10, true, true,
-                true,
+        List<TalkRoomQueryResponse> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), true, true, true,
                 user.getId());
 
         // then
-        assertThat(5L).isEqualTo(response.size());
+        assertThat(result).hasSize(5);
     }
 
     @Test
     @DisplayName("querydsl 필터 적용 테스트 -> 좋아요")
     void filterWithLike2() {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        User user1 = User.builder()
-                .name("user1")
-                .email("user1")
-                .oauthId(
-                        OauthId.builder()
-                                .oauthId("oauthId1")
-                                .oauthType(OauthType.KAKAO)
-                                .build()
-                )
-                .profileImage("image")
-                .build();
-
-        userRepository.save(user1);
-
-        Book book = createBook();
-        bookRepository.save(book);
+        User userA = userRepository.save(createUser());
+        User userB = userRepository.save(createUserWithId("1"));
+        Book book = bookRepository.save(createBook());
 
         List<TalkRoom> talkRoom = IntStream.range(0, 5)
                 .mapToObj(i -> TalkRoom.builder()
-                        .user(user)
+                        .user(userA)
                         .book(book)
                         .title("토론방 " + i)
                         .content("내용 " + i)
-                        .registeredDateTime(LocalDateTime.now())
+                        .registeredDateTime(LocalDateTime.of(2024, 1, 1, 0, 0, i))
                         .build())
                 .toList();
 
@@ -902,11 +834,11 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         List<TalkRoom> talkRoom1 = IntStream.range(5, 10)
                 .mapToObj(i -> TalkRoom.builder()
-                        .user(user1)
+                        .user(userB)
                         .book(book)
                         .title("토론방 " + i)
                         .content("내용 " + i)
-                        .registeredDateTime(LocalDateTime.now())
+                        .registeredDateTime(LocalDateTime.of(2024, 1, 1, 0, 0, i))
                         .build())
                 .toList();
 
@@ -922,30 +854,30 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
 
         List<TalkRoomLike> likes = IntStream.range(0, 5)
                 .mapToObj(i -> TalkRoomLike.builder()
-                        .user(user)
+                        .user(userA)
                         .talkRoom(talkRoom.get(i))
                         .build())
                 .toList();
 
         List<TalkRoomLike> likes1 = IntStream.range(0, 5)
                 .mapToObj(i -> TalkRoomLike.builder()
-                        .user(user)
+                        .user(userA)
                         .talkRoom(talkRoom1.get(i))
                         .build())
                 .toList();
         talkRoomLikeRepository.saveAll(likes);
         talkRoomLikeRepository.saveAll(likes1);
-        // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findByTalkRoomOwner(Offset.of(0, 10), 10, false,
-                false,
-                true,
-                user.getId());
 
-        List<TalkRoomLike> all = talkRoomLikeRepository.findAll();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 10);
+
+        // when
+        List<TalkRoomQueryResponse> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), false, false, true, userA.getId());
+
         // then
-        assertThat(10L).isEqualTo(response.size());
-        assertThat("토론방 9").isEqualTo(response.get(0).getTitle());
-        assertThat("토론방 8").isEqualTo(response.get(1).getTitle());
+        assertThat(result).hasSize(10);
+        assertThat(result.get(0).getTitle()).isEqualTo("토론방 9");
+        assertThat(result.get(1).getTitle()).isEqualTo("토론방 8");
     }
 
     private static Comment createComment(TalkRoom talkRoom, User user) {
@@ -974,6 +906,19 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
                 .oauthId(
                         OauthId.builder()
                                 .oauthId("oauthId")
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .build();
+    }
+
+    private static User createUserWithId(String id) {
+        return User.builder()
+                .name("user@gmail.com" + id)
+                .profileImage("image" + id)
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId(id)
                                 .oauthType(OauthType.KAKAO)
                                 .build()
                 )
