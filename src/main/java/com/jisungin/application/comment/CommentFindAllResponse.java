@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,32 +36,31 @@ public class CommentFindAllResponse {
         this.registeredDateTime = registeredDateTime;
     }
 
-    public static List<CommentFindAllResponse> create(List<CommentQueryResponse> comments,
-                                                      Map<Long, List<CommentImage>> commentImages) {
-        return comments.stream()
-                .map(comment -> {
-                    List<String> commentImageUrls = extractCommentImages(commentImages, comment);
-
-                    return CommentFindAllResponse.builder()
-                            .commentId(comment.getCommentId())
-                            .userName(comment.getUserName())
-                            .profileImage(comment.getProfileImage())
-                            .content(comment.getContent())
-                            .commentLikeCount(comment.getCommentLikeCount())
-                            .commentImages(commentImageUrls)
-                            .registeredDateTime(comment.getRegisteredDateTime().withNano(0))
-                            .build();
-                })
-                .collect(Collectors.toList());
+    public static CommentFindAllResponse of(CommentQueryResponse comment, List<CommentImage> commentImages) {
+        return CommentFindAllResponse.builder()
+                .commentId(comment.getCommentId())
+                .userName(comment.getUserName())
+                .profileImage(comment.getProfileImage())
+                .content(comment.getContent())
+                .commentLikeCount(comment.getCommentLikeCount())
+                .commentImages(extractCommentImages(commentImages))
+                .registeredDateTime(comment.getRegisteredDateTime().withNano(0))
+                .build();
     }
 
-    private static List<String> extractCommentImages(Map<Long, List<CommentImage>> commentImages,
-                                                     CommentQueryResponse comment) {
-        if (commentImages.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return commentImages.get(comment.getCommentId()).stream()
+    public static List<CommentFindAllResponse> toList(List<CommentQueryResponse> comments,
+                                                      Map<Long, List<CommentImage>> commentImagesMap) {
+        return comments.stream()
+                .map(comment -> CommentFindAllResponse.of(comment, commentImagesMap.get(comment.getCommentId())))
+                .toList();
+    }
+
+    private static List<String> extractCommentImages(List<CommentImage> commentImages) {
+        return Optional.ofNullable(commentImages)
+                .orElseGet(ArrayList::new)
+                .stream()
                 .map(CommentImage::getImageUrl)
                 .toList();
     }
+
 }

@@ -4,9 +4,9 @@ import com.jisungin.api.ApiResponse;
 import com.jisungin.api.comment.request.CommentCreateRequest;
 import com.jisungin.api.comment.request.CommentEditRequest;
 import com.jisungin.api.support.Auth;
-import com.jisungin.api.support.GuestOrAuth;
+import com.jisungin.application.PageResponse;
+import com.jisungin.application.comment.CommentFindAllResponse;
 import com.jisungin.application.comment.CommentService;
-import com.jisungin.application.comment.response.CommentPageResponse;
 import com.jisungin.application.comment.response.CommentResponse;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
@@ -37,9 +37,8 @@ public class CommentController {
     }
 
     @GetMapping("/talk-rooms/{talkRoomId}/comments")
-    public ApiResponse<CommentPageResponse> findAllComments(@PathVariable Long talkRoomId,
-                                                            @GuestOrAuth Long userId) {
-        return ApiResponse.ok(commentService.findAllComments(talkRoomId, userId));
+    public ApiResponse<PageResponse<CommentFindAllResponse>> findAllComments(@PathVariable Long talkRoomId) {
+        return ApiResponse.ok(commentService.findAllComments(talkRoomId));
     }
 
     @PatchMapping("/comments/{commentId}")
