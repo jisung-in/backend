@@ -24,6 +24,17 @@ include::{snippets}/talkroom/findAll/query-parameters.adoc[]
 include::{snippets}/talkroom/findAll/http-response.adoc[]
 include::{snippets}/talkroom/findAll/response-fields.adoc[]
 
+[[talkroom-findTalkRoomsRelatedBook]]
+=== 도서와 연관된 토크룸 조회
+==== HTTP Request
+include::{snippets}/talkroom/find-related-book/http-request.adoc[]
+include::{snippets}/talkroom/find-related-book/path-parameters.adoc[]
+include::{snippets}/talkroom/find-related-book/query-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/talkroom/find-related-book/http-response.adoc[]
+include::{snippets}/talkroom/find-related-book/response-fields.adoc[]
+
 [[talkroom-findOne]]
 === 토크방 상세 조회
 

@@ -1,14 +1,15 @@
 package com.jisungin.api.talkroom;
 
 import com.jisungin.api.ApiResponse;
-import com.jisungin.api.Offset;
 import com.jisungin.api.support.Auth;
-import com.jisungin.api.support.GuestOrAuth;
 import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
+import com.jisungin.application.OffsetLimit;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
+import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
-import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
+import com.jisungin.application.talkroom.response.TalkRoomRelatedBookResponse;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,15 @@ public class TalkRoomController {
 
     private final TalkRoomService talkRoomService;
 
+    @GetMapping("/books/{isbn}/talk-rooms")
+    public ApiResponse<PageResponse<TalkRoomRelatedBookResponse>> findBookTalkRooms(
+            @PathVariable(name = "isbn") String isbn,
+            @RequestParam(required = false, defaultValue = "1") Integer page,
+            @RequestParam(required = false, defaultValue = "5") Integer size
+    ) {
+        return ApiResponse.ok(talkRoomService.findBookTalkRooms(isbn, OffsetLimit.of(page, size)));
+    }
+
     @PostMapping("/talk-rooms")
     public ApiResponse<TalkRoomFindOneResponse> createTalkRoom(@Valid @RequestBody TalkRoomCreateRequest request,
                                                                @Auth Long userId
@@ -39,25 +49,23 @@ public class TalkRoomController {
     }
 
     @GetMapping("/talk-rooms")
-    public ApiResponse<TalkRoomPageResponse> findAllTalkRoom(
+    public ApiResponse<PageResponse<TalkRoomFindAllResponse>> findAllTalkRoom(
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "size", required = false, defaultValue = "10") Integer size,
             @RequestParam(value = "order", required = false, defaultValue = "recent") String order,
             @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "day", required = false) String day,
-            @GuestOrAuth Long userId) {
+            @RequestParam(value = "day", required = false) String day
+    ) {
         LocalDateTime now = LocalDateTime.now();
 
         return ApiResponse.ok(
-                talkRoomService.findAllTalkRoom(Offset.of(page, size), size, order, search, day,
-                        userId,
+                talkRoomService.findAllTalkRoom(OffsetLimit.of(page, size, order), search, day,
                         now));
     }
 
     @GetMapping("/talk-rooms/{talkRoomId}")
-    public ApiResponse<TalkRoomFindOneResponse> findOneTalkRoom(@PathVariable Long talkRoomId,
-                                                                @GuestOrAuth Long userId) {
-        return ApiResponse.ok(talkRoomService.findOneTalkRoom(talkRoomId, userId));
+    public ApiResponse<TalkRoomFindOneResponse> findOneTalkRoom(@PathVariable Long talkRoomId) {
+        return ApiResponse.ok(talkRoomService.findOneTalkRoom(talkRoomId));
     }
 
     @PatchMapping("/talk-rooms")
@@ -82,15 +90,16 @@ public class TalkRoomController {
     }
 
     @GetMapping("/users/talk-rooms")
-    public ApiResponse<TalkRoomPageResponse> findUserTalkRoom(
+    public ApiResponse<PageResponse<TalkRoomFindAllResponse>> findUserTalkRoom(
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "size", required = false, defaultValue = "10") Integer size,
             @RequestParam(value = "userTalkRoomsFilter", required = false) boolean userTalkRoomsFilter,
             @RequestParam(value = "commentedFilter", required = false) boolean commentedFilter,
             @RequestParam(value = "likedFilter", required = false) boolean likedFilter,
-            @Auth Long userId) {
+            @Auth Long userId
+    ) {
         return ApiResponse.ok(
-                talkRoomService.findUserTalkRoom(Offset.of(page, size), size, userTalkRoomsFilter, commentedFilter,
+                talkRoomService.findUserTalkRoom(OffsetLimit.of(page, size), userTalkRoomsFilter, commentedFilter,
                         likedFilter, userId));
     }
 

@@ -6,10 +6,10 @@ import java.util.List;
 
 public interface TalkRoomRepositoryCustom {
 
-    List<TalkRoomQueryResponse> findAllTalkRoom(long offset, int size, String order, String search, String day,
+    List<TalkRoomQueryResponse> findAllTalkRoom(Integer offset, Integer size, String order, String search, String day,
                                                 LocalDateTime now);
 
-    Long countTalkRooms(String day, LocalDateTime now);
+    Long countTalkRooms(String search, String day, LocalDateTime now);
 
     List<TalkRoomQueryResponse> findTalkRoomsRelatedBook(String isbn, long offset, Integer size);
 
@@ -17,9 +17,10 @@ public interface TalkRoomRepositoryCustom {
 
     TalkRoomQueryResponse findOneTalkRoom(Long talkRoomId);
 
-    List<TalkRoomQueryResponse> findByTalkRoomOwner(Long offset, Integer size, boolean userTalkRoomsFilter,
+    List<TalkRoomQueryResponse> findByTalkRoomOwner(Integer offset, Integer size, boolean userTalkRoomsFilter,
                                                     boolean commentFilter,
                                                     boolean likeFilter, Long id);
 
     Long countTalkRoomsByUserId(Long userId, boolean userTalkRoomsFilter, boolean commentFilter, boolean likeFilter);
+
 }

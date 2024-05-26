@@ -4,12 +4,10 @@ import com.jisungin.api.ApiResponse;
 import com.jisungin.api.SearchRequest;
 import com.jisungin.api.book.request.BookCreateRequest;
 import com.jisungin.api.book.request.BookPageRequest;
-import com.jisungin.api.support.GuestOrAuth;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.book.BestSellerService;
 import com.jisungin.application.book.BookService;
 import com.jisungin.application.book.response.BestSellerResponse;
-import com.jisungin.application.book.response.BookRelatedTalkRoomPageResponse;
 import com.jisungin.application.book.response.BookResponse;
 import com.jisungin.application.book.response.SimpleBookResponse;
 import jakarta.validation.Valid;
@@ -38,15 +36,6 @@ public class BookController {
     @GetMapping("/books")
     public ApiResponse<PageResponse<SimpleBookResponse>> getBooks(@ModelAttribute SearchRequest params) {
         return ApiResponse.ok(bookService.getBooks(params.toService()));
-    }
-
-    @GetMapping("/books/{isbn}/talk-rooms")
-    public ApiResponse<BookRelatedTalkRoomPageResponse> getTalkRoomsByRelatedBook(
-            @PathVariable("isbn") String isbn,
-            @ModelAttribute BookPageRequest request,
-            @GuestOrAuth Long userId
-    ) {
-        return ApiResponse.ok(bookService.getBookRelatedTalkRooms(isbn, request.toService(), userId));
     }
 
     @GetMapping("/books/best-seller")
