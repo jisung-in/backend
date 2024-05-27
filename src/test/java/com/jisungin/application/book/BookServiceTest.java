@@ -5,11 +5,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.jisungin.ServiceTestSupport;
+import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.book.request.BookCreateServiceRequest;
+import com.jisungin.application.book.response.BookFindAllResponse;
 import com.jisungin.application.book.response.BookResponse;
-import com.jisungin.application.book.response.SimpleBookResponse;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.comment.Comment;
@@ -108,14 +108,10 @@ public class BookServiceTest extends ServiceTestSupport {
         List<Book> books = bookRepository.saveAll(createBooks());
         TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(1, user, books.get(0)));
 
-        SearchServiceRequest params = SearchServiceRequest.builder()
-                .page(1)
-                .size(5)
-                .order("recent")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 5, "recent");
 
         // when
-        PageResponse<SimpleBookResponse> response = bookService.getBooks(params);
+        PageResponse<BookFindAllResponse> response = bookService.getBooks(offsetLimit);
 
         // then
         assertThat(response.getSize()).isEqualTo(5);
@@ -134,17 +130,13 @@ public class BookServiceTest extends ServiceTestSupport {
         TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(1, user, books.get(0)));
         List<Comment> comments = commentRepository.saveAll(createComments(user, talkRoom));
 
-        SearchServiceRequest params = SearchServiceRequest.builder()
-                .page(1)
-                .size(5)
-                .order("comment")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 5, "comment");
 
         // when
-        PageResponse<SimpleBookResponse> response = bookService.getBooks(params);
+        PageResponse<BookFindAllResponse> response = bookService.getBooks(offsetLimit);
 
         // then
-        assertThat(response.getSize()).isEqualTo(5);
+        assertThat(response.getSize()).isEqualTo(1);
         assertThat(response.getTotalCount()).isEqualTo(1);
         assertThat(response.getQueryResponse()).hasSize(1)
                 .extracting("isbn")

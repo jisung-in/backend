@@ -3,16 +3,15 @@ package com.jisungin.domain.book.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.jisungin.RepositoryTestSupport;
-import com.jisungin.application.PageResponse;
-import com.jisungin.application.SearchServiceRequest;
-import com.jisungin.application.book.response.SimpleBookResponse;
+import com.jisungin.application.OffsetLimit;
+import com.jisungin.application.book.response.BookFindAllResponse;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
-import com.jisungin.domain.user.OauthId;
-import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -26,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class BookRepositoryTest extends RepositoryTestSupport {
 
     @Autowired
-    private BookRepository bookrepository;
+    private BookRepository bookRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -40,23 +39,20 @@ public class BookRepositoryTest extends RepositoryTestSupport {
     @Test
     @DisplayName("최근 등록된 책 페이지 조회 쿼리")
     public void getBooksByRecent() {
+        // given
         List<User> users = userRepository.saveAll(createUsers());
-        List<Book> books = bookrepository.saveAll(createBooks());
+        List<Book> books = bookRepository.saveAll(createBooks());
         List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(users, books));
         List<Comment> comments = commentRepository.saveAll(createComments(users.get(0), talkRooms.get(0)));
 
-        SearchServiceRequest params = SearchServiceRequest.builder()
-                .page(1)
-                .size(5)
-                .order("recent")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 5, "recent");
 
-        PageResponse<SimpleBookResponse> response = bookrepository.getBooks(params.getOffset(), params.getSize(),
-                params.getOrder());
+        // when
+        List<BookFindAllResponse> result = bookRepository.getBooks(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), offsetLimit.getOrder());
 
-        assertThat(response.getSize()).isEqualTo(5);
-        assertThat(response.getTotalCount()).isEqualTo(5);
-        assertThat(response.getQueryResponse()).hasSize(5)
+        // then
+        assertThat(result).hasSize(5)
                 .extracting("isbn")
                 .containsExactly(
                         "00004", "00003", "00002", "00001", "00000"
@@ -66,23 +62,20 @@ public class BookRepositoryTest extends RepositoryTestSupport {
     @Test
     @DisplayName("토크 많은 책 페이지 조회 쿼리")
     public void getBooksByComment() {
+        // given
         List<User> users = userRepository.saveAll(createUsers());
-        List<Book> books = bookrepository.saveAll(createBooks());
+        List<Book> books = bookRepository.saveAll(createBooks());
         List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(users, books));
         List<Comment> comments = commentRepository.saveAll(createComments(users.get(0), talkRooms.get(0)));
 
-        SearchServiceRequest params = SearchServiceRequest.builder()
-                .page(1)
-                .size(5)
-                .order("comment")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 5, "comment");
 
-        PageResponse<SimpleBookResponse> response = bookrepository.getBooks(params.getOffset(), params.getSize(),
-                params.getOrder());
+        // when
+        List<BookFindAllResponse> result = bookRepository.getBooks(offsetLimit.getOffset(), offsetLimit.getLimit(),
+                offsetLimit.getOrder());
 
-        assertThat(response.getSize()).isEqualTo(5);
-        assertThat(response.getTotalCount()).isEqualTo(1);
-        assertThat(response.getQueryResponse()).hasSize(1)
+        // then
+        assertThat(result).hasSize(1)
                 .extracting("isbn")
                 .containsExactlyInAnyOrder("00000");
     }

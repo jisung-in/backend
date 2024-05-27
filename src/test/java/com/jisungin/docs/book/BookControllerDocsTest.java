@@ -24,19 +24,18 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.jisungin.api.SearchRequest;
 import com.jisungin.api.book.BookController;
 import com.jisungin.api.book.request.BookCreateRequest;
 import com.jisungin.api.book.request.BookPageRequest;
+import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.book.BestSellerService;
 import com.jisungin.application.book.BookService;
 import com.jisungin.application.book.request.BookCreateServiceRequest;
 import com.jisungin.application.book.request.BookServicePageRequest;
 import com.jisungin.application.book.response.BestSellerResponse;
+import com.jisungin.application.book.response.BookFindAllResponse;
 import com.jisungin.application.book.response.BookResponse;
-import com.jisungin.application.book.response.SimpleBookResponse;
 import com.jisungin.docs.RestDocsSupport;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -94,22 +93,16 @@ public class BookControllerDocsTest extends RestDocsSupport {
     @Test
     @DisplayName("도서 페이징 조회 API")
     public void getBooks() throws Exception {
-        SearchRequest params = SearchRequest.builder()
-                .page(1)
-                .size(10)
-                .order("recent")
-                .build();
-
-        List<SimpleBookResponse> queryResponse = createSimpleBookResponse();
-        PageResponse<SimpleBookResponse> response = PageResponse.of(queryResponse.size(), queryResponse.size(),
+        List<BookFindAllResponse> queryResponse = createSimpleBookResponse();
+        PageResponse<BookFindAllResponse> response = PageResponse.of(queryResponse.size(), queryResponse.size(),
                 queryResponse);
 
-        given(bookService.getBooks(any(SearchServiceRequest.class))).willReturn(response);
+        given(bookService.getBooks(any(OffsetLimit.class))).willReturn(response);
 
         mockMvc.perform(get("/v1/books")
-                        .param("page", String.valueOf(params.getPage()))
-                        .param("size", String.valueOf(params.getSize()))
-                        .param("order", params.getOrder())
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("order", "recent")
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -254,9 +247,9 @@ public class BookControllerDocsTest extends RestDocsSupport {
                 .build();
     }
 
-    private List<SimpleBookResponse> createSimpleBookResponse() {
+    private List<BookFindAllResponse> createSimpleBookResponse() {
         return IntStream.rangeClosed(1, 5)
-                .mapToObj(i -> SimpleBookResponse.builder()
+                .mapToObj(i -> BookFindAllResponse.builder()
                         .isbn("000000000000" + i)
                         .title("book title" + i)
                         .publisher("book publisher" + i)
