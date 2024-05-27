@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class SimpleBookResponse {
+public class BookFindAllResponse {
 
     private String isbn;
     private String title;
@@ -19,8 +19,8 @@ public class SimpleBookResponse {
 
     @Builder
     @QueryProjection
-    public SimpleBookResponse(String isbn, String title, String publisher, String thumbnail, String authors,
-                              LocalDateTime dateTime) {
+    public BookFindAllResponse(String isbn, String title, String publisher, String thumbnail, String authors,
+                               LocalDateTime dateTime) {
         this.isbn = isbn;
         this.title = title;
         this.publisher = publisher;
@@ -29,9 +29,9 @@ public class SimpleBookResponse {
         this.dateTime = dateTime;
     }
 
-    public static SimpleBookResponse of(String isbn, String title, String publisher, String thumbnail, String authors,
-                                        LocalDateTime dateTime) {
-        return SimpleBookResponse.builder()
+    public static BookFindAllResponse of(String isbn, String title, String publisher, String thumbnail, String authors,
+                                         LocalDateTime dateTime) {
+        return BookFindAllResponse.builder()
                 .isbn(isbn)
                 .title(title)
                 .publisher(publisher)

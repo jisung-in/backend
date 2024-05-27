@@ -1,10 +1,10 @@
 package com.jisungin.application.book;
 
+import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.book.request.BookCreateServiceRequest;
+import com.jisungin.application.book.response.BookFindAllResponse;
 import com.jisungin.application.book.response.BookResponse;
-import com.jisungin.application.book.response.SimpleBookResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
@@ -35,8 +35,13 @@ public class BookService {
         return BookResponse.of(book, averageRating);
     }
 
-    public PageResponse<SimpleBookResponse> getBooks(SearchServiceRequest params) {
-        return bookRepository.getBooks(params.getOffset(), params.getSize(), params.getOrder());
+    public PageResponse<BookFindAllResponse> getBooks(OffsetLimit offsetLimit) {
+        List<BookFindAllResponse> response = bookRepository.getBooks(offsetLimit.getOffset(), offsetLimit.getLimit(),
+                offsetLimit.getOrder());
+
+        Long totalCount = bookRepository.getTotalCount(offsetLimit.getOrder());
+
+        return PageResponse.of(response.size(), totalCount, response);
     }
 
     @Transactional
