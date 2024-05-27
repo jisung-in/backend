@@ -15,25 +15,25 @@ public class TalkRoomRelatedBookResponse {
     private String title;
     private String content;
     private String bookName;
+    private String bookAuthor;
     private String bookThumbnail;
     private Long likeCount;
     private List<String> readingStatuses;
-    private List<String> bookAuthors;
 
     @Builder
     private TalkRoomRelatedBookResponse(Long id, String profileImage, String username, String title, String content,
-                                        String bookName, String bookThumbnail, Long likeCount,
-                                        List<String> readingStatuses, List<String> bookAuthors) {
+                                        String bookName, String bookAuthor, String bookThumbnail, Long likeCount,
+                                        List<String> readingStatuses) {
         this.id = id;
         this.profileImage = profileImage;
         this.username = username;
         this.title = title;
         this.content = content;
         this.bookName = bookName;
+        this.bookAuthor = bookAuthor;
         this.bookThumbnail = bookThumbnail;
         this.likeCount = likeCount;
         this.readingStatuses = readingStatuses;
-        this.bookAuthors = bookAuthors;
     }
 
     public static TalkRoomRelatedBookResponse of(TalkRoomQueryResponse talkRoom,
@@ -45,10 +45,10 @@ public class TalkRoomRelatedBookResponse {
                 .title(talkRoom.getTitle())
                 .content(talkRoom.getContent())
                 .bookName(talkRoom.getBookName())
+                .bookAuthor(talkRoom.getBookAuthor())
                 .bookThumbnail(talkRoom.getBookThumbnail())
                 .likeCount(talkRoom.getLikeCount())
                 .readingStatuses(extractReadingStatuses(readingStatuses))
-                .bookAuthors(List.of(talkRoom.getBookAuthor().split(",")))
                 .build();
     }
 

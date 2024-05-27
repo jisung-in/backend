@@ -293,7 +293,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("토론방 좋아요 총 개수"),
                                 fieldWithPath("data.queryResponse[].readingStatuses[]").type(ARRAY)
                                         .description("토론방 참가 조건"),
-                                fieldWithPath("data.queryResponse[].bookAuthors[]").type(ARRAY)
+                                fieldWithPath("data.queryResponse[].bookAuthor").type(STRING)
                                         .description("도서 저자")
                         ))
                 );
@@ -563,7 +563,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .bookThumbnail("http://www.book-thumbnail.com/" + id)
                 .likeCount(id)
                 .readingStatuses(List.of("읽고 싶은", "읽는 중", "읽음", "잠시 멈춤", "중단"))
-                .bookAuthors(List.of("도서 저자1", "도서 저자2", "도서 저자3"))
+                .bookAuthor("도서 저자1,도서 저자2,도서 저자3")
                 .build();
     }
 
