@@ -1,18 +1,13 @@
 package com.jisungin.application.talkroom.response;
 
 import com.jisungin.domain.ReadingStatus;
-import com.querydsl.core.annotations.QueryProjection;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
-public class TalkRoomFindAllResponse {
+public class TalkRoomRelatedBookResponse {
 
     private Long id;
     private String profileImage;
@@ -23,15 +18,12 @@ public class TalkRoomFindAllResponse {
     private String bookAuthor;
     private String bookThumbnail;
     private Long likeCount;
-    private List<String> readingStatuses = new ArrayList<>();
-    private LocalDateTime registeredDateTime;
+    private List<String> readingStatuses;
 
     @Builder
-    @QueryProjection
-    public TalkRoomFindAllResponse(Long id, String profileImage, String username, String title, String content,
-                                   String bookName, String bookAuthor,
-                                   String bookThumbnail, Long likeCount, List<String> readingStatuses,
-                                   LocalDateTime registeredDateTime) {
+    private TalkRoomRelatedBookResponse(Long id, String profileImage, String username, String title, String content,
+                                        String bookName, String bookAuthor, String bookThumbnail, Long likeCount,
+                                        List<String> readingStatuses) {
         this.id = id;
         this.profileImage = profileImage;
         this.username = username;
@@ -42,11 +34,11 @@ public class TalkRoomFindAllResponse {
         this.bookThumbnail = bookThumbnail;
         this.likeCount = likeCount;
         this.readingStatuses = readingStatuses;
-        this.registeredDateTime = registeredDateTime;
     }
 
-    public static TalkRoomFindAllResponse of(TalkRoomQueryResponse talkRoom, List<ReadingStatus> readingStatuses) {
-        return TalkRoomFindAllResponse.builder()
+    public static TalkRoomRelatedBookResponse of(TalkRoomQueryResponse talkRoom,
+                                                 List<ReadingStatus> readingStatuses) {
+        return TalkRoomRelatedBookResponse.builder()
                 .id(talkRoom.getId())
                 .profileImage(talkRoom.getProfileImage())
                 .username(talkRoom.getUsername())
@@ -57,15 +49,14 @@ public class TalkRoomFindAllResponse {
                 .bookThumbnail(talkRoom.getBookThumbnail())
                 .likeCount(talkRoom.getLikeCount())
                 .readingStatuses(extractReadingStatuses(readingStatuses))
-                .registeredDateTime(talkRoom.getRegisteredDateTime().withNano(0))
                 .build();
     }
 
-    public static List<TalkRoomFindAllResponse> toList(List<TalkRoomQueryResponse> talkRooms,
-                                                       Map<Long, List<ReadingStatus>> readingStatuses) {
-        return talkRooms.stream()
-                .map(talkRoom -> TalkRoomFindAllResponse.of(talkRoom, readingStatuses.get(talkRoom.getId())))
-                .toList();
+    public static List<TalkRoomRelatedBookResponse> toList(List<TalkRoomQueryResponse> talkRooms,
+                                                           Map<Long, List<ReadingStatus>> readingStatusesMap) {
+       return talkRooms.stream()
+               .map(talkRoom -> TalkRoomRelatedBookResponse.of(talkRoom, readingStatusesMap.get(talkRoom.getId())))
+               .toList();
     }
 
     private static List<String> extractReadingStatuses(List<ReadingStatus> readingStatuses) {

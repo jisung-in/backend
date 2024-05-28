@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.talkroom.TalkRoomService;
+import com.jisungin.application.talkroomlike.response.TalkRoomIds;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
@@ -22,6 +23,7 @@ import com.jisungin.exception.BusinessException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,6 +59,30 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
         talkRoomRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
+    }
+
+    @Test
+    @DisplayName("유저가 좋아요한 토크방 아이디를 조회한다.")
+    void findLikeTalkRoomIds() {
+        // given
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+
+        List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(book, user));
+        List<TalkRoomLike> talkRoomLikes = talkRoomLikeRepository.saveAll(createTalkRoomLikes(user, talkRooms));
+
+        // when
+        TalkRoomIds talkRoomIds = talkRoomLikeService.findTalkRoomIds(user.getId());
+
+        // then
+        assertThat(talkRoomIds.getTalkRoomIds()).hasSize(5)
+                .containsExactly(
+                        talkRooms.get(0).getId(),
+                        talkRooms.get(1).getId(),
+                        talkRooms.get(2).getId(),
+                        talkRooms.get(3).getId(),
+                        talkRooms.get(4).getId()
+                );
     }
 
     @Test
@@ -187,6 +213,12 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
                 .build();
     }
 
+    private static List<TalkRoomLike> createTalkRoomLikes(User user, List<TalkRoom> talkRooms) {
+        return IntStream.range(0, 5)
+                .mapToObj(i -> createTalkRoomLike(talkRooms.get(i), user))
+                .toList();
+    }
+
     private void createTalkRoomRole(TalkRoom talkRoom) {
         List<String> request = new ArrayList<>();
         request.add("읽는 중");
@@ -205,6 +237,12 @@ class TalkRoomLikeServiceTest extends ServiceTestSupport {
                 .content("내용")
                 .user(user)
                 .build();
+    }
+
+    private static List<TalkRoom> createTalkRooms(Book book, User user) {
+        return IntStream.range(0, 5)
+                .mapToObj(i -> createTalkRoom(book, user))
+                .toList();
     }
 
     private static User createUser() {

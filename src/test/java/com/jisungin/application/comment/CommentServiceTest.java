@@ -2,11 +2,12 @@ package com.jisungin.application.comment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 import com.jisungin.ServiceTestSupport;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.request.CommentEditServiceRequest;
-import com.jisungin.application.comment.response.CommentPageResponse;
 import com.jisungin.application.comment.response.CommentResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
@@ -15,7 +16,6 @@ import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.commentimage.CommentImage;
 import com.jisungin.domain.commentimage.repository.CommentImageRepository;
-import com.jisungin.domain.commentlike.CommentLike;
 import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.TalkRoomRole;
@@ -32,7 +32,6 @@ import com.jisungin.exception.BusinessException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,34 +41,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 class CommentServiceTest extends ServiceTestSupport {
 
     @Autowired
+    BookRepository bookRepository;
+
+    @Autowired
+    CommentRepository commentRepository;
+
+    @Autowired
+    CommentImageRepository commentImageRepository;
+
+    @Autowired
+    CommentLikeRepository commentLikeRepository;
+
+    @Autowired
     TalkRoomRepository talkRoomRepository;
 
     @Autowired
     TalkRoomRoleRepository talkRoomRoleRepository;
 
     @Autowired
-    CommentService commentService;
-
-    @Autowired
-    BookRepository bookRepository;
+    TalkRoomImageRepository talkRoomImageRepository;
 
     @Autowired
     UserRepository userRepository;
 
     @Autowired
-    CommentRepository commentRepository;
-
-    @Autowired
-    TalkRoomImageRepository talkRoomImageRepository;
-
-    @Autowired
-    CommentLikeRepository commentLikeRepository;
-
-    @Autowired
     UserLibraryRepository userLibraryRepository;
 
     @Autowired
-    CommentImageRepository commentImageRepository;
+    CommentService commentService;
 
     @AfterEach
     void tearDown() {
@@ -496,16 +495,11 @@ class CommentServiceTest extends ServiceTestSupport {
 
     @Test
     @DisplayName("의견을 조회한다.")
-    void findAllComments() throws Exception {
+    void findAllComments() {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
 
         createTalkRoomRole(talkRoom);
 
@@ -516,36 +510,35 @@ class CommentServiceTest extends ServiceTestSupport {
                         .content("의견 " + i)
                         .registeredDateTime(LocalDateTime.now())
                         .build())
-                .collect(Collectors.toList());
+                .toList();
 
         for (int i = 0; i < 5; i++) {
             commentRepository.save(comments.get(i));
         }
 
         // when
-        CommentPageResponse response = commentService.findAllComments(talkRoom.getId(), user.getId());
+        PageResponse<CommentFindAllResponse> result = commentService.findAllComments(talkRoom.getId());
 
         // then
-        assertThat(5L).isEqualTo(response.getResponse().getTotalCount());
-        assertThat("의견 5").isEqualTo(response.getResponse().getQueryResponse().get(0).getContent());
-        assertThat("의견 4").isEqualTo(response.getResponse().getQueryResponse().get(1).getContent());
-        assertThat("의견 3").isEqualTo(response.getResponse().getQueryResponse().get(2).getContent());
-        assertThat("의견 2").isEqualTo(response.getResponse().getQueryResponse().get(3).getContent());
-        assertThat("의견 1").isEqualTo(response.getResponse().getQueryResponse().get(4).getContent());
+        assertThat(result.getTotalCount()).isEqualTo(5L);
+        assertThat(result.getQueryResponse()).hasSize(5)
+                .extracting("content", "commentImages")
+                .containsExactly(
+                        tuple("의견 5", List.of()),
+                        tuple("의견 4", List.of()),
+                        tuple("의견 3", List.of()),
+                        tuple("의견 2", List.of()),
+                        tuple("의견 1", List.of())
+                );
     }
 
     @Test
     @DisplayName("의견을 조회할 때 이미지도 같이 조회 된다.")
-    void findAllCommentsWithImage() throws Exception {
+    void findAllCommentsWithImage() {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
 
         createTalkRoomRole(talkRoom);
 
@@ -572,62 +565,19 @@ class CommentServiceTest extends ServiceTestSupport {
         commentImageRepository.saveAll(images);
 
         // when
-        CommentPageResponse response = commentService.findAllComments(talkRoom.getId(), user.getId());
+        PageResponse<CommentFindAllResponse> result = commentService.findAllComments(talkRoom.getId());
 
         // then
-        assertThat(5L).isEqualTo(response.getResponse().getTotalCount());
-        assertThat("이미지 5").isEqualTo(response.getResponse().getQueryResponse().get(0).getCommentImages().get(0));
-        assertThat("이미지 4").isEqualTo(response.getResponse().getQueryResponse().get(1).getCommentImages().get(0));
-        assertThat("이미지 3").isEqualTo(response.getResponse().getQueryResponse().get(2).getCommentImages().get(0));
-        assertThat("이미지 2").isEqualTo(response.getResponse().getQueryResponse().get(3).getCommentImages().get(0));
-        assertThat("이미지 1").isEqualTo(response.getResponse().getQueryResponse().get(4).getCommentImages().get(0));
-    }
-
-    @Test
-    @DisplayName("유저가 로그인을 한 상태에서 의견을 조회하면 본인이 좋아요한 의견을 확인할 수 있다.")
-    void findAllCommentsWithLike() throws Exception {
-        // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
-
-        createTalkRoomRole(talkRoom);
-
-        List<Comment> comments = IntStream.range(1, 6)
-                .mapToObj(i -> Comment.builder()
-                        .talkRoom(talkRoom)
-                        .user(user)
-                        .content("의견 " + i)
-                        .registeredDateTime(LocalDateTime.now())
-                        .build())
-                .collect(Collectors.toList());
-
-        for (int i = 0; i < 5; i++) {
-            commentRepository.save(comments.get(i));
-        }
-
-        CommentLike.builder().build();
-        List<CommentLike> likes = IntStream.range(0, 5).mapToObj(i -> CommentLike.builder()
-                .user(user)
-                .comment(comments.get(i))
-                .build()).collect(Collectors.toList());
-
-        commentLikeRepository.saveAll(likes);
-
-        // when
-        CommentPageResponse response = commentService.findAllComments(talkRoom.getId(), user.getId());
-
-        // then
-        assertThat(comments.get(0).getId()).isEqualTo(response.getUserLikeCommentIds().get(0));
-        assertThat(comments.get(1).getId()).isEqualTo(response.getUserLikeCommentIds().get(1));
-        assertThat(comments.get(2).getId()).isEqualTo(response.getUserLikeCommentIds().get(2));
-        assertThat(comments.get(3).getId()).isEqualTo(response.getUserLikeCommentIds().get(3));
-        assertThat(comments.get(4).getId()).isEqualTo(response.getUserLikeCommentIds().get(4));
+        assertThat(result.getTotalCount()).isEqualTo(5L);
+        assertThat(result.getQueryResponse()).hasSize(5)
+                .extracting("content", "commentImages")
+                .containsExactly(
+                        tuple("의견 5", List.of("이미지 5")),
+                        tuple("의견 4", List.of("이미지 4")),
+                        tuple("의견 3", List.of("이미지 3")),
+                        tuple("의견 2", List.of("이미지 2")),
+                        tuple("의견 1", List.of("이미지 1"))
+                );
     }
 
     private static Comment createComment(User user, TalkRoom talkRoom) {

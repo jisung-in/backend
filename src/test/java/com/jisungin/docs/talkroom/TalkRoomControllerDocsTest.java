@@ -6,11 +6,16 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
+import static org.springframework.restdocs.payload.JsonFieldType.ARRAY;
+import static org.springframework.restdocs.payload.JsonFieldType.NUMBER;
+import static org.springframework.restdocs.payload.JsonFieldType.OBJECT;
+import static org.springframework.restdocs.payload.JsonFieldType.STRING;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
@@ -22,20 +27,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.jisungin.api.SearchRequest;
 import com.jisungin.api.talkroom.TalkRoomController;
 import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
+import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
-import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
+import com.jisungin.application.talkroom.response.TalkRoomRelatedBookResponse;
 import com.jisungin.docs.RestDocsSupport;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -77,7 +83,6 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                         .readingStatuses(List.of("읽고 싶은", "읽는 중", "읽음", "잠시 멈춤", "중단"))
                         .registeredDateTime(LocalDateTime.now())
                         .images(List.of("이미지 URL"))
-                        .likeTalkRoom(false)
                         .build());
 
         mockMvc.perform(
@@ -134,9 +139,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("data.registeredDateTime").type(JsonFieldType.ARRAY)
                                         .description("토론방 생성 시간"),
                                 fieldWithPath("data.likeCount").type(JsonFieldType.NUMBER)
-                                        .description("토론방 좋아요 총 개수"),
-                                fieldWithPath("data.likeTalkRoom").type(JsonFieldType.BOOLEAN)
-                                        .description("로그인 사용자 좋아요 표시")
+                                        .description("토론방 좋아요 총 개수")
                         )
                 ));
     }
@@ -144,31 +147,20 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
     @Test
     @DisplayName("토론방 페이징 조회 API")
     void findAllTalkRooms() throws Exception {
+        // given
         List<TalkRoomFindAllResponse> talkRoomFindAllResponses = createTalkRoomFindAllResponses();
 
-        SearchRequest request = SearchRequest.builder()
-                .page(1)
-                .size(10)
-                .order("sort")
-                .query("search")
-                .day("sortbydate")
-                .build();
-
-        PageResponse<TalkRoomFindAllResponse> pageResponse = PageResponse.<TalkRoomFindAllResponse>builder()
+        PageResponse<TalkRoomFindAllResponse> response = PageResponse.<TalkRoomFindAllResponse>builder()
                 .queryResponse(talkRoomFindAllResponses)
                 .size(10)
                 .totalCount(10)
                 .build();
 
-        TalkRoomPageResponse response = TalkRoomPageResponse.builder()
-                .response(pageResponse)
-                .userLikeTalkRoomIds(null)
-                .build();
+        // when
+        given(talkRoomService.findAllTalkRoom(any(OffsetLimit.class), anyString(), anyString(),
+                any(LocalDateTime.class))).willReturn(response);
 
-        given(talkRoomService.findAllTalkRoom(anyLong(), any(Integer.class), anyString(), anyString(), anyString(),
-                anyLong(), any(LocalDateTime.class)))
-                .willReturn(response);
-
+        // then
         mockMvc.perform(
                         get("/v1/talk-rooms")
                                 .param("page", "1")
@@ -205,49 +197,112 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("메시지"),
                                 fieldWithPath("data").type(JsonFieldType.OBJECT)
                                         .description("응답 데이터"),
-                                fieldWithPath("data.userLikeTalkRoomIds").type(JsonFieldType.ARRAY)
-                                        .description("로그인한 유저가 좋아요 누른 토론방 ID").optional(),
-                                fieldWithPath("data.response").type(JsonFieldType.OBJECT)
-                                        .description("토론방과 관련된 데이터"),
-                                fieldWithPath("data.response.totalCount").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.totalCount").type(JsonFieldType.NUMBER)
                                         .description("토론방 총 개수"),
-                                fieldWithPath("data.response.size").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.size").type(JsonFieldType.NUMBER)
                                         .description("토론방 반환 사이즈"),
-                                fieldWithPath("data.response.queryResponse").type(JsonFieldType.ARRAY)
+                                fieldWithPath("data.queryResponse").type(JsonFieldType.ARRAY)
                                         .description("토론방 데이터"),
-                                fieldWithPath("data.response.queryResponse[].id").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.queryResponse[].id").type(JsonFieldType.NUMBER)
                                         .description("토론방 ID"),
-                                fieldWithPath("data.response.queryResponse[].profileImage").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].profileImage").type(JsonFieldType.STRING)
                                         .description("유저 이미지 URL"),
-                                fieldWithPath("data.response.queryResponse[].username").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].username").type(JsonFieldType.STRING)
                                         .description("유저 이름"),
-                                fieldWithPath("data.response.queryResponse[].title").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].title").type(JsonFieldType.STRING)
                                         .description("토론방 제목"),
-                                fieldWithPath("data.response.queryResponse[].content").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].content").type(JsonFieldType.STRING)
                                         .description("토론방 본문"),
-                                fieldWithPath("data.response.queryResponse[].bookName").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].bookName").type(JsonFieldType.STRING)
                                         .description("책 제목"),
-                                fieldWithPath("data.response.queryResponse[].bookAuthor").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].bookAuthor").type(JsonFieldType.STRING)
                                         .description("책 저자"),
-                                fieldWithPath("data.response.queryResponse[].bookThumbnail").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].bookThumbnail").type(JsonFieldType.STRING)
                                         .description("책 이미지 URL"),
-                                fieldWithPath("data.response.queryResponse[].likeCount").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.queryResponse[].likeCount").type(JsonFieldType.NUMBER)
                                         .description("토론방 좋아요 개수"),
-                                fieldWithPath("data.response.queryResponse[].readingStatuses").type(JsonFieldType.ARRAY)
+                                fieldWithPath("data.queryResponse[].readingStatuses").type(JsonFieldType.ARRAY)
                                         .description("토론방 참가 조건"),
-                                fieldWithPath("data.response.queryResponse[].registeredDateTime").type(
+                                fieldWithPath("data.queryResponse[].registeredDateTime").type(
                                                 JsonFieldType.ARRAY)
                                         .description("토론방 생성 시간")
-
                         )
                 ));
+    }
 
+    @Test
+    @DisplayName("도서와 연관된 토크룸 조회 API")
+    void findBookTalkRooms() throws Exception {
+        // given
+        String isbn = "000000000001";
+
+        List<TalkRoomRelatedBookResponse> response = LongStream.range(0, 10)
+                .mapToObj(this::createTalkRoomRelatedBookResponse)
+                .toList();
+
+        given(talkRoomService.findBookTalkRooms(anyString(), any(OffsetLimit.class)))
+                .willReturn(PageResponse.of(10, response.size(), response));
+
+        // when // then
+        mockMvc.perform(get("/v1/books/{isbn}/talk-rooms", isbn)
+                        .param("page", "1")
+                        .param("size", "10")
+                        .accept(APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("talkroom/find-related-book",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(
+                                parameterWithName("isbn").description("도서 ISBN")
+                        ),
+                        queryParameters(
+                                parameterWithName("page").description("페이지 번호"),
+                                parameterWithName("size").description("페이지 사이즈")
+                        ),
+                        responseFields(
+                                fieldWithPath("code").type(NUMBER)
+                                        .description("코드"),
+                                fieldWithPath("status").type(STRING)
+                                        .description("상태"),
+                                fieldWithPath("message").type(STRING)
+                                        .description("메세지"),
+                                fieldWithPath("data").type(OBJECT)
+                                        .description("응답 데이터"),
+                                fieldWithPath("data.totalCount").type(NUMBER)
+                                        .description("토론방 총 개수"),
+                                fieldWithPath("data.size").type(NUMBER)
+                                        .description("토론방 반환 사이즈"),
+                                fieldWithPath("data.queryResponse").type(ARRAY)
+                                        .description("토론방과 데이터"),
+                                fieldWithPath("data.queryResponse[].id").type(NUMBER)
+                                        .description("토론방 ID"),
+                                fieldWithPath("data.queryResponse[].profileImage").type(STRING)
+                                        .description("작성자 프로필 이미지"),
+                                fieldWithPath("data.queryResponse[].username").type(STRING)
+                                        .description("작성자 이름"),
+                                fieldWithPath("data.queryResponse[].title").type(STRING)
+                                        .description("토론방 이름"),
+                                fieldWithPath("data.queryResponse[].content").type(STRING)
+                                        .description("토론방 내용"),
+                                fieldWithPath("data.queryResponse[].bookName").type(STRING)
+                                        .description("도서 제목"),
+                                fieldWithPath("data.queryResponse[].bookThumbnail").type(STRING)
+                                        .description("도서 썸네일 URL"),
+                                fieldWithPath("data.queryResponse[].likeCount").type(NUMBER)
+                                        .description("토론방 좋아요 총 개수"),
+                                fieldWithPath("data.queryResponse[].readingStatuses[]").type(ARRAY)
+                                        .description("토론방 참가 조건"),
+                                fieldWithPath("data.queryResponse[].bookAuthor").type(STRING)
+                                        .description("도서 저자")
+                        ))
+                );
     }
 
     @Test
     @DisplayName("토론방을 단건 조회하는 API")
     void findOneTalkRoom() throws Exception {
-        given(talkRoomService.findOneTalkRoom(anyLong(), anyLong()))
+        given(talkRoomService.findOneTalkRoom(anyLong()))
                 .willReturn(TalkRoomFindOneResponse.builder()
                         .id(1L)
                         .profileImage("작성자 이미지 URL")
@@ -261,7 +316,6 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                         .readingStatuses(List.of("읽고 싶은", "읽는 중", "읽음", "잠시 멈춤", "중단"))
                         .registeredDateTime(LocalDateTime.now())
                         .images(List.of("이미지 URL"))
-                        .likeTalkRoom(false)
                         .build());
 
         Long request = 1L;
@@ -311,9 +365,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("data.registeredDateTime").type(JsonFieldType.ARRAY)
                                         .description("토론방 생성 시간"),
                                 fieldWithPath("data.likeCount").type(JsonFieldType.NUMBER)
-                                        .description("토론방 좋아요 총 개수"),
-                                fieldWithPath("data.likeTalkRoom").type(JsonFieldType.BOOLEAN)
-                                        .description("로그인 사용자 좋아요 표시")
+                                        .description("토론방 좋아요 총 개수")
                         )
                 ));
     }
@@ -401,20 +453,15 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
     void findAllTalkRoomsOwner() throws Exception {
         List<TalkRoomFindAllResponse> talkRoomFindAllResponses = createTalkRoomFindAllResponses();
 
-        PageResponse<TalkRoomFindAllResponse> pageResponse = PageResponse.<TalkRoomFindAllResponse>builder()
+        PageResponse<TalkRoomFindAllResponse> response = PageResponse.<TalkRoomFindAllResponse>builder()
                 .queryResponse(talkRoomFindAllResponses)
                 .size(10)
                 .totalCount(10)
                 .build();
 
-        TalkRoomPageResponse response = TalkRoomPageResponse.builder()
-                .response(pageResponse)
-                .userLikeTalkRoomIds(null)
-                .build();
-
-        given(talkRoomService.findUserTalkRoom(anyLong(), any(Integer.class), anyBoolean(), anyBoolean(), anyBoolean(),
-                anyLong()))
-                .willReturn(response);
+        // when
+        given(talkRoomService.findUserTalkRoom(any(OffsetLimit.class), anyBoolean(), anyBoolean(), anyBoolean(),
+                anyLong())).willReturn(response);
 
         mockMvc.perform(
                         get("/v1/users/talk-rooms")
@@ -452,37 +499,33 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("메시지"),
                                 fieldWithPath("data").type(JsonFieldType.OBJECT)
                                         .description("응답 데이터"),
-                                fieldWithPath("data.userLikeTalkRoomIds").type(JsonFieldType.ARRAY)
-                                        .description("로그인한 유저가 좋아요 누른 토론방 ID").optional(),
-                                fieldWithPath("data.response").type(JsonFieldType.OBJECT)
-                                        .description("토론방과 관련된 데이터"),
-                                fieldWithPath("data.response.totalCount").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.totalCount").type(JsonFieldType.NUMBER)
                                         .description("토론방 총 개수"),
-                                fieldWithPath("data.response.size").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.size").type(JsonFieldType.NUMBER)
                                         .description("토론방 반환 사이즈"),
-                                fieldWithPath("data.response.queryResponse").type(JsonFieldType.ARRAY)
+                                fieldWithPath("data.queryResponse").type(JsonFieldType.ARRAY)
                                         .description("토론방 데이터"),
-                                fieldWithPath("data.response.queryResponse[].id").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.queryResponse[].id").type(JsonFieldType.NUMBER)
                                         .description("토론방 ID"),
-                                fieldWithPath("data.response.queryResponse[].profileImage").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].profileImage").type(JsonFieldType.STRING)
                                         .description("유저 이미지 URL"),
-                                fieldWithPath("data.response.queryResponse[].username").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].username").type(JsonFieldType.STRING)
                                         .description("유저 이름"),
-                                fieldWithPath("data.response.queryResponse[].title").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].title").type(JsonFieldType.STRING)
                                         .description("토론방 제목"),
-                                fieldWithPath("data.response.queryResponse[].content").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].content").type(JsonFieldType.STRING)
                                         .description("토론방 본문"),
-                                fieldWithPath("data.response.queryResponse[].bookName").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].bookName").type(JsonFieldType.STRING)
                                         .description("책 제목"),
-                                fieldWithPath("data.response.queryResponse[].bookAuthor").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].bookAuthor").type(JsonFieldType.STRING)
                                         .description("책 저자"),
-                                fieldWithPath("data.response.queryResponse[].bookThumbnail").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].bookThumbnail").type(JsonFieldType.STRING)
                                         .description("책 이미지 URL"),
-                                fieldWithPath("data.response.queryResponse[].likeCount").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.queryResponse[].likeCount").type(JsonFieldType.NUMBER)
                                         .description("토론방 좋아요 개수"),
-                                fieldWithPath("data.response.queryResponse[].readingStatuses").type(JsonFieldType.ARRAY)
+                                fieldWithPath("data.queryResponse[].readingStatuses").type(JsonFieldType.ARRAY)
                                         .description("토론방 참가 조건"),
-                                fieldWithPath("data.response.queryResponse[].registeredDateTime").type(
+                                fieldWithPath("data.queryResponse[].registeredDateTime").type(
                                                 JsonFieldType.ARRAY)
                                         .description("토론방 생성 시간")
 
@@ -507,6 +550,21 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                         .registeredDateTime(LocalDateTime.now())
                         .build())
                 .toList();
+    }
+
+    private TalkRoomRelatedBookResponse createTalkRoomRelatedBookResponse(Long id) {
+        return TalkRoomRelatedBookResponse.builder()
+                .id(id)
+                .profileImage("http://www.profile.com/" + id)
+                .username("사용자 이름 " + id)
+                .title("토론방 제목 " + id)
+                .content("토론방 내용 " + id)
+                .bookName("도서 제목 " + id)
+                .bookThumbnail("http://www.book-thumbnail.com/" + id)
+                .likeCount(id)
+                .readingStatuses(List.of("읽고 싶은", "읽는 중", "읽음", "잠시 멈춤", "중단"))
+                .bookAuthor("도서 저자1,도서 저자2,도서 저자3")
+                .build();
     }
 
 }

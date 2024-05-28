@@ -4,12 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
-import com.jisungin.api.Offset;
-import com.jisungin.application.SearchServiceRequest;
+import com.jisungin.application.OffsetLimit;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
+import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
-import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
@@ -32,7 +32,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -83,51 +82,36 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     @DisplayName("유저가 책A에 대한 토크방을 생성한다.")
     void createTalkRoom() {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<String> readingStatus = new ArrayList<>();
-        readingStatus.add("읽는 중");
-        readingStatus.add("읽음");
-
-        List<Book> books = bookRepository.findAll();
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
-                .bookIsbn(books.get(0).getIsbn())
+                .bookIsbn(book.getIsbn())
                 .title("토크방")
                 .content("내용")
-                .readingStatus(readingStatus)
+                .readingStatus(List.of("읽는 중", "읽음"))
                 .build();
 
         // when
-        TalkRoomFindOneResponse response = talkRoomService.createTalkRoom(request, user.getId(), LocalDateTime.now());
+        TalkRoomFindOneResponse result = talkRoomService.createTalkRoom(request, user.getId(), LocalDateTime.now());
 
         // then
-        List<String> readingStatuses = response.getReadingStatuses();
-        assertThat(response)
+        assertThat(result)
                 .extracting("id", "profileImage", "username", "title", "content", "bookName", "bookThumbnail",
-                        "likeCount", "likeTalkRoom")
-                .contains(response.getId(), "image", "user@gmail.com", "토크방", "내용", "제목", "이미지", 0L, false);
-        assertThat(readingStatuses.size()).isEqualTo(2);
+                        "likeCount")
+                .contains(result.getId(), "image", "user@gmail.com", "토크방", "내용", "제목", "이미지", 0L);
+        assertThat(result.getReadingStatuses()).hasSize(2);
     }
 
     @Test
     @DisplayName("토크방을 생성할 때 참가 조건은 1개 이상이어야 한다.")
     void createTalkRoomWithNotReadingStatus() {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<Book> books = bookRepository.findAll();
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
-                .bookIsbn(books.get(0).getIsbn())
+                .bookIsbn(book.getIsbn())
                 .title("토크방")
                 .content("내용")
                 .readingStatus(null)
@@ -143,192 +127,143 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     @DisplayName("토크방을 생성할 때 참가 조건이 None으로 생성할 수 있다.")
     void createTalkRoomWithNone() {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<Book> books = bookRepository.findAll();
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
-                .bookIsbn(books.get(0).getIsbn())
+                .bookIsbn(book.getIsbn())
                 .title("토크방")
                 .content("내용")
                 .readingStatus(List.of("상관없음"))
                 .build();
 
         // when
-        TalkRoomFindOneResponse response = talkRoomService.createTalkRoom(request, user.getId(), LocalDateTime.now());
+        TalkRoomFindOneResponse result = talkRoomService.createTalkRoom(request, user.getId(), LocalDateTime.now());
 
         // then
-        List<String> readingStatuses = response.getReadingStatuses();
-        assertThat(response)
+        assertThat(result)
                 .extracting("id", "profileImage", "username", "title", "content", "bookName", "bookThumbnail",
-                        "likeCount", "likeTalkRoom")
-                .contains(response.getId(), "image", "user@gmail.com", "토크방", "내용", "제목", "이미지", 0L, false);
-        assertThat(readingStatuses.size()).isEqualTo(1);
+                        "likeCount")
+                .contains(result.getId(), "image", "user@gmail.com", "토크방", "내용", "제목", "이미지", 0L);
+        assertThat(result.getReadingStatuses()).hasSize(1);
     }
 
     @Test
     @DisplayName("토크방을 생성했던 사용자가 토크방의 제목을 수정한다.")
     void editTalkRoom() {
         // given
-        User user = createUser();
-        userRepository.save(user);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
 
-        Book book = createBook();
-        bookRepository.save(book);
-        List<Book> books = bookRepository.findAll();
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
-        List<TalkRoom> talkRooms = talkRoomRepository.findAll();
-
-        createTalkRoomRole(talkRoom);
-        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.findAll();
-
-        List<String> readingStatus = new ArrayList<>();
-        readingStatus.add("읽는 중");
-        readingStatus.add("읽음");
+        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.saveAll(
+                createTalkRoomRoles(talkRoom, List.of("상관없음")));
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
-                .id(talkRooms.get(0).getId())
+                .id(talkRoom.getId())
                 .title("토크방 수정")
                 .content("내용 수정")
-                .readingStatus(readingStatus)
+                .readingStatus(List.of("읽는 중", "읽음"))
                 .build();
 
         // when
         talkRoomService.editTalkRoom(request, user.getId());
 
         // then
-        List<TalkRoom> response = talkRoomRepository.findAll();
-        assertThat(response.get(0))
+        List<TalkRoom> findTalkRooms = talkRoomRepository.findAll();
+        List<TalkRoomRole> findTalkRoomRoles = talkRoomRoleRepository.findAll();
+
+        assertThat(findTalkRooms.get(0))
                 .extracting("title", "content")
                 .contains("토크방 수정", "내용 수정");
-        assertThat(talkRoomRoles.size()).isEqualTo(2);
+        assertThat(findTalkRoomRoles).hasSize(2)
+                .extracting("readingStatus")
+                .contains(ReadingStatus.READ, ReadingStatus.READING);
     }
 
     @Test
     @DisplayName("토크방을 생성한 사용자가 토크방의 제목을 NULL 값으로 업데이트하려고 시도했을 때, 원래의 제목이 유지된다.")
     void editTalkRoomWithNullContent() {
         // given
-        User user = createUser();
-        userRepository.save(user);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
 
-        Book book = createBook();
-        bookRepository.save(book);
-        List<Book> books = bookRepository.findAll();
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
-        List<TalkRoom> talkRooms = talkRoomRepository.findAll();
-
-        createTalkRoomRole(talkRoom);
-        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.findAll();
-
-        List<String> readingStatus = new ArrayList<>();
-        readingStatus.add("읽는 중");
-        readingStatus.add("읽음");
+        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.saveAll(
+                createTalkRoomRoles(talkRoom, List.of("상관없음")));
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
-                .id(talkRooms.get(0).getId())
+                .id(talkRoom.getId())
                 .title(null)
                 .content(null)
-                .readingStatus(readingStatus)
+                .readingStatus(List.of("읽는 중", "읽음"))
                 .build();
 
         // when
         talkRoomService.editTalkRoom(request, user.getId());
 
         // then
-        List<TalkRoom> response = talkRoomRepository.findAll();
-        assertThat(response.get(0))
+        List<TalkRoom> findTalkRooms = talkRoomRepository.findAll();
+        List<TalkRoomRole> findTalkRoomRoles = talkRoomRoleRepository.findAll();
+
+        assertThat(findTalkRooms.get(0))
                 .extracting("title", "content")
                 .contains("토크방", "내용");
-        assertThat(talkRoomRoles.size()).isEqualTo(2);
+        assertThat(findTalkRoomRoles).hasSize(2)
+                .extracting("readingStatus")
+                .contains(ReadingStatus.READ, ReadingStatus.READING);
     }
 
     @Test
     @DisplayName("토크방을 생성했던 사용자가 토크방의 참가 조건을 수정한다.")
     void editTalkRoomReadingStatus() {
         // given
-        User user = createUser();
-        userRepository.save(user);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
 
-        Book book = createBook();
-        bookRepository.save(book);
-        List<Book> books = bookRepository.findAll();
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
-        List<TalkRoom> talkRooms = talkRoomRepository.findAll();
-
-        createTalkRoomRole(talkRoom);
-
-        List<String> readingStatus = new ArrayList<>();
-        readingStatus.add("읽는 중");
-        readingStatus.add("읽음");
-        readingStatus.add("잠시 멈춤");
+        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.saveAll(
+                createTalkRoomRoles(talkRoom, List.of("읽는 중", "읽음")));
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
-                .id(talkRooms.get(0).getId())
+                .id(talkRoom.getId())
                 .title("토크방")
                 .content("내용")
-                .readingStatus(readingStatus)
+                .readingStatus(List.of("읽는 중", "읽음", "잠시 멈춤"))
                 .build();
 
         // when
         talkRoomService.editTalkRoom(request, user.getId());
 
         // then
-        List<TalkRoom> response = talkRoomRepository.findAll();
-        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.findAll();
-        assertThat(response.get(0))
+        List<TalkRoom> findTalkRooms = talkRoomRepository.findAll();
+        List<TalkRoomRole> findTalkRoomRoles = talkRoomRoleRepository.findAll();
+
+        assertThat(findTalkRooms.get(0))
                 .extracting("title", "content")
                 .contains("토크방", "내용");
-        assertThat(talkRoomRoles.size()).isEqualTo(3);
+        assertThat(findTalkRoomRoles).hasSize(3)
+                .extracting("readingStatus")
+                .contains(ReadingStatus.READ, ReadingStatus.READING, ReadingStatus.PAUSE);
     }
 
     @Test
     @DisplayName("토크방을 생성한 유저와 토크방을 수정하는 유저가 일치하지 않으면 예외가 발생한다.")
     void editTalkRoomWithUsersMustMatch() {
         // given
-        User userA = createUser();
-        userRepository.save(userA);
+        User userA = userRepository.save(createUser());
+        User userB = userRepository.save(createUserWithId("1"));
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, userA));
 
-        Book book = createBook();
-        bookRepository.save(book);
-
-        TalkRoom talkRoom = createTalkRoom(book, userA);
-        talkRoomRepository.save(talkRoom);
-        List<TalkRoom> talkRooms = talkRoomRepository.findAll();
-
-        createTalkRoomRole(talkRoom);
-
-        User userB = User.builder()
-                .name("userB@gmail.com")
-                .oauthId(
-                        OauthId.builder()
-                                .oauthId("oauthId2")
-                                .oauthType(OauthType.KAKAO)
-                                .build()
-                )
-                .profileImage("image")
-                .build();
-        userRepository.save(userB);
-
-        List<String> readingStatus = new ArrayList<>();
-        readingStatus.add("읽는 중");
-        readingStatus.add("읽음");
-        readingStatus.add("잠시 멈춤");
+        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.saveAll(
+                createTalkRoomRoles(talkRoom, List.of("읽는 중", "읽음")));
 
         TalkRoomEditServiceRequest request = TalkRoomEditServiceRequest.builder()
-                .id(talkRooms.get(0).getId())
+                .id(talkRoom.getId())
                 .title("토론방")
                 .content("내용")
-                .readingStatus(readingStatus)
+                .readingStatus(List.of("읽는 중", "읽음", "잠시 멈춤"))
                 .build();
 
         // when // then
@@ -341,240 +276,182 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     @DisplayName("토크방을 최신순으로 10개의 토크방만 조회 했을 때, 첫 번째 토크방은 19번 토크방이다.")
     void getTalkRooms() {
         // given
-        User user = createUser();
-        userRepository.save(user);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
-        Book book = createBook();
-        bookRepository.save(book);
+        List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(20, user, book));
 
-        List<TalkRoom> talkRoom = listTalkRooms(20, user, book);
-
-        talkRoomRepository.saveAll(talkRoom);
-
-        for (TalkRoom t : talkRoom) {
+        for (TalkRoom t : talkRooms) {
             createTalkRoomRole(t);
         }
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(Offset.of(1, 10), 10, "recent", null,
+
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(1, 10, "recent"),
                 null, null, LocalDateTime.now());
 
         // then
-        assertThat(10L).isEqualTo(response.getResponse().getSize());
-        assertThat("토론방 19").isEqualTo(response.getResponse().getQueryResponse().get(0).getTitle());
-        assertThat(2).isEqualTo(response.getResponse().getQueryResponse().get(0).getReadingStatuses().size());
+        assertThat(result.getQueryResponse().size()).isEqualTo(10L);
+        assertThat(result.getQueryResponse().get(0).getTitle()).isEqualTo("토론방 19");
+        assertThat(result.getQueryResponse().get(0).getReadingStatuses().size()).isEqualTo(2);
     }
 
     @Test
     @DisplayName("토크방이 총 103개가 생성 됐을 경우 토크방 개수는 총 103개여야 한다.")
     void getTalkRoomsPageTotalCount() {
         // given
-        User user = createUser();
-        userRepository.save(user);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
-        Book book = createBook();
-        bookRepository.save(book);
+        List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(103, user, book));
 
-        List<TalkRoom> talkRoom = listTalkRooms(103, user, book);
-
-        talkRoomRepository.saveAll(talkRoom);
-
-        for (TalkRoom t : talkRoom) {
+        for (TalkRoom t : talkRooms) {
             createTalkRoomRole(t);
         }
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(Offset.of(1, 10), 10, "recent", null,
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(1, 10, "recent"),
                 null, null, LocalDateTime.now());
 
         // then
-        assertThat(103).isEqualTo(response.getResponse().getTotalCount());
+        assertThat(result.getTotalCount()).isEqualTo(103);
     }
 
     @Test
     @DisplayName("토크방 총 11페이지(103개) 중 5페이지를 조회를 조회하면 첫 번째 토크방은 62번 토크방이다.")
     void getTalkRoomsMiddle() {
         // given
-        User user = createUser();
-        userRepository.save(user);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
-        Book book = createBook();
-        bookRepository.save(book);
+        List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(103, user, book));
 
-        List<TalkRoom> talkRoom = listTalkRooms(103, user, book);
-
-        talkRoomRepository.saveAll(talkRoom);
-
-        for (TalkRoom t : talkRoom) {
+        for (TalkRoom t : talkRooms) {
             createTalkRoomRole(t);
         }
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(Offset.of(5, 10), 10, "recent", null,
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(5, 10, "recent"),
                 null, null, LocalDateTime.now());
 
         // then
-        assertThat(response.getResponse().getQueryResponse().size()).isEqualTo(10L);
-        assertThat(response.getResponse().getQueryResponse().get(0).getTitle()).isEqualTo("토론방 62");
-        assertThat(response.getResponse().getQueryResponse().get(0).getContent()).isEqualTo("내용 62");
+        assertThat(result.getQueryResponse().size()).isEqualTo(10L);
+        assertThat(result.getQueryResponse().get(0).getTitle()).isEqualTo("토론방 62");
+        assertThat(result.getQueryResponse().get(0).getContent()).isEqualTo("내용 62");
     }
 
     @Test
     @DisplayName("토크방 총 11 페이지(103개) 중 마지막 페이지를 조회하면 첫 번째 토크방은 2번 토크방이다.")
     void getTalkRoomsLast() {
         // given
-        User user = createUser();
-        userRepository.save(user);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
-        Book book = createBook();
-        bookRepository.save(book);
+        List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(103, user, book));
 
-        List<TalkRoom> talkRoom = listTalkRooms(103, user, book);
-
-        talkRoomRepository.saveAll(talkRoom);
-
-        for (TalkRoom t : talkRoom) {
+        for (TalkRoom t : talkRooms) {
             createTalkRoomRole(t);
         }
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(Offset.of(11, 10), 10, "recent", null,
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(11, 10, "recent"),
                 null, null, LocalDateTime.now());
 
         // then
-        assertThat(response.getResponse().getQueryResponse().size()).isEqualTo(3);
-        assertThat(response.getResponse().getQueryResponse().get(0).getTitle()).isEqualTo("토론방 2");
-        assertThat(response.getResponse().getQueryResponse().get(0).getContent()).isEqualTo("내용 2");
+        assertThat(result.getQueryResponse().size()).isEqualTo(3);
+        assertThat(result.getQueryResponse().get(0).getTitle()).isEqualTo("토론방 2");
+        assertThat(result.getQueryResponse().get(0).getContent()).isEqualTo("내용 2");
     }
 
     @Test
     @DisplayName("토크방을 단건 조회 한다.")
     void findOneTalkRoom() {
-        User user = createUser();
-        userRepository.save(user);
+        // given
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
 
-        Book book = createBook();
-        bookRepository.save(book);
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
-
-        createTalkRoomRole(talkRoom);
+        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.saveAll(
+                createTalkRoomRoles(talkRoom, List.of("읽음", "읽는 중")));
 
         // when
-        TalkRoomFindOneResponse findOneTalkRoomResponse = talkRoomService.findOneTalkRoom(talkRoom.getId(),
-                user.getId());
+        TalkRoomFindOneResponse result = talkRoomService.findOneTalkRoom(talkRoom.getId());
 
         // then
-        assertThat("토크방").isEqualTo(findOneTalkRoomResponse.getTitle());
-        assertThat(2).isEqualTo(findOneTalkRoomResponse.getReadingStatuses().size());
+        assertThat(result.getTitle()).isEqualTo("토크방");
+        assertThat(result.getReadingStatuses()).hasSize(2);
     }
 
     @Test
     @DisplayName("토크방을 단건 조회 했을 때 의견이 담기지 않았아도 조회는 정상적으로 되어야 한다.")
     void findOneTalkRoomWithCommentNull() {
         // given
-        User user = createUser();
-        userRepository.save(user);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
 
-        Book book = createBook();
-        bookRepository.save(book);
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
-
-        createTalkRoomRole(talkRoom);
+        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.saveAll(
+                createTalkRoomRoles(talkRoom, List.of("읽음", "읽는 중")));
 
         // when
-        TalkRoomFindOneResponse findOneTalkRoomResponse = talkRoomService.findOneTalkRoom(talkRoom.getId(),
-                user.getId());
+        TalkRoomFindOneResponse result = talkRoomService.findOneTalkRoom(talkRoom.getId());
 
         // then
-        assertThat("토크방").isEqualTo(findOneTalkRoomResponse.getTitle());
-        assertThat(2).isEqualTo(findOneTalkRoomResponse.getReadingStatuses().size());
+        assertThat(result.getTitle()).isEqualTo("토크방");
+        assertThat(result.getReadingStatuses()).hasSize(2);
     }
 
     @Test
     @DisplayName("토크방을 단건 조회 했을 때 의견이 여러 개 달려있을 때 의견을 전부 보여줘야 한다.")
     void findOneTalkRoomWithFindAllComment() {
         // given
-        User user = createUser();
-        userRepository.save(user);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
 
-        Book book = createBook();
-        bookRepository.save(book);
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
-
-        createTalkRoomRole(talkRoom);
+        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.saveAll(
+                createTalkRoomRoles(talkRoom, List.of("읽음", "읽는 중")));
 
         // when
-        TalkRoomFindOneResponse findOneTalkRoomResponse = talkRoomService.findOneTalkRoom(talkRoom.getId(),
-                user.getId());
+        TalkRoomFindOneResponse result = talkRoomService.findOneTalkRoom(talkRoom.getId());
 
         // then
-        assertThat("토크방").isEqualTo(findOneTalkRoomResponse.getTitle());
-        assertThat(2).isEqualTo(findOneTalkRoomResponse.getReadingStatuses().size());
+        assertThat(result.getTitle()).isEqualTo("토크방");
+        assertThat(result.getReadingStatuses()).hasSize(2);
     }
 
     @Test
     @DisplayName("토크방을 생성한 유저가 토크방을 삭제한다.")
     void deleteTalkRoom() {
         // given
-        User user = createUser();
-        userRepository.save(user);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
+        Comment comment = commentRepository.save(createComment(talkRoom, user));
 
-        Book book = createBook();
-        bookRepository.save(book);
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
-
-        createTalkRoomRole(talkRoom);
-
-        Comment comment = createComment(talkRoom, user);
-
-        commentRepository.save(comment);
+        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.saveAll(
+                createTalkRoomRoles(talkRoom, List.of("읽음", "읽는 중")));
 
         // when
         talkRoomService.deleteTalkRoom(talkRoom.getId(), user.getId());
 
         // then
-        assertThat(0).isEqualTo(talkRoomRepository.findAll().size());
-        assertThat(0).isEqualTo(commentRepository.findAll().size());
+        assertThat(talkRoomRepository.findAll()).hasSize(0);
+        assertThat(commentRepository.findAll()).hasSize(0);
     }
 
     @Test
     @DisplayName("토크방을 생성하지 않은 유저(UserB)가 다른 유저(UserA)가 생성한 토크방을 삭제할 수 없다.")
     void deleteTalkRoomWithUserB() {
         // given
-        User userA = createUser();
-        userRepository.save(userA);
+        User userA = userRepository.save(createUser());
+        User userB = userRepository.save(createUserWithId("1"));
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, userA));
+        Comment comment = commentRepository.save(createComment(talkRoom, userA));
 
-        User userB = User.builder()
-                .name("userB@gmail.com")
-                .profileImage("image")
-                .oauthId(
-                        OauthId.builder()
-                                .oauthId("oauthId2")
-                                .oauthType(OauthType.KAKAO)
-                                .build()
-                )
-                .build();
-        userRepository.save(userB);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        TalkRoom talkRoom = createTalkRoom(book, userA);
-        talkRoomRepository.save(talkRoom);
-
-        createTalkRoomRole(talkRoom);
-
-        Comment comment = createComment(talkRoom, userA);
-
-        commentRepository.save(comment);
+        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.saveAll(
+                createTalkRoomRoles(talkRoom, List.of("읽음", "읽는 중")));
 
         // when // then
         assertThatThrownBy(() -> talkRoomService.deleteTalkRoom(talkRoom.getId(), userB.getId()))
@@ -586,195 +463,99 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     @DisplayName("토크방을 삭제할 때 의견이 없어도 정상적으로 삭제가 된다.")
     void deleteTalkRoomWithComment() {
         // given
-        User user = createUser();
-        userRepository.save(user);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
 
-        Book book = createBook();
-        bookRepository.save(book);
-
-        TalkRoom talkRoom = createTalkRoom(book, user);
-        talkRoomRepository.save(talkRoom);
-
-        createTalkRoomRole(talkRoom);
+        List<TalkRoomRole> talkRoomRoles = talkRoomRoleRepository.saveAll(
+                createTalkRoomRoles(talkRoom, List.of("읽음", "읽는 중")));
 
         // when
         talkRoomService.deleteTalkRoom(talkRoom.getId(), user.getId());
 
         // then
-        assertThat(0).isEqualTo(talkRoomRepository.findAll().size());
+        assertThat(talkRoomRepository.findAll()).hasSize(0);
     }
 
     @Test
     @DisplayName("토크방을 페이징 조회 시 토크방에는 좋아요 총 개수가 표시되어야 한다.")
     void findAllTalkRoomWithLikeCount() {
         // given
-        List<User> users = listUsers();
+        Book book = bookRepository.save(createBook());
 
-        userRepository.saveAll(users);
+        List<User> users = userRepository.saveAll(createUsers());
+        List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(20, users.get(0), book));
 
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<TalkRoom> talkRoom = listTalkRooms(20, users.get(0), book);
-
-        talkRoomRepository.saveAll(talkRoom);
-
-        for (TalkRoom t : talkRoom) {
+        for (TalkRoom t : talkRooms) {
             createTalkRoomRole(t);
         }
 
         List<TalkRoomLike> likes = IntStream.range(0, 5).mapToObj(i -> TalkRoomLike.builder()
                         .user(users.get(i))
-                        .talkRoom(talkRoom.get(0))
+                        .talkRoom(talkRooms.get(0))
                         .build())
                 .toList();
 
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(Offset.of(2, 10), 10, "recent", null,
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(2, 10, "recent"),
                 null, null, LocalDateTime.now());
 
         // then
-        assertThat(5L).isEqualTo(response.getResponse().getQueryResponse().get(9).getLikeCount());
-    }
-
-    @Test
-    @DisplayName("로그인한 유저가 토크룸을 조회했을 때 본인이 좋아요한 토크룸들이 표시 된다.")
-    void findAllTalkRoomWithLike() {
-        // given
-        List<User> users = listUsers();
-
-        userRepository.saveAll(users);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<TalkRoom> talkRoom = listTalkRooms(20, users.get(0), book);
-
-        talkRoomRepository.saveAll(talkRoom);
-
-        for (TalkRoom t : talkRoom) {
-            createTalkRoomRole(t);
-        }
-
-        List<TalkRoomLike> likes = IntStream.range(0, 5).mapToObj(i -> TalkRoomLike.builder()
-                        .user(users.get(0))
-                        .talkRoom(talkRoom.get(i))
-                        .build())
-                .toList();
-
-        talkRoomLikeRepository.saveAll(likes);
-
-        // when
-        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(Offset.of(2, 10), 10, "recent", null,
-                null, users.get(0).getId(), LocalDateTime.now());
-
-        // then
-        assertThat(talkRoom.get(0).getId()).isEqualTo(response.getUserLikeTalkRoomIds().get(0));
-        assertThat(talkRoom.get(1).getId()).isEqualTo(response.getUserLikeTalkRoomIds().get(1));
-        assertThat(talkRoom.get(2).getId()).isEqualTo(response.getUserLikeTalkRoomIds().get(2));
-        assertThat(talkRoom.get(3).getId()).isEqualTo(response.getUserLikeTalkRoomIds().get(3));
-        assertThat(talkRoom.get(4).getId()).isEqualTo(response.getUserLikeTalkRoomIds().get(4));
+        assertThat(result.getQueryResponse().get(9).getLikeCount()).isEqualTo(5L);
     }
 
     @Test
     @DisplayName("토크방 단건 조회 시 좋아요 개수가 표시 된다.")
     void findOneTalkRoomWithLikeCount() {
         // given
-        List<User> users = listUsers();
+        Book book = bookRepository.save(createBook());
 
-        userRepository.saveAll(users);
+        List<User> users = userRepository.saveAll(createUsers());
+        List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(20, users.get(0), book));
 
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<TalkRoom> talkRoom = listTalkRooms(20, users.get(0), book);
-
-        talkRoomRepository.saveAll(talkRoom);
-
-        for (TalkRoom t : talkRoom) {
+        for (TalkRoom t : talkRooms) {
             createTalkRoomRole(t);
         }
 
         List<TalkRoomLike> likes = IntStream.range(0, 5).mapToObj(i -> TalkRoomLike.builder()
                         .user(users.get(i))
-                        .talkRoom(talkRoom.get(0))
+                        .talkRoom(talkRooms.get(0))
                         .build())
                 .toList();
 
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        TalkRoomFindOneResponse response = talkRoomService.findOneTalkRoom(talkRoom.get(0).getId(), null);
+        TalkRoomFindOneResponse result = talkRoomService.findOneTalkRoom(talkRooms.get(0).getId());
 
         // then
-        assertThat(5L).isEqualTo(response.getLikeCount());
-    }
-
-    @Test
-    @DisplayName("토크방 단건 조회 시 로그인한 유저가 토론방에 좋아요를 눌렀으면 토론방 ture를 리턴해준다.")
-    void findOneTalkRoomWithLikeUserId() {
-        // given
-        List<User> users = listUsers();
-
-        userRepository.saveAll(users);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<TalkRoom> talkRoom = listTalkRooms(20, users.get(0), book);
-
-        talkRoomRepository.saveAll(talkRoom);
-
-        for (TalkRoom t : talkRoom) {
-            createTalkRoomRole(t);
-        }
-
-        List<TalkRoomLike> likes = IntStream.range(0, 5).mapToObj(i -> TalkRoomLike.builder()
-                        .user(users.get(i))
-                        .talkRoom(talkRoom.get(0))
-                        .build())
-                .toList();
-
-        talkRoomLikeRepository.saveAll(likes);
-
-        // when
-        TalkRoomFindOneResponse response = talkRoomService.findOneTalkRoom(talkRoom.get(0).getId(),
-                users.get(0).getId());
-
-        // then
-        assertThat(response.isLikeTalkRoom()).isTrue();
+        assertThat(result.getLikeCount()).isEqualTo(5L);
     }
 
     @Test
     @DisplayName("토크방을 좋아요 순으로 정렬을 한다.")
     void findAllTalkRoomWithOrderLike() {
         // given
-        List<User> users = listUsers();
+        Book book = bookRepository.save(createBook());
 
-        userRepository.saveAll(users);
+        List<User> users = userRepository.saveAll(createUsers());
+        List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(20, users.get(0), book));
 
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<TalkRoom> talkRoom = listTalkRooms(20, users.get(0), book);
-
-        talkRoomRepository.saveAll(talkRoom);
-
-        for (TalkRoom t : talkRoom) {
+        for (TalkRoom t : talkRooms) {
             createTalkRoomRole(t);
         }
 
         List<TalkRoomLike> likes1 = IntStream.range(0, 10).mapToObj(i -> TalkRoomLike.builder()
                         .user(users.get(i))
-                        .talkRoom(talkRoom.get(0))
+                        .talkRoom(talkRooms.get(0))
                         .build())
                 .toList();
 
         List<TalkRoomLike> likes2 = IntStream.range(0, 9).mapToObj(i -> TalkRoomLike.builder()
                         .user(users.get(i))
-                        .talkRoom(talkRoom.get(1))
+                        .talkRoom(talkRooms.get(1))
                         .build())
                 .toList();
 
@@ -785,25 +566,21 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(Offset.of(1, 10), 10, "recommend", null,
-                null, null, LocalDateTime.now());
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
+                OffsetLimit.of(1, 10, "recommend"), null, null, LocalDateTime.now());
 
         // then
-        assertThat(10L).isEqualTo(response.getResponse().getQueryResponse().get(0).getLikeCount());
+        assertThat(result.getQueryResponse().get(0).getLikeCount()).isEqualTo(10L);
     }
 
     @Test
     @DisplayName("토크방 제목을 입력해서 조회한다.")
     void findAllTalkRoomWithSearch() {
         // given
-        List<User> users = listUsers();
+        Book book = bookRepository.save(createBook());
 
-        userRepository.saveAll(users);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<TalkRoom> talkRoom = listTalkRooms(20, users.get(0), book);
+        List<User> users = userRepository.saveAll(createUsers());
+        List<TalkRoom> talkRoom = talkRoomRepository.saveAll(createTalkRooms(20, users.get(0), book));
 
         TalkRoom talkRoom1 = TalkRoom.builder()
                 .user(users.get(0))
@@ -836,8 +613,6 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         talkRoomRepository.save(talkRoom3);
         createTalkRoomRole(talkRoom3);
 
-        talkRoomRepository.saveAll(talkRoom);
-
         for (TalkRoom t : talkRoom) {
             createTalkRoomRole(t);
         }
@@ -861,24 +636,21 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(Offset.of(1, 10), 10, null, "검색어",
-                null, null, LocalDateTime.now());
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(1, 10), "검색어",
+                null, LocalDateTime.now());
 
         // then
-        assertThat(talkRoom1.getTitle()).isEqualTo(response.getResponse().getQueryResponse().get(0).getTitle());
-        assertThat(talkRoom2.getTitle()).isEqualTo(response.getResponse().getQueryResponse().get(1).getTitle());
-        assertThat(talkRoom3.getTitle()).isEqualTo(response.getResponse().getQueryResponse().get(2).getTitle());
+        assertThat(result.getQueryResponse().get(0).getTitle()).isEqualTo(talkRoom1.getTitle());
+        assertThat(result.getQueryResponse().get(1).getTitle()).isEqualTo(talkRoom2.getTitle());
+        assertThat(result.getQueryResponse().get(2).getTitle()).isEqualTo(talkRoom3.getTitle());
     }
 
     @Test
     @DisplayName("토크룸을 생성 했을 때 이미지 URL을 저장할 수 있다.")
     void createTalkRoomWithImage() throws Exception {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         TalkRoomCreateServiceRequest request = TalkRoomCreateServiceRequest.builder()
                 .title("토론방 제목")
@@ -899,23 +671,19 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     @DisplayName("최근 의견이 달린 토론방을 조회 할때 의견이 없다면 빈 값을 보낸다.")
     void fetchRecentCommentedDiscussionsWithCommentEmpty() throws Exception {
         // when
-        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(Offset.of(1, 3), 3, "recent_comment",
-                null,
-                null, null, LocalDateTime.now());
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
+                OffsetLimit.of(1, 3, "recent_comment"), null, null, LocalDateTime.now());
 
         // then
-        Assertions.assertThat(response.getResponse().getQueryResponse()).isEmpty();
+        assertThat(result.getQueryResponse()).isEmpty();
     }
 
     @Test
     @DisplayName("하루 전에 토론방을 조회하면 데이터 총 개수는 10개이어야 한다.")
     void findAllTalkRoomWithDay() throws Exception {
         // given
-        User user = createUser();
-        userRepository.save(user);
-
-        Book book = createBook();
-        bookRepository.save(book);
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
 
         LocalDateTime yesterdayWithSec = LocalDateTime.of(2024, 4, 28, 23, 59, 59);
         LocalDateTime yesterday = LocalDateTime.of(2024, 4, 29, 0, 0);
@@ -965,209 +733,126 @@ class TalkRoomServiceTest extends ServiceTestSupport {
             createTalkRoomRole(t);
         }
 
-        SearchServiceRequest search = SearchServiceRequest.builder()
-                .page(1)
-                .size(10)
-                .day("1d")
-                .order("recent")
-                .build();
-
         // when
-        TalkRoomPageResponse response = talkRoomService.findAllTalkRoom(search.getOffset(),
-                search.getSize(), search.getOrder(), search.getQuery(), search.getDay(), null, now);
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
+                OffsetLimit.of(1, 20, "recent"), null, "1d", now);
 
         // then
-        List<TalkRoom> talkRoomAll = talkRoomRepository.findAll();
-        assertThat(10L).isEqualTo(response.getResponse().getTotalCount());
-        assertThat(15L).isEqualTo(talkRoomAll.size());
+        assertThat(result.getTotalCount()).isEqualTo(10L);
     }
 
     @Test
     @DisplayName("유저 본인이 생성한 토론방을 조회 한다.")
     void getTalkRoomsOwner() {
         // given
-        User user1 = createUser();
-        userRepository.save(user1);
+        User userA = userRepository.save(createUser());
+        User userB = userRepository.save(createUserWithId("1"));
+        Book book = bookRepository.save(createBook());
 
-        User user2 = User.builder()
-                .email("user2@gmail.com")
-                .name("userB")
-                .oauthId(
-                        OauthId.builder()
-                                .oauthId("oauthId2")
-                                .oauthType(OauthType.KAKAO)
-                                .build()
-                )
-                .profileImage("sssss")
-                .build();
+        List<TalkRoom> talkRoomA = talkRoomRepository.saveAll(createTalkRooms(10, userA, book));
+        List<TalkRoom> talkRoomB = talkRoomRepository.saveAll(createTalkRooms(10, userB, book));
 
-        userRepository.save(user2);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<TalkRoom> talkRoom1 = listTalkRooms(10, user1, book);
-        List<TalkRoom> talkRoom2 = listTalkRooms(10, user2, book);
-
-        talkRoomRepository.saveAll(talkRoom1);
-        talkRoomRepository.saveAll(talkRoom2);
-
-        for (TalkRoom t : talkRoom1) {
+        for (TalkRoom t : talkRoomA) {
             createTalkRoomRole(t);
         }
 
-        for (TalkRoom t : talkRoom2) {
+        for (TalkRoom t : talkRoomB) {
             createTalkRoomRole(t);
         }
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, true, false, false,
-                user1.getId());
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
+                true, false, false, userA.getId());
 
         // then
-        assertThat(10).isEqualTo(response.getResponse().getTotalCount());
-        assertThat(20).isEqualTo(talkRoomRepository.findAll().size());
+        assertThat(result.getTotalCount()).isEqualTo(10);
+        assertThat(talkRoomRepository.findAll()).hasSize(20);
     }
 
     @Test
     @DisplayName("유저 본인이 생성한 토크방 중 좋아요 누른 토크방을 조회한다.")
     void getTalkRoomsOwnerWithLike() {
         // given
-        User user1 = createUser();
-        userRepository.save(user1);
+        User userA = userRepository.save(createUser());
+        User userB = userRepository.save(createUserWithId("1"));
+        Book book = bookRepository.save(createBook());
 
-        User user2 = User.builder()
-                .email("user2@gmail.com")
-                .name("userB")
-                .oauthId(
-                        OauthId.builder()
-                                .oauthId("oauthId2")
-                                .oauthType(OauthType.KAKAO)
-                                .build()
-                )
-                .profileImage("sssss")
-                .build();
+        List<TalkRoom> talkRoomA = talkRoomRepository.saveAll(createTalkRooms(10, userA, book));
+        List<TalkRoom> talkRoomB = talkRoomRepository.saveAll(createTalkRooms(10, userB, book));
 
-        userRepository.save(user2);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<TalkRoom> talkRoom1 = listTalkRooms(10, user1, book);
-        List<TalkRoom> talkRoom2 = listTalkRooms(10, user2, book);
-
-        talkRoomRepository.saveAll(talkRoom1);
-        talkRoomRepository.saveAll(talkRoom2);
-
-        for (TalkRoom t : talkRoom1) {
+        for (TalkRoom t : talkRoomA) {
             createTalkRoomRole(t);
         }
 
-        for (TalkRoom t : talkRoom2) {
+        for (TalkRoom t : talkRoomB) {
             createTalkRoomRole(t);
         }
 
         List<TalkRoomLike> likes = IntStream.range(0, 5).mapToObj(i -> TalkRoomLike.builder()
-                        .user(user1)
-                        .talkRoom(talkRoom1.get(i))
+                        .user(userA)
+                        .talkRoom(talkRoomA.get(i))
                         .build())
                 .toList();
 
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, true, false, true,
-                user1.getId());
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
+                true, false, true, userA.getId());
 
         // then
-        assertThat(5).isEqualTo(response.getResponse().getTotalCount());
-        assertThat(20).isEqualTo(talkRoomRepository.findAll().size());
+        assertThat(result.getTotalCount()).isEqualTo(5);
+        assertThat(talkRoomRepository.findAll()).hasSize(20);
     }
 
     @Test
     @DisplayName("유저가 좋아요 누른 토크방을 조회한다.")
     void getTalkRoomsWithLike() {
         // given
-        User user1 = createUser();
-        userRepository.save(user1);
+        User userA = userRepository.save(createUser());
+        User userB = userRepository.save(createUserWithId("1"));
+        Book book = bookRepository.save(createBook());
 
-        User user2 = User.builder()
-                .email("user2@gmail.com")
-                .name("userB")
-                .oauthId(
-                        OauthId.builder()
-                                .oauthId("oauthId2")
-                                .oauthType(OauthType.KAKAO)
-                                .build()
-                )
-                .profileImage("sssss")
-                .build();
+        List<TalkRoom> talkRoomB = talkRoomRepository.saveAll(createTalkRooms(10, userB, book));
 
-        userRepository.save(user2);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<TalkRoom> talkRoom2 = listTalkRooms(10, user2, book);
-
-        talkRoomRepository.saveAll(talkRoom2);
-
-        for (TalkRoom t : talkRoom2) {
+        for (TalkRoom t : talkRoomB) {
             createTalkRoomRole(t);
         }
 
         List<TalkRoomLike> likes = IntStream.range(0, 8).mapToObj(i -> TalkRoomLike.builder()
-                        .user(user1)
-                        .talkRoom(talkRoom2.get(i))
+                        .user(userA)
+                        .talkRoom(talkRoomB.get(i))
                         .build())
                 .toList();
 
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, false, false, true,
-                user1.getId());
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
+                false, false, true, userA.getId());
 
         // then
-        assertThat(8).isEqualTo(response.getResponse().getTotalCount());
-        assertThat(10).isEqualTo(talkRoomRepository.findAll().size());
+        assertThat(result.getTotalCount()).isEqualTo(8);
+        assertThat(talkRoomRepository.findAll()).hasSize(10);
     }
 
     @Test
     @DisplayName("유저가 좋아요 누른 토크방을 조회한다.")
     void getTalkRoomsWithComment() {
         // given
-        User user1 = createUser();
-        userRepository.save(user1);
+        User userA = userRepository.save(createUser());
+        User userB = userRepository.save(createUserWithId("1"));
+        Book book = bookRepository.save(createBook());
 
-        User user2 = User.builder()
-                .email("user2@gmail.com")
-                .name("userB")
-                .oauthId(
-                        OauthId.builder()
-                                .oauthId("oauthId2")
-                                .oauthType(OauthType.KAKAO)
-                                .build()
-                )
-                .profileImage("sssss")
-                .build();
+        List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(10, userB, book));
 
-        userRepository.save(user2);
-
-        Book book = createBook();
-        bookRepository.save(book);
-
-        List<TalkRoom> talkRoom = listTalkRooms(10, user2, book);
-
-        talkRoomRepository.saveAll(talkRoom);
-
-        for (TalkRoom t : talkRoom) {
+        for (TalkRoom t : talkRooms) {
             createTalkRoomRole(t);
         }
 
         List<Comment> comments = IntStream.range(0, 8).mapToObj(i -> Comment.builder()
-                        .user(user1)
-                        .talkRoom(talkRoom.get(i))
+                        .user(userA)
+                        .talkRoom(talkRooms.get(i))
                         .content("의견")
                         .build())
                 .toList();
@@ -1175,15 +860,15 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         commentRepository.saveAll(comments);
 
         // when
-        TalkRoomPageResponse response = talkRoomService.findUserTalkRoom(Offset.of(1, 10), 10, false, true, false,
-                user1.getId());
+        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
+                false, true, false, userA.getId());
 
         // then
-        assertThat(8).isEqualTo(response.getResponse().getTotalCount());
-        assertThat(10).isEqualTo(talkRoomRepository.findAll().size());
+        assertThat(result.getTotalCount()).isEqualTo(8);
+        assertThat(talkRoomRepository.findAll()).hasSize(10);
     }
 
-    private static List<User> listUsers() {
+    private static List<User> createUsers() {
         return IntStream.range(0, 10)
                 .mapToObj(i -> User.builder()
                         .name("user@gmail.com " + i)
@@ -1197,18 +882,6 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                         .build()).toList();
     }
 
-    private static List<TalkRoom> listTalkRooms(int endExclusive, User users, Book book) {
-        return IntStream.range(0, endExclusive)
-                .mapToObj(i -> TalkRoom.builder()
-                        .user(users)
-                        .book(book)
-                        .title("토론방 " + i)
-                        .content("내용 " + i)
-                        .registeredDateTime(LocalDateTime.now())
-                        .build())
-                .toList();
-    }
-
     private static Comment createComment(TalkRoom talkRoom, User user) {
         return Comment.builder()
                 .talkRoom(talkRoom)
@@ -1218,14 +891,16 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     }
 
     private void createTalkRoomRole(TalkRoom talkRoom) {
-        List<String> request = new ArrayList<>();
-        request.add("읽는 중");
-        request.add("읽음");
-
-        List<ReadingStatus> readingStatus = ReadingStatus.createReadingStatus(request);
+        List<ReadingStatus> readingStatus = ReadingStatus.createReadingStatus(List.of("읽는 중", "읽음"));
 
         readingStatus.stream().map(status -> TalkRoomRole.roleCreate(talkRoom, status))
                 .forEach(talkRoomRoleRepository::save);
+    }
+
+    private List<TalkRoomRole> createTalkRoomRoles(TalkRoom talkRoom, List<String> readingStatuses) {
+        return ReadingStatus.createReadingStatus(readingStatuses).stream()
+                .map(status -> TalkRoomRole.roleCreate(talkRoom, status))
+                .toList();
     }
 
     private static TalkRoom createTalkRoom(Book book, User user) {
@@ -1238,6 +913,18 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .build();
     }
 
+    private static List<TalkRoom> createTalkRooms(int endExclusive, User users, Book book) {
+        return IntStream.range(0, endExclusive)
+                .mapToObj(i -> TalkRoom.builder()
+                        .user(users)
+                        .book(book)
+                        .title("토론방 " + i)
+                        .content("내용 " + i)
+                        .registeredDateTime(LocalDateTime.now())
+                        .build())
+                .toList();
+    }
+
     private static User createUser() {
         return User.builder()
                 .name("user@gmail.com")
@@ -1245,6 +932,19 @@ class TalkRoomServiceTest extends ServiceTestSupport {
                 .oauthId(
                         OauthId.builder()
                                 .oauthId("oauthId")
+                                .oauthType(OauthType.KAKAO)
+                                .build()
+                )
+                .build();
+    }
+
+    private static User createUserWithId(String id) {
+        return User.builder()
+                .name("user@gmail.com" + id)
+                .profileImage("image" + id)
+                .oauthId(
+                        OauthId.builder()
+                                .oauthId("oauthId" + id)
                                 .oauthType(OauthType.KAKAO)
                                 .build()
                 )

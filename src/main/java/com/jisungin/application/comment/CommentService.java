@@ -3,7 +3,6 @@ package com.jisungin.application.comment;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.request.CommentEditServiceRequest;
-import com.jisungin.application.comment.response.CommentPageResponse;
 import com.jisungin.application.comment.response.CommentQueryResponse;
 import com.jisungin.application.comment.response.CommentResponse;
 import com.jisungin.domain.ReadingStatus;
@@ -11,7 +10,6 @@ import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
 import com.jisungin.domain.commentimage.CommentImage;
 import com.jisungin.domain.commentimage.repository.CommentImageRepository;
-import com.jisungin.domain.commentlike.repository.CommentLikeRepository;
 import com.jisungin.domain.talkroom.TalkRoom;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
@@ -21,7 +19,6 @@ import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +34,6 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final TalkRoomRepository talkRoomRepository;
     private final UserRepository userRepository;
-    private final CommentLikeRepository commentLikeRepository;
     private final UserLibraryRepository userLibraryRepository;
     private final TalkRoomRoleRepository talkRoomRoleRepository;
     private final CommentImageRepository commentImageRepository;
@@ -74,27 +70,20 @@ public class CommentService {
         List<String> imageUrls = commentImageRepository.findByCommentIdWithImageUrl(comment.getId());
 
         return CommentResponse.of(comment.getContent(), user.getName(), imageUrls);
-
     }
 
-    public CommentPageResponse findAllComments(Long talkRoomId, Long userId) {
+    public PageResponse<CommentFindAllResponse> findAllComments(Long talkRoomId) {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
         List<CommentQueryResponse> findComment = commentRepository.findAllComments(talkRoom.getId());
 
         List<Long> commentIds = findComment.stream().map(CommentQueryResponse::getCommentId).toList();
-
         Map<Long, List<CommentImage>> commentImages = commentImageRepository.findCommentImageByIds(commentIds);
 
         Long totalCount = commentRepository.commentTotalCount(talkRoom.getId());
 
-        List<CommentFindAllResponse> response = CommentFindAllResponse.create(findComment, commentImages);
-
-        List<Long> userLikeCommentIds =
-                (userId != null) ? commentLikeRepository.userLikeComments(userId, commentIds) : Collections.emptyList();
-
-        return CommentPageResponse.of(PageResponse.of(findComment.size(), totalCount, response), userLikeCommentIds);
+        return PageResponse.of(findComment.size(), totalCount, CommentFindAllResponse.toList(findComment, commentImages));
     }
 
     @Transactional

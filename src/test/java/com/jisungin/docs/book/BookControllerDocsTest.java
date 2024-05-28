@@ -1,7 +1,6 @@
 package com.jisungin.docs.book;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -25,21 +24,18 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.jisungin.api.SearchRequest;
 import com.jisungin.api.book.BookController;
 import com.jisungin.api.book.request.BookCreateRequest;
 import com.jisungin.api.book.request.BookPageRequest;
+import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.book.BestSellerService;
 import com.jisungin.application.book.BookService;
 import com.jisungin.application.book.request.BookCreateServiceRequest;
 import com.jisungin.application.book.request.BookServicePageRequest;
 import com.jisungin.application.book.response.BestSellerResponse;
-import com.jisungin.application.book.response.BookRelatedTalkRoomPageResponse;
-import com.jisungin.application.book.response.BookRelatedTalkRoomResponse;
+import com.jisungin.application.book.response.BookFindAllResponse;
 import com.jisungin.application.book.response.BookResponse;
-import com.jisungin.application.book.response.SimpleBookResponse;
 import com.jisungin.docs.RestDocsSupport;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -97,22 +93,16 @@ public class BookControllerDocsTest extends RestDocsSupport {
     @Test
     @DisplayName("도서 페이징 조회 API")
     public void getBooks() throws Exception {
-        SearchRequest params = SearchRequest.builder()
-                .page(1)
-                .size(10)
-                .order("recent")
-                .build();
-
-        List<SimpleBookResponse> queryResponse = createSimpleBookResponse();
-        PageResponse<SimpleBookResponse> response = PageResponse.of(queryResponse.size(), queryResponse.size(),
+        List<BookFindAllResponse> queryResponse = createSimpleBookResponse();
+        PageResponse<BookFindAllResponse> response = PageResponse.of(queryResponse.size(), queryResponse.size(),
                 queryResponse);
 
-        given(bookService.getBooks(any(SearchServiceRequest.class))).willReturn(response);
+        given(bookService.getBooks(any(OffsetLimit.class))).willReturn(response);
 
         mockMvc.perform(get("/v1/books")
-                        .param("page", String.valueOf(params.getPage()))
-                        .param("size", String.valueOf(params.getSize()))
-                        .param("order", params.getOrder())
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("order", "recent")
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -141,77 +131,6 @@ public class BookControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("data.queryResponse[].dateTime").type(ARRAY).description("도서 출판일")
                         )
                 ));
-    }
-
-    @Test
-    @DisplayName("도서 관련 토크룸 페이징 조회 API")
-    public void getTalkRoomsRelatedBook() throws Exception {
-        String isbn = "0000000000001";
-
-        BookPageRequest params = BookPageRequest.builder()
-                .page(1)
-                .size(5)
-                .build();
-
-        List<BookRelatedTalkRoomResponse> queryResponse = createBookRelatedTalkRoomResponse();
-
-        PageResponse<BookRelatedTalkRoomResponse> pageResponse = PageResponse.of(queryResponse.size(),
-                queryResponse.size(), queryResponse);
-
-        BookRelatedTalkRoomPageResponse response = BookRelatedTalkRoomPageResponse.of(pageResponse,
-                List.of(1L, 2L, 3L));
-
-        given(bookService.getBookRelatedTalkRooms(anyString(), any(BookServicePageRequest.class), anyLong()))
-                .willReturn(response);
-
-        mockMvc.perform(get("/v1/books/{isbn}/talk-rooms", isbn)
-                        .param("page", String.valueOf(params.getPage()))
-                        .param("size", String.valueOf(params.getSize()))
-                        .accept(APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andDo(document("book/get-related-talkRooms",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        pathParameters(
-                                parameterWithName("isbn").description("도서 ISBN")
-                        ),
-                        queryParameters(
-                                parameterWithName("page").description("페이지 번호"),
-                                parameterWithName("size").description("페이지 사이즈")
-                        ),
-                        responseFields(
-                                fieldWithPath("code").type(NUMBER).description("코드"),
-                                fieldWithPath("status").type(STRING).description("상태"),
-                                fieldWithPath("message").type(STRING).description("메세지"),
-                                fieldWithPath("data").type(OBJECT).description("응답 데이터"),
-                                fieldWithPath("data.response").type(OBJECT).description("토론방과 관련된 데이터"),
-                                fieldWithPath("data.userLikeTalkRoomIds").type(ARRAY)
-                                        .description("로그인한 유저가 좋아요 누른 토론방 ID").optional(),
-                                fieldWithPath("data.response.totalCount").type(NUMBER)
-                                        .description("토론방 총 개수"),
-                                fieldWithPath("data.response.size").type(NUMBER)
-                                        .description("토론방 반환 사이즈"),
-                                fieldWithPath("data.response.queryResponse").type(ARRAY).
-                                        description("토론방 데이터"),
-                                fieldWithPath("data.response.queryResponse[].id").type(NUMBER)
-                                        .description("토론방 ID"),
-                                fieldWithPath("data.response.queryResponse[].profileImage").type(STRING)
-                                        .description("작성자 프로필 이미지"),
-                                fieldWithPath("data.response.queryResponse[].username").type(STRING)
-                                        .description("작성사 이름"),
-                                fieldWithPath("data.response.queryResponse[].title").type(STRING)
-                                        .description("토론방 제목"),
-                                fieldWithPath("data.response.queryResponse[].bookName").type(STRING)
-                                        .description("도서 제목"),
-                                fieldWithPath("data.response.queryResponse[].bookThumbnail").type(STRING)
-                                        .description("도서 썸네일 URL"),
-                                fieldWithPath("data.response.queryResponse[].likeCount").type(NUMBER)
-                                        .description("토크방 좋아요 총 개수"),
-                                fieldWithPath("data.response.queryResponse[].readingStatuses[]").type(ARRAY)
-                                        .description("토크룸 참가 조건")
-                        ))
-                );
     }
 
     @Test
@@ -328,30 +247,15 @@ public class BookControllerDocsTest extends RestDocsSupport {
                 .build();
     }
 
-    private List<SimpleBookResponse> createSimpleBookResponse() {
+    private List<BookFindAllResponse> createSimpleBookResponse() {
         return IntStream.rangeClosed(1, 5)
-                .mapToObj(i -> SimpleBookResponse.builder()
+                .mapToObj(i -> BookFindAllResponse.builder()
                         .isbn("000000000000" + i)
                         .title("book title" + i)
                         .publisher("book publisher" + i)
                         .thumbnail("www.book-thumbnail.com/" + i)
                         .authors("book author1,book author2")
                         .dateTime(LocalDateTime.of(2024, 1, 1, 0, 0))
-                        .build())
-                .toList();
-    }
-
-    private List<BookRelatedTalkRoomResponse> createBookRelatedTalkRoomResponse() {
-        return LongStream.rangeClosed(1, 5)
-                .mapToObj(i -> BookRelatedTalkRoomResponse.builder()
-                        .id(i)
-                        .profileImage("profileImage" + i)
-                        .username("username" + i)
-                        .title("talkRoom title" + i)
-                        .bookName("book title" + i)
-                        .bookThumbnail("www.book-thumbnail.com/" + i)
-                        .likeCount(i)
-                        .readingStatuses(List.of("읽고 싶은", "읽는 중", "읽음", "잠시 멈춤", "중단"))
                         .build())
                 .toList();
     }

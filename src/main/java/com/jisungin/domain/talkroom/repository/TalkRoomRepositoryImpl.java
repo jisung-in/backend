@@ -25,19 +25,19 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<TalkRoomQueryResponse> findAllTalkRoom(long offset, int size, String order, String search, String day,
+    public List<TalkRoomQueryResponse> findAllTalkRoom(Integer offset, Integer size, String order, String search, String day,
                                                        LocalDateTime now) {
         return findTalkRoomBySearch(offset, size, order, search, day, now);
     }
 
     @Override
-    public Long countTalkRooms(String day, LocalDateTime now) {
+    public Long countTalkRooms(String search, String day, LocalDateTime now) {
         return queryFactory
                 .select(talkRoom.count())
                 .from(talkRoom)
                 .join(talkRoom.user, user)
                 .join(talkRoom.book, book)
-                .where(dataTimeEq(OrderDay.of(day), now))
+                .where(searchQuery(search), dataTimeEq(OrderDay.of(day), now))
                 .fetchOne();
     }
 
@@ -84,7 +84,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     }
 
     @Override
-    public List<TalkRoomQueryResponse> findByTalkRoomOwner(Long offset, Integer size, boolean userTalkRoomsFilter,
+    public List<TalkRoomQueryResponse> findByTalkRoomOwner(Integer offset, Integer size, boolean userTalkRoomsFilter,
                                                            boolean commentFilter,
                                                            boolean likeFilter, Long userId) {
         return queryFactory.select(new QTalkRoomQueryResponse(

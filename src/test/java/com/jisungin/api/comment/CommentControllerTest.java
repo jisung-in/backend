@@ -99,7 +99,6 @@ class CommentControllerTest extends ControllerTestSupport {
         // when // then
         mockMvc.perform(get("/v1/talk-rooms/1/comments")
                         .contentType(APPLICATION_JSON)
-                        .session(mockHttpSession)
                 )
                 .andDo(print())
                 .andExpect(status().isOk())

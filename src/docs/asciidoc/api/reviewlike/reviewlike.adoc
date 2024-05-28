@@ -1,0 +1,40 @@
+[[review-like-findReviewIds]]
+
+=== 좋아요한 리뷰 ID 조회
+
+==== HTTP Request
+
+include::{snippets}/reviewlike/get-ids/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/reviewlike/get-ids/http-response.adoc[]
+include::{snippets}/reviewlike/get-ids/response-fields.adoc[]
+
+[[review-like-create]]
+
+=== 리뷰 좋아요 생성
+
+==== HTTP Request
+
+include::{snippets}/reviewlike/create/http-request.adoc[]
+include::{snippets}/reviewlike/create/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/reviewlike/create/http-response.adoc[]
+include::{snippets}/reviewlike/create/response-fields.adoc[]
+
+[[review-like-delete]]
+
+=== 리뷰 좋아요 삭제
+
+==== HTTP Request
+
+include::{snippets}/reviewlike/delete/http-request.adoc[]
+include::{snippets}/reviewlike/delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/reviewlike/delete/http-response.adoc[]
+include::{snippets}/reviewlike/delete/response-fields.adoc[]

@@ -5,36 +5,29 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.jisungin.ServiceTestSupport;
+import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.SearchServiceRequest;
 import com.jisungin.application.book.request.BookCreateServiceRequest;
-import com.jisungin.application.book.request.BookServicePageRequest;
-import com.jisungin.application.book.response.BookRelatedTalkRoomPageResponse;
+import com.jisungin.application.book.response.BookFindAllResponse;
 import com.jisungin.application.book.response.BookResponse;
-import com.jisungin.application.book.response.SimpleBookResponse;
-import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.comment.Comment;
 import com.jisungin.domain.comment.repository.CommentRepository;
-import com.jisungin.domain.user.OauthId;
-import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.talkroom.TalkRoom;
-import com.jisungin.domain.talkroom.TalkRoomRole;
 import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
-import com.jisungin.domain.talkroomlike.TalkRoomLike;
 import com.jisungin.domain.talkroomlike.repository.TalkRoomLikeRepository;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.infra.crawler.Crawler;
 import com.jisungin.infra.crawler.CrawlingBook;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,11 +36,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 public class BookServiceTest extends ServiceTestSupport {
 
-    @Autowired
-    private BookService bookService;
+    @MockBean
+    private Crawler crawler;
 
     @Autowired
     private BookRepository bookRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
     @Autowired
     private TalkRoomRepository talkRoomRepository;
@@ -62,10 +58,7 @@ public class BookServiceTest extends ServiceTestSupport {
     private UserRepository userRepository;
 
     @Autowired
-    private CommentRepository commentRepository;
-
-    @MockBean
-    private Crawler crawler;
+    private BookService bookService;
 
     @AfterEach
     void tearDown() {
@@ -115,14 +108,10 @@ public class BookServiceTest extends ServiceTestSupport {
         List<Book> books = bookRepository.saveAll(createBooks());
         TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(1, user, books.get(0)));
 
-        SearchServiceRequest params = SearchServiceRequest.builder()
-                .page(1)
-                .size(5)
-                .order("recent")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 5, "recent");
 
         // when
-        PageResponse<SimpleBookResponse> response = bookService.getBooks(params);
+        PageResponse<BookFindAllResponse> response = bookService.getBooks(offsetLimit);
 
         // then
         assertThat(response.getSize()).isEqualTo(5);
@@ -141,75 +130,18 @@ public class BookServiceTest extends ServiceTestSupport {
         TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(1, user, books.get(0)));
         List<Comment> comments = commentRepository.saveAll(createComments(user, talkRoom));
 
-        SearchServiceRequest params = SearchServiceRequest.builder()
-                .page(1)
-                .size(5)
-                .order("comment")
-                .build();
+        OffsetLimit offsetLimit = OffsetLimit.of(1, 5, "comment");
 
         // when
-        PageResponse<SimpleBookResponse> response = bookService.getBooks(params);
+        PageResponse<BookFindAllResponse> response = bookService.getBooks(offsetLimit);
 
         // then
-        assertThat(response.getSize()).isEqualTo(5);
+        assertThat(response.getSize()).isEqualTo(1);
         assertThat(response.getTotalCount()).isEqualTo(1);
         assertThat(response.getQueryResponse()).hasSize(1)
                 .extracting("isbn")
                 .containsExactly("00000");
     }
-
-
-    @Test
-    @DisplayName("책과 관련된 토크룸 정보를 가져온다.")
-    public void getTalkRoomRelatedBook() {
-        // given
-        List<User> users = userRepository.saveAll(createUsers());
-
-        Book book = bookRepository.save(createBookWithIsbn("00001"));
-        Book anotherBook = bookRepository.save(createBookWithIsbn("00002"));
-
-        List<TalkRoom> talkRoomsWithBook = talkRoomRepository.saveAll(createTalkRooms(users.get(0), book));
-        List<TalkRoom> talkRoomsWithAnotherBook = talkRoomRepository.saveAll(
-                createTalkRooms(users.get(0), anotherBook));
-
-        talkRoomsWithBook.forEach(this::createTalkRoomRole);
-        talkRoomsWithAnotherBook.forEach(this::createTalkRoomRole);
-
-        List<TalkRoomLike> likes1 = talkRoomLikeRepository.saveAll(
-                createTalkRoomLikes(users, talkRoomsWithBook.get(0), 10));
-        List<TalkRoomLike> likes2 = talkRoomLikeRepository.saveAll(
-                createTalkRoomLikes(users, talkRoomsWithAnotherBook.get(0), 9));
-
-        BookServicePageRequest request = BookServicePageRequest.builder()
-                .page(1)
-                .size(5)
-                .build();
-
-        // when
-        BookRelatedTalkRoomPageResponse responses = bookService.getBookRelatedTalkRooms(book.getIsbn(),
-                request, users.get(0).getId());
-
-        // then
-        Long expectedTalkRoomId = talkRoomsWithBook.get(0).getId();
-
-        assertThat(responses.getResponse().getSize()).isEqualTo(5);
-        assertThat(responses.getResponse().getTotalCount()).isEqualTo(10);
-        assertThat(responses.getResponse().getQueryResponse().size()).isEqualTo(5);
-        assertThat(responses.getResponse().getQueryResponse().get(0).getLikeCount()).isEqualTo(10);
-        assertThat(responses.getResponse().getQueryResponse().get(1).getLikeCount()).isEqualTo(0);
-        assertThat(responses.getUserLikeTalkRoomIds().size()).isEqualTo(1);
-        assertThat(responses.getUserLikeTalkRoomIds().get(0)).isEqualTo(expectedTalkRoomId);
-    }
-
-    @NotNull
-    private static List<TalkRoomLike> createTalkRoomLikes(List<User> users, TalkRoom talkRoom, Integer endIndex) {
-        return IntStream.range(0, endIndex).mapToObj(i -> TalkRoomLike.builder()
-                        .user(users.get(i))
-                        .talkRoom(talkRoom)
-                        .build())
-                .toList();
-    }
-
 
     @Test
     @DisplayName("도서 정보에 대한 책을 생성한다.")
@@ -330,34 +262,10 @@ public class BookServiceTest extends ServiceTestSupport {
                 .build();
     }
 
-    private static List<TalkRoom> createTalkRooms(User user, Book book) {
-        return IntStream.range(0, 10)
-                .mapToObj(i -> createTalkRoom(i, user, book))
-                .toList();
-    }
-
-    private static List<User> createUsers() {
-        return IntStream.range(0, 10)
-                .mapToObj(BookServiceTest::createUser)
-                .toList();
-    }
-
     private static List<Comment> createComments(User user, TalkRoom talkRoom) {
         return IntStream.range(0, 10)
                 .mapToObj(i -> createComment(user, talkRoom))
                 .toList();
-    }
-
-    private void createTalkRoomRole(TalkRoom talkRoom) {
-        List<String> request = new ArrayList<>();
-        request.add("읽는 중");
-        request.add("읽음");
-
-        List<ReadingStatus> readingStatuses = List.of(ReadingStatus.READING, ReadingStatus.READ);
-
-        readingStatuses.stream()
-                .map(status -> TalkRoomRole.roleCreate(talkRoom, status))
-                .forEach(talkRoomRoleRepository::save);
     }
 
 }

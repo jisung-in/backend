@@ -1,5 +1,6 @@
 package com.jisungin.application.reviewlike;
 
+import com.jisungin.application.reviewlike.response.ReviewIds;
 import com.jisungin.domain.review.Review;
 import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.domain.reviewlike.ReviewLike;
@@ -23,6 +24,13 @@ public class ReviewLikeService {
     private final UserRepository userRepository;
 
     private final ReviewRepository reviewRepository;
+
+    public ReviewIds findLikeReviewIds(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        return ReviewIds.of(reviewLikeRepository.findReviewIdsByUserId(user.getId()));
+    }
 
     @Transactional
     public void likeReview(Long userId, Long reviewId) {

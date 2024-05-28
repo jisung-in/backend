@@ -1,3 +1,10 @@
+=== 좋아요한 토크방 ID 조회
+==== HTTP Request
+include::{snippets}/talkroomlike/get-ids/http-request.adoc[]
+==== HTTP Response
+include::{snippets}/talkroomlike/get-ids/http-response.adoc[]
+include::{snippets}/talkroomlike/get-ids/response-fields.adoc[]
+
 === 토크방 좋아요 생성
 
 ==== HTTP Request

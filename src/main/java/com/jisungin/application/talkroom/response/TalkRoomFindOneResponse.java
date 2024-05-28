@@ -1,6 +1,9 @@
 package com.jisungin.application.talkroom.response;
 
 import com.jisungin.domain.ReadingStatus;
+import com.jisungin.domain.book.Book;
+import com.jisungin.domain.talkroom.TalkRoom;
+import com.jisungin.domain.user.User;
 import com.querydsl.core.annotations.QueryProjection;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -25,14 +28,13 @@ public class TalkRoomFindOneResponse {
     private List<String> readingStatuses = new ArrayList<>();
     private LocalDateTime registeredDateTime;
     private List<String> images = new ArrayList<>();
-    private boolean likeTalkRoom;
 
     @Builder
     @QueryProjection
     public TalkRoomFindOneResponse(Long id, String profileImage, String username, String title, String content,
                                    String bookName, String bookAuthor, String bookThumbnail, Long likeCount,
                                    List<String> readingStatuses,
-                                   LocalDateTime registeredDateTime, List<String> images, boolean likeTalkRoom) {
+                                   LocalDateTime registeredDateTime, List<String> images) {
         this.id = id;
         this.profileImage = profileImage;
         this.username = username;
@@ -45,12 +47,28 @@ public class TalkRoomFindOneResponse {
         this.readingStatuses = readingStatuses;
         this.registeredDateTime = registeredDateTime;
         this.images = images;
-        this.likeTalkRoom = likeTalkRoom;
     }
 
-    public static TalkRoomFindOneResponse create(TalkRoomQueryResponse talkRoom,
-                                                 List<ReadingStatus> readingStatuses, List<String> images,
-                                                 boolean exists) {
+    public static TalkRoomFindOneResponse of(TalkRoom talkRoom, Book book, User user, List<String> imageUrls,
+                                             List<ReadingStatus> readingStatuses) {
+        return TalkRoomFindOneResponse.builder()
+                .id(talkRoom.getId())
+                .profileImage(user.getProfileImage())
+                .username(user.getName())
+                .title(talkRoom.getTitle())
+                .content(talkRoom.getContent())
+                .bookName(book.getTitle())
+                .bookAuthor(book.getAuthors())
+                .bookThumbnail(book.getThumbnail())
+                .readingStatuses(extractReadingStatuses(readingStatuses))
+                .registeredDateTime(talkRoom.getRegisteredDateTime())
+                .images(imageUrls)
+                .likeCount(0L)
+                .build();
+    }
+
+    public static TalkRoomFindOneResponse of(TalkRoomQueryResponse talkRoom, List<String> images,
+                                             List<ReadingStatus> readingStatuses) {
         return TalkRoomFindOneResponse.builder()
                 .id(talkRoom.getId())
                 .profileImage(talkRoom.getProfileImage())
@@ -64,29 +82,6 @@ public class TalkRoomFindOneResponse {
                 .readingStatuses(extractReadingStatuses(readingStatuses))
                 .registeredDateTime(talkRoom.getRegisteredDateTime())
                 .images(images)
-                .likeTalkRoom(exists)
-                .build();
-    }
-
-    public static TalkRoomFindOneResponse create(Long id, String profileImage, String username, String title,
-                                                 String content, String bookName, String bookAuthor,
-                                                 String bookThumbnail,
-                                                 List<ReadingStatus> readingStatuses, LocalDateTime registeredDateTime,
-                                                 List<String> images) {
-        return TalkRoomFindOneResponse.builder()
-                .id(id)
-                .profileImage(profileImage)
-                .username(username)
-                .title(title)
-                .content(content)
-                .bookName(bookName)
-                .bookAuthor(bookAuthor)
-                .bookThumbnail(bookThumbnail)
-                .likeCount(0L)
-                .readingStatuses(extractReadingStatuses(readingStatuses))
-                .registeredDateTime(registeredDateTime)
-                .images(images)
-                .likeTalkRoom(false)
                 .build();
     }
 

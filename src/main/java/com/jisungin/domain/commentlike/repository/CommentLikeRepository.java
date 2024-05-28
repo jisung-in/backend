@@ -13,6 +13,9 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
 
     Optional<CommentLike> findByCommentIdAndUserId(Long commentId, Long userId);
 
+    @Query("select cl.comment.id from CommentLike cl where cl.user.id = :userId")
+    List<Long> findCommentIdsByUserId(@Param("userId") Long userId);
+
     @Query(value = "SELECT cl.comment.id " +
             "FROM CommentLike cl " +
             "WHERE cl.user.id = :userId " +

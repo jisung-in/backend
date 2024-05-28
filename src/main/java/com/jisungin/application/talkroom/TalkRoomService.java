@@ -1,12 +1,13 @@
 package com.jisungin.application.talkroom;
 
+import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
-import com.jisungin.application.talkroom.response.TalkRoomPageResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
+import com.jisungin.application.talkroom.response.TalkRoomRelatedBookResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
@@ -17,13 +18,11 @@ import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.talkroomimage.TalkRoomImage;
 import com.jisungin.domain.talkroomimage.repository.TalkRoomImageRepository;
-import com.jisungin.domain.talkroomlike.repository.TalkRoomLikeRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +40,22 @@ public class TalkRoomService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final TalkRoomImageRepository talkRoomImageRepository;
-    private final TalkRoomLikeRepository talkRoomLikeRepository;
+
+    public PageResponse<TalkRoomRelatedBookResponse> findBookTalkRooms(String isbn, OffsetLimit offsetLimit) {
+        Book book = bookRepository.findById(isbn)
+                .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
+
+        List<TalkRoomQueryResponse> talkRooms = talkRoomRepository.findTalkRoomsRelatedBook(book.getIsbn(),
+                offsetLimit.getOffset(), offsetLimit.getLimit());
+
+        List<Long> talkRoomIds = talkRooms.stream().map(TalkRoomQueryResponse::getId).toList();
+        Map<Long, List<ReadingStatus>> readingStatusesMap = talkRoomRoleRepository.findTalkRoomRoleByIds(talkRoomIds);
+
+        Long totalCount = talkRoomRepository.countTalkRoomsRelatedBook(isbn);
+
+        return PageResponse.of(offsetLimit.getLimit(), totalCount,
+                TalkRoomRelatedBookResponse.toList(talkRooms, readingStatusesMap));
+    }
 
     @Transactional
     public TalkRoomFindOneResponse createTalkRoom(TalkRoomCreateServiceRequest request, Long userId,
@@ -69,34 +83,26 @@ public class TalkRoomService {
         List<String> imageUrls = talkRoomImageRepository.findByTalkRoomIdWithImageUrl(
                 talkRoom.getId());
 
-        return TalkRoomFindOneResponse.create(talkRoom.getId(), user.getProfileImage(), user.getName(),
-                talkRoom.getTitle(), talkRoom.getContent(), book.getTitle(), book.getAuthors(), book.getThumbnail(),
-                readingStatus,
-                talkRoom.getRegisteredDateTime(), imageUrls);
+        return TalkRoomFindOneResponse.of(talkRoom, book, user, imageUrls, readingStatus);
     }
 
-    public TalkRoomPageResponse findAllTalkRoom(long offset, Integer size, String order, String search, String day,
-                                                Long userId, LocalDateTime now) {
-        List<TalkRoomQueryResponse> talkRooms = talkRoomRepository.findAllTalkRoom(offset,
-                size, order, search, day, now);
+    public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(OffsetLimit offsetLimit, String search, String day,
+                                                                 LocalDateTime now
+    ) {
+        List<TalkRoomQueryResponse> talkRooms = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+                offsetLimit.getLimit(), offsetLimit.getOrder(), search, day, now);
 
         List<Long> talkRoomIds = talkRooms.stream().map(TalkRoomQueryResponse::getId).toList();
 
         Map<Long, List<ReadingStatus>> talkRoomRoleMap = talkRoomRoleRepository.findTalkRoomRoleByIds(talkRoomIds);
 
-        Long totalCount = talkRoomRepository.countTalkRooms(day, now);
+        Long totalCount = talkRoomRepository.countTalkRooms(search, day, now);
 
-        List<TalkRoomFindAllResponse> response = TalkRoomFindAllResponse.create(talkRooms,
-                talkRoomRoleMap);
-
-        List<Long> likeTalkRoomIds = (userId != null)
-                ? talkRoomLikeRepository.findLikeTalkRoomIdsByUserId(userId, talkRoomIds)
-                : Collections.emptyList();
-
-        return TalkRoomPageResponse.of(PageResponse.of(talkRooms.size(), totalCount, response), likeTalkRoomIds);
+        return PageResponse.of(talkRooms.size(), totalCount,
+                TalkRoomFindAllResponse.toList(talkRooms, talkRoomRoleMap));
     }
 
-    public TalkRoomFindOneResponse findOneTalkRoom(Long talkRoomId, Long userId) {
+    public TalkRoomFindOneResponse findOneTalkRoom(Long talkRoomId) {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
@@ -107,11 +113,7 @@ public class TalkRoomService {
 
         List<String> images = talkRoomImageRepository.findTalkRoomImages(talkRoom.getId());
 
-        boolean exists = (userId != null)
-                ? talkRoomLikeRepository.existsTalkRoomLike(talkRoom.getId(), userId)
-                : false;
-
-        return TalkRoomFindOneResponse.create(queryTalkRoom, readingStatuses, images, exists);
+        return TalkRoomFindOneResponse.of(queryTalkRoom, images, readingStatuses);
     }
 
     @Transactional
@@ -168,13 +170,15 @@ public class TalkRoomService {
         talkRoomRepository.delete(talkRoom);
     }
 
-    public TalkRoomPageResponse findUserTalkRoom(Long offset, Integer size, boolean userTalkRoomsFilter,
-                                                 boolean commentedFilter,
-                                                 boolean likedFilter,
-                                                 Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    public PageResponse<TalkRoomFindAllResponse> findUserTalkRoom(OffsetLimit offsetLimit, boolean userTalkRoomsFilter,
+                                                                  boolean commentedFilter, boolean likedFilter,
+                                                                  Long userId
+    ) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        List<TalkRoomQueryResponse> findTalkRoom = talkRoomRepository.findByTalkRoomOwner(offset, size,
+        List<TalkRoomQueryResponse> findTalkRoom = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
+                offsetLimit.getLimit(),
                 userTalkRoomsFilter, commentedFilter,
                 likedFilter,
                 user.getId());
@@ -182,15 +186,11 @@ public class TalkRoomService {
         Map<Long, List<ReadingStatus>> talkRoomRoleMap = talkRoomRoleRepository.findTalkRoomRoleByIds(
                 findTalkRoom.stream().map(TalkRoomQueryResponse::getId).toList());
 
-        List<TalkRoomFindAllResponse> response = TalkRoomFindAllResponse.create(findTalkRoom,
-                talkRoomRoleMap);
-
         Long totalCount = talkRoomRepository.countTalkRoomsByUserId(user.getId(), userTalkRoomsFilter, commentedFilter,
                 likedFilter);
 
-        List<Long> likeTalkRoomIds = talkRoomLikeRepository.userLikeTalkRooms(userId);
-
-        return TalkRoomPageResponse.of(PageResponse.of(findTalkRoom.size(), totalCount, response), likeTalkRoomIds);
+        return PageResponse.of(findTalkRoom.size(), totalCount,
+                TalkRoomFindAllResponse.toList(findTalkRoom, talkRoomRoleMap));
     }
 
 }

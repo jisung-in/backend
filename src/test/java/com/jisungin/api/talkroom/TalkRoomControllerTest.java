@@ -20,6 +20,24 @@ import org.junit.jupiter.api.Test;
 class TalkRoomControllerTest extends ControllerTestSupport {
 
     @Test
+    @DisplayName("유저가 도서와 관련된 토크방을 조회한다.")
+    void findBookTalkRooms() throws Exception {
+        // given
+        String isbn = "00000000000X";
+
+        // when // then
+        mockMvc.perform(get("/v1/books/{isbn}/talk-rooms", isbn)
+                        .param("page", "1")
+                        .param("size", "10")
+                        .accept(APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
+
+    @Test
     @DisplayName("유저가 책A에 대한 토크방을 생성한다.")
     void createTalkRoom() throws Exception {
         // given

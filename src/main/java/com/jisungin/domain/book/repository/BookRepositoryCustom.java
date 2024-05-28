@@ -1,10 +1,12 @@
 package com.jisungin.domain.book.repository;
 
-import com.jisungin.application.PageResponse;
-import com.jisungin.application.book.response.SimpleBookResponse;
+import com.jisungin.application.book.response.BookFindAllResponse;
+import java.util.List;
 
 public interface BookRepositoryCustom {
 
-    PageResponse<SimpleBookResponse> getBooks(Long offset, Integer size, String order);
+    List<BookFindAllResponse> getBooks(Integer offset, Integer size, String order);
+
+    Long getTotalCount(String order);
 
 }

@@ -1,17 +1,10 @@
 package com.jisungin.domain.book.repository;
 
 import static com.jisungin.domain.book.QBook.book;
-import static com.jisungin.domain.comment.QComment.comment;
-import static com.jisungin.domain.talkroom.QTalkRoom.talkRoom;
-import static com.jisungin.domain.talkroom.repository.OrderType.COMMENT;
-import static com.jisungin.domain.talkroom.repository.OrderType.RECENT;
 
-import com.jisungin.application.PageResponse;
-import com.jisungin.application.book.response.QSimpleBookResponse;
-import com.jisungin.application.book.response.SimpleBookResponse;
-import com.jisungin.domain.talkroom.repository.OrderByNull;
-import com.jisungin.domain.talkroom.repository.OrderType;
-import com.querydsl.core.types.OrderSpecifier;
+import com.jisungin.application.book.response.BookFindAllResponse;
+import com.jisungin.application.book.response.QBookFindAllResponse;
+import com.jisungin.domain.book.BookOrderType;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
@@ -23,8 +16,36 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public PageResponse<SimpleBookResponse> getBooks(Long offset, Integer size, String order) {
-        JPAQuery<SimpleBookResponse> query = queryFactory.select(new QSimpleBookResponse(
+    public List<BookFindAllResponse> getBooks(Integer offset, Integer size, String order) {
+        BookOrderType orderType = BookOrderType.fromString(order);
+
+        JPAQuery<BookFindAllResponse> query = selectFromBookFindAllResponse();
+
+        orderType.applyJoinStrategy(query);
+        orderType.applyGroupStrategy(query);
+
+        return query
+                .offset(offset)
+                .limit(size)
+                .orderBy(orderType.getOrderSpecifier())
+                .fetch();
+    }
+
+    @Override
+    public Long getTotalCount(String order) {
+        BookOrderType orderType = BookOrderType.fromString(order);
+
+        JPAQuery<Long> query = queryFactory
+                .select(book.countDistinct())
+                .from(book);
+
+        orderType.applyJoinStrategy(query);
+
+        return query.fetchOne();
+    }
+
+    private JPAQuery<BookFindAllResponse> selectFromBookFindAllResponse() {
+        return queryFactory.select(new QBookFindAllResponse(
                         book.isbn,
                         book.title,
                         book.publisher,
@@ -33,49 +54,6 @@ public class BookRepositoryImpl implements BookRepositoryCustom {
                         book.dateTime
                 ))
                 .from(book);
-
-        addJoinByOrder(query, OrderType.convertToOrderType(order));
-
-        List<SimpleBookResponse> responses = query
-                .offset(offset)
-                .limit(size)
-                .orderBy(condition(OrderType.convertToOrderType(order)))
-                .fetch();
-
-
-        Long totalCount = getTotalCount(OrderType.convertToOrderType(order));
-
-        return PageResponse.of(size, totalCount, responses);
-    }
-
-    private Long getTotalCount(OrderType orderType) {
-        JPAQuery<Long> countQuery = queryFactory
-                .select(book.countDistinct())
-                .from(book);
-
-        addJoinByOrder(countQuery, orderType);
-
-        return countQuery.fetchOne();
-    }
-
-    private void addJoinByOrder(JPAQuery<?> query, OrderType orderType) {
-        if (COMMENT.equals(orderType)) {
-            query
-                    .join(talkRoom).on(talkRoom.book.isbn.eq(book.isbn))
-                    .join(comment).on(talkRoom.id.eq(comment.talkRoom.id))
-                    .groupBy(book.isbn);
-        }
-    }
-
-    private OrderSpecifier<?> condition(OrderType orderType) {
-        if (RECENT.equals(orderType)) {
-            return book.createDateTime.desc();
-        }
-        if (COMMENT.equals(orderType)) {
-            return comment.count().desc();
-        }
-
-        return OrderByNull.DEFAULT;
     }
 
 }

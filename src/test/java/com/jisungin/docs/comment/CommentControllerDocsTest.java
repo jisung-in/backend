@@ -28,7 +28,6 @@ import com.jisungin.application.comment.CommentFindAllResponse;
 import com.jisungin.application.comment.CommentService;
 import com.jisungin.application.comment.request.CommentCreateServiceRequest;
 import com.jisungin.application.comment.request.CommentEditServiceRequest;
-import com.jisungin.application.comment.response.CommentPageResponse;
 import com.jisungin.application.comment.response.CommentResponse;
 import com.jisungin.docs.RestDocsSupport;
 import java.time.LocalDateTime;
@@ -122,11 +121,8 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .totalCount(1L)
                 .build();
 
-        given(commentService.findAllComments(anyLong(), anyLong()))
-                .willReturn(CommentPageResponse.builder()
-                        .response(response)
-                        .userLikeCommentIds(List.of())
-                        .build());
+        given(commentService.findAllComments(anyLong()))
+                .willReturn(response);
 
         mockMvc.perform(
                         get("/v1/talk-rooms/{talkRoomId}/comments", 1L)
@@ -150,30 +146,28 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                                         .description("메시지"),
                                 fieldWithPath("data").type(JsonFieldType.OBJECT)
                                         .description("응답 데이터"),
-                                fieldWithPath("data.response.queryResponse").type(JsonFieldType.ARRAY)
+                                fieldWithPath("data.queryResponse").type(JsonFieldType.ARRAY)
                                         .description("의견 데이터"),
-                                fieldWithPath("data.response.queryResponse[].commentId").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.queryResponse[].commentId").type(JsonFieldType.NUMBER)
                                         .description("의견 ID"),
-                                fieldWithPath("data.response.queryResponse[].userName").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].userName").type(JsonFieldType.STRING)
                                         .description("작성자 이름"),
-                                fieldWithPath("data.response.queryResponse[].profileImage").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].profileImage").type(JsonFieldType.STRING)
                                         .description("프로필 이미지"),
-                                fieldWithPath("data.response.queryResponse[].content").type(JsonFieldType.STRING)
+                                fieldWithPath("data.queryResponse[].content").type(JsonFieldType.STRING)
                                         .description("의견 내용"),
-                                fieldWithPath("data.response.queryResponse[].commentLikeCount").type(
+                                fieldWithPath("data.queryResponse[].commentLikeCount").type(
                                                 JsonFieldType.NUMBER)
                                         .description("의견 좋아요 개수"),
-                                fieldWithPath("data.response.queryResponse[].commentImages").type(JsonFieldType.ARRAY)
+                                fieldWithPath("data.queryResponse[].commentImages").type(JsonFieldType.ARRAY)
                                         .description("의견 이미지 URL"),
-                                fieldWithPath("data.response.queryResponse[].registeredDateTime").type(
+                                fieldWithPath("data.queryResponse[].registeredDateTime").type(
                                                 JsonFieldType.ARRAY)
                                         .description("의견 생성 시간"),
-                                fieldWithPath("data.response.totalCount").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.totalCount").type(JsonFieldType.NUMBER)
                                         .description("의견 총 개수"),
-                                fieldWithPath("data.response.size").type(JsonFieldType.NUMBER)
-                                        .description("조회 크기"),
-                                fieldWithPath("data.userLikeCommentIds").type(JsonFieldType.ARRAY)
-                                        .description("로그인한 유저가 좋아요 누른 의견 ID들").optional()
+                                fieldWithPath("data.size").type(JsonFieldType.NUMBER)
+                                        .description("조회 크기")
                         )
                 ));
     }
