@@ -1,7 +1,6 @@
 package com.jisungin.application.talkroom.response;
 
 import com.jisungin.domain.ReadingStatus;
-import com.querydsl.core.annotations.QueryProjection;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +24,13 @@ public class TalkRoomFindAllResponse {
     private Long likeCount;
     private List<String> readingStatuses = new ArrayList<>();
     private LocalDateTime registeredDateTime;
+    private Long creatorId;
 
     @Builder
-    @QueryProjection
-    public TalkRoomFindAllResponse(Long id, String profileImage, String username, String title, String content,
-                                   String bookName, String bookAuthor,
-                                   String bookThumbnail, Long likeCount, List<String> readingStatuses,
-                                   LocalDateTime registeredDateTime) {
+    private TalkRoomFindAllResponse(Long id, String profileImage, String username, String title, String content,
+                                    String bookName, String bookAuthor,
+                                    String bookThumbnail, Long likeCount, List<String> readingStatuses,
+                                    LocalDateTime registeredDateTime, Long creatorId) {
         this.id = id;
         this.profileImage = profileImage;
         this.username = username;
@@ -43,6 +42,7 @@ public class TalkRoomFindAllResponse {
         this.likeCount = likeCount;
         this.readingStatuses = readingStatuses;
         this.registeredDateTime = registeredDateTime;
+        this.creatorId = creatorId;
     }
 
     public static TalkRoomFindAllResponse of(TalkRoomQueryResponse talkRoom, List<ReadingStatus> readingStatuses) {
@@ -58,6 +58,7 @@ public class TalkRoomFindAllResponse {
                 .likeCount(talkRoom.getLikeCount())
                 .readingStatuses(extractReadingStatuses(readingStatuses))
                 .registeredDateTime(talkRoom.getRegisteredDateTime().withNano(0))
+                .creatorId(talkRoom.getCreatorId())
                 .build();
     }
 

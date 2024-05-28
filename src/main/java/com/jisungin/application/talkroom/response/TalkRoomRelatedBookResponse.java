@@ -19,11 +19,12 @@ public class TalkRoomRelatedBookResponse {
     private String bookThumbnail;
     private Long likeCount;
     private List<String> readingStatuses;
+    private Long creatorId;
 
     @Builder
     private TalkRoomRelatedBookResponse(Long id, String profileImage, String username, String title, String content,
                                         String bookName, String bookAuthor, String bookThumbnail, Long likeCount,
-                                        List<String> readingStatuses) {
+                                        List<String> readingStatuses, Long creatorId) {
         this.id = id;
         this.profileImage = profileImage;
         this.username = username;
@@ -34,6 +35,7 @@ public class TalkRoomRelatedBookResponse {
         this.bookThumbnail = bookThumbnail;
         this.likeCount = likeCount;
         this.readingStatuses = readingStatuses;
+        this.creatorId = creatorId;
     }
 
     public static TalkRoomRelatedBookResponse of(TalkRoomQueryResponse talkRoom,
@@ -49,14 +51,15 @@ public class TalkRoomRelatedBookResponse {
                 .bookThumbnail(talkRoom.getBookThumbnail())
                 .likeCount(talkRoom.getLikeCount())
                 .readingStatuses(extractReadingStatuses(readingStatuses))
+                .creatorId(talkRoom.getCreatorId())
                 .build();
     }
 
     public static List<TalkRoomRelatedBookResponse> toList(List<TalkRoomQueryResponse> talkRooms,
                                                            Map<Long, List<ReadingStatus>> readingStatusesMap) {
-       return talkRooms.stream()
-               .map(talkRoom -> TalkRoomRelatedBookResponse.of(talkRoom, readingStatusesMap.get(talkRoom.getId())))
-               .toList();
+        return talkRooms.stream()
+                .map(talkRoom -> TalkRoomRelatedBookResponse.of(talkRoom, readingStatusesMap.get(talkRoom.getId())))
+                .toList();
     }
 
     private static List<String> extractReadingStatuses(List<ReadingStatus> readingStatuses) {

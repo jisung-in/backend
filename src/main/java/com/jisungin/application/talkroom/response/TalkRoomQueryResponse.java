@@ -20,12 +20,13 @@ public class TalkRoomQueryResponse {
     private String bookThumbnail;
     private Long likeCount;
     private LocalDateTime registeredDateTime;
+    private Long creatorId;
 
     @Builder
     @QueryProjection
     public TalkRoomQueryResponse(Long id, String profileImage, String username, String title, String content,
                                  String bookName, String bookAuthor, String bookThumbnail, Long likeCount,
-                                 LocalDateTime registeredDateTime) {
+                                 LocalDateTime registeredDateTime, Long creatorId) {
         this.id = id;
         this.profileImage = profileImage;
         this.username = username;
@@ -36,6 +37,7 @@ public class TalkRoomQueryResponse {
         this.bookThumbnail = bookThumbnail;
         this.likeCount = likeCount;
         this.registeredDateTime = registeredDateTime;
+        this.creatorId = creatorId;
     }
 
 }

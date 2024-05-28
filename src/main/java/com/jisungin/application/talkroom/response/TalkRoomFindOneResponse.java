@@ -28,13 +28,14 @@ public class TalkRoomFindOneResponse {
     private List<String> readingStatuses = new ArrayList<>();
     private LocalDateTime registeredDateTime;
     private List<String> images = new ArrayList<>();
+    private Long creatorId;
 
     @Builder
     @QueryProjection
     public TalkRoomFindOneResponse(Long id, String profileImage, String username, String title, String content,
                                    String bookName, String bookAuthor, String bookThumbnail, Long likeCount,
                                    List<String> readingStatuses,
-                                   LocalDateTime registeredDateTime, List<String> images) {
+                                   LocalDateTime registeredDateTime, List<String> images, Long creatorId) {
         this.id = id;
         this.profileImage = profileImage;
         this.username = username;
@@ -47,6 +48,7 @@ public class TalkRoomFindOneResponse {
         this.readingStatuses = readingStatuses;
         this.registeredDateTime = registeredDateTime;
         this.images = images;
+        this.creatorId = creatorId;
     }
 
     public static TalkRoomFindOneResponse of(TalkRoom talkRoom, Book book, User user, List<String> imageUrls,
@@ -64,6 +66,7 @@ public class TalkRoomFindOneResponse {
                 .registeredDateTime(talkRoom.getRegisteredDateTime())
                 .images(imageUrls)
                 .likeCount(0L)
+                .creatorId(user.getId())
                 .build();
     }
 
@@ -82,6 +85,7 @@ public class TalkRoomFindOneResponse {
                 .readingStatuses(extractReadingStatuses(readingStatuses))
                 .registeredDateTime(talkRoom.getRegisteredDateTime())
                 .images(images)
+                .creatorId(talkRoom.getCreatorId())
                 .build();
     }
 

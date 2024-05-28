@@ -25,7 +25,8 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<TalkRoomQueryResponse> findAllTalkRoom(Integer offset, Integer size, String order, String search, String day,
+    public List<TalkRoomQueryResponse> findAllTalkRoom(Integer offset, Integer size, String order, String search,
+                                                       String day,
                                                        LocalDateTime now) {
         return findTalkRoomBySearch(offset, size, order, search, day, now);
     }
@@ -54,7 +55,8 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         book.authors.as("bookAuthor"),
                         book.thumbnail.as("bookThumbnail"),
                         talkRoomLike.count().as("likeCount"),
-                        talkRoom.registeredDateTime.as("registeredDateTime")
+                        talkRoom.registeredDateTime.as("registeredDateTime"),
+                        user.id.as("creatorId")
                 ))
                 .from(talkRoom)
                 .join(talkRoom.user, user)
@@ -97,7 +99,8 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         book.authors.as("bookAuthor"),
                         book.thumbnail.as("bookThumbnail"),
                         talkRoomLike.count().as("likeCount"),
-                        talkRoom.registeredDateTime.as("registeredDateTime")
+                        talkRoom.registeredDateTime.as("registeredDateTime"),
+                        user.id.as("creatorId")
                 ))
                 .from(talkRoom)
                 .join(talkRoom.user, user)
@@ -142,7 +145,8 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         book.authors.as("bookAuthor"),
                         book.thumbnail.as("bookThumbnail"),
                         talkRoomLike.count().as("likeCount"),
-                        talkRoom.registeredDateTime.as("registeredDateTime")
+                        talkRoom.registeredDateTime.as("registeredDateTime"),
+                        user.id.as("creatorId")
                 ))
                 .from(talkRoom)
                 .join(talkRoom.user, user)
@@ -202,7 +206,8 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         book.authors.as("bookAuthor"),
                         book.thumbnail.as("bookImage"),
                         talkRoomLike.count().as("likeCount"),
-                        talkRoom.registeredDateTime.as("registeredDateTime")
+                        talkRoom.registeredDateTime.as("registeredDateTime"),
+                        user.id.as("creatorId")
                 ))
                 .from(talkRoom)
                 .join(talkRoom.user, user)
