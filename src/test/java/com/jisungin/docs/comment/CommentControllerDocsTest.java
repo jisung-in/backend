@@ -113,6 +113,7 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                 .commentLikeCount(0L)
                 .commentImages(List.of("이미지 URL"))
                 .registeredDateTime(LocalDateTime.now())
+                .creatorId(1L)
                 .build();
 
         PageResponse<CommentFindAllResponse> response = PageResponse.<CommentFindAllResponse>builder()
@@ -164,6 +165,8 @@ public class CommentControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("data.queryResponse[].registeredDateTime").type(
                                                 JsonFieldType.ARRAY)
                                         .description("의견 생성 시간"),
+                                fieldWithPath("data.queryResponse[].creatorId").type(JsonFieldType.NUMBER)
+                                        .description("작성자 ID"),
                                 fieldWithPath("data.totalCount").type(JsonFieldType.NUMBER)
                                         .description("의견 총 개수"),
                                 fieldWithPath("data.size").type(JsonFieldType.NUMBER)

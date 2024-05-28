@@ -22,11 +22,12 @@ public class CommentFindAllResponse {
     private Long commentLikeCount;
     private List<String> commentImages = new ArrayList<>();
     private LocalDateTime registeredDateTime;
+    private Long creatorId;
 
     @Builder
     private CommentFindAllResponse(Long commentId, String userName, String profileImage, String content,
                                    Long commentLikeCount, List<String> commentImages,
-                                   LocalDateTime registeredDateTime) {
+                                   LocalDateTime registeredDateTime, Long creatorId) {
         this.commentId = commentId;
         this.userName = userName;
         this.profileImage = profileImage;
@@ -34,6 +35,7 @@ public class CommentFindAllResponse {
         this.commentLikeCount = commentLikeCount;
         this.commentImages = commentImages;
         this.registeredDateTime = registeredDateTime;
+        this.creatorId = creatorId;
     }
 
     public static CommentFindAllResponse of(CommentQueryResponse comment, List<CommentImage> commentImages) {
@@ -45,6 +47,7 @@ public class CommentFindAllResponse {
                 .commentLikeCount(comment.getCommentLikeCount())
                 .commentImages(extractCommentImages(commentImages))
                 .registeredDateTime(comment.getRegisteredDateTime().withNano(0))
+                .creatorId(comment.getCreatorId())
                 .build();
     }
 
