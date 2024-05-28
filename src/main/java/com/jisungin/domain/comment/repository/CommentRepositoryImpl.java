@@ -24,7 +24,8 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
                         user.profileImage,
                         comment.content,
                         commentLike.count().as("commentLiKeCount"),
-                        comment.registeredDateTime
+                        comment.registeredDateTime,
+                        user.id.as("creatorId")
                 ))
                 .from(comment)
                 .join(comment.talkRoom, talkRoom)

@@ -83,6 +83,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                         .readingStatuses(List.of("읽고 싶은", "읽는 중", "읽음", "잠시 멈춤", "중단"))
                         .registeredDateTime(LocalDateTime.now())
                         .images(List.of("이미지 URL"))
+                        .creatorId(1L)
                         .build());
 
         mockMvc.perform(
@@ -139,7 +140,9 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("data.registeredDateTime").type(JsonFieldType.ARRAY)
                                         .description("토론방 생성 시간"),
                                 fieldWithPath("data.likeCount").type(JsonFieldType.NUMBER)
-                                        .description("토론방 좋아요 총 개수")
+                                        .description("토론방 좋아요 총 개수"),
+                                fieldWithPath("data.creatorId").type(JsonFieldType.NUMBER)
+                                        .description("토론방 생성자 ID")
                         )
                 ));
     }
@@ -225,7 +228,9 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("토론방 참가 조건"),
                                 fieldWithPath("data.queryResponse[].registeredDateTime").type(
                                                 JsonFieldType.ARRAY)
-                                        .description("토론방 생성 시간")
+                                        .description("토론방 생성 시간"),
+                                fieldWithPath("data.queryResponse[].creatorId").type(JsonFieldType.NUMBER)
+                                        .description("토론방 생성자 ID")
                         )
                 ));
     }
@@ -294,7 +299,9 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("data.queryResponse[].readingStatuses[]").type(ARRAY)
                                         .description("토론방 참가 조건"),
                                 fieldWithPath("data.queryResponse[].bookAuthor").type(STRING)
-                                        .description("도서 저자")
+                                        .description("도서 저자"),
+                                fieldWithPath("data.queryResponse[].creatorId").type(NUMBER)
+                                        .description("토론방 생성자 ID")
                         ))
                 );
     }
@@ -316,6 +323,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                         .readingStatuses(List.of("읽고 싶은", "읽는 중", "읽음", "잠시 멈춤", "중단"))
                         .registeredDateTime(LocalDateTime.now())
                         .images(List.of("이미지 URL"))
+                        .creatorId(1L)
                         .build());
 
         Long request = 1L;
@@ -365,7 +373,9 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("data.registeredDateTime").type(JsonFieldType.ARRAY)
                                         .description("토론방 생성 시간"),
                                 fieldWithPath("data.likeCount").type(JsonFieldType.NUMBER)
-                                        .description("토론방 좋아요 총 개수")
+                                        .description("토론방 좋아요 총 개수"),
+                                fieldWithPath("data.creatorId").type(JsonFieldType.NUMBER)
+                                        .description("토론방 생성자 ID")
                         )
                 ));
     }
@@ -527,7 +537,9 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("토론방 참가 조건"),
                                 fieldWithPath("data.queryResponse[].registeredDateTime").type(
                                                 JsonFieldType.ARRAY)
-                                        .description("토론방 생성 시간")
+                                        .description("토론방 생성 시간"),
+                                fieldWithPath("data.queryResponse[].creatorId").type(JsonFieldType.NUMBER)
+                                        .description("토론방 생성자 ID")
 
                         )
                 ));
@@ -548,6 +560,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                         .likeCount(0L)
                         .readingStatuses(List.of("읽고싶은", "읽는 중", "읽음", "잠시 멈춤", "중단"))
                         .registeredDateTime(LocalDateTime.now())
+                        .creatorId(1L)
                         .build())
                 .toList();
     }
@@ -564,6 +577,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .likeCount(id)
                 .readingStatuses(List.of("읽고 싶은", "읽는 중", "읽음", "잠시 멈춤", "중단"))
                 .bookAuthor("도서 저자1,도서 저자2,도서 저자3")
+                .creatorId(1L)
                 .build();
     }
 

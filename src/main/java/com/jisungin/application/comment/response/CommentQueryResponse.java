@@ -16,18 +16,20 @@ public class CommentQueryResponse {
     private String content;
     private Long commentLikeCount;
     private LocalDateTime registeredDateTime;
+    private Long creatorId;
 
     @Builder
     @QueryProjection
     public CommentQueryResponse(Long commentId, String userName, String profileImage, String content,
                                 Long commentLikeCount,
-                                LocalDateTime registeredDateTime) {
+                                LocalDateTime registeredDateTime, Long creatorId) {
         this.commentId = commentId;
         this.userName = userName;
         this.profileImage = profileImage;
         this.content = content;
         this.commentLikeCount = commentLikeCount;
         this.registeredDateTime = registeredDateTime;
+        this.creatorId = creatorId;
     }
 
 }
