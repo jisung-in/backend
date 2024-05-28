@@ -76,7 +76,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
-        return UserInfoResponse.of(user.getName(), user.getProfileImage());
+        return UserInfoResponse.of(user.getId(), user.getName(), user.getProfileImage());
     }
 
 }
