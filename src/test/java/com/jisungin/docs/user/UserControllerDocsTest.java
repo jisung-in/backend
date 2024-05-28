@@ -166,7 +166,8 @@ public class UserControllerDocsTest extends RestDocsSupport {
                                         .description("리뷰 목록"),
                                 fieldWithPath("data.reviewContents.queryResponse[].reviewId").type(JsonFieldType.NUMBER)
                                         .description("리뷰 ID"),
-                                fieldWithPath("data.reviewContents.queryResponse[].userImage").type(JsonFieldType.STRING)
+                                fieldWithPath("data.reviewContents.queryResponse[].userImage").type(
+                                                JsonFieldType.STRING)
                                         .description("유저 프로필 이미지"),
                                 fieldWithPath("data.reviewContents.queryResponse[].userName").type(JsonFieldType.STRING)
                                         .description("유저 이름"),
@@ -178,7 +179,8 @@ public class UserControllerDocsTest extends RestDocsSupport {
                                         .description("책 ISBN"),
                                 fieldWithPath("data.reviewContents.queryResponse[].title").type(JsonFieldType.STRING)
                                         .description("책 제목"),
-                                fieldWithPath("data.reviewContents.queryResponse[].bookImage").type(JsonFieldType.STRING)
+                                fieldWithPath("data.reviewContents.queryResponse[].bookImage").type(
+                                                JsonFieldType.STRING)
                                         .description("책 표지"),
                                 fieldWithPath("data.reviewContents.totalCount").type(JsonFieldType.NUMBER)
                                         .description("총 리뷰 개수"),
@@ -195,6 +197,7 @@ public class UserControllerDocsTest extends RestDocsSupport {
     void getUserInfo() throws Exception {
         given(userService.getUserInfo(anyLong()))
                 .willReturn(UserInfoResponse.builder()
+                        .userId(1L)
                         .userName("유저 이름")
                         .userImage("유저 프로필 이미지")
                         .build());
@@ -217,8 +220,10 @@ public class UserControllerDocsTest extends RestDocsSupport {
                                         .description("메시지"),
                                 fieldWithPath("data").type(JsonFieldType.OBJECT)
                                         .description("유저 정보"),
+                                fieldWithPath("data.userId").type(JsonFieldType.NUMBER)
+                                        .description("유저 아이디"),
                                 fieldWithPath("data.userName").type(JsonFieldType.STRING)
-                                        .description("유저 정보"),
+                                        .description("유저 이름"),
                                 fieldWithPath("data.userImage").type(JsonFieldType.STRING)
                                         .description("유저 프로필 이미지")
                         )

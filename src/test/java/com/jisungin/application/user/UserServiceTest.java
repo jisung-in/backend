@@ -189,6 +189,7 @@ class UserServiceTest extends ServiceTestSupport {
         UserInfoResponse result = userService.getUserInfo(user.getId());
 
         //then
+        assertThat(result.getUserId()).isEqualTo(user.getId());
         assertThat(result.getUserName()).isEqualTo(user.getName());
         assertThat(result.getUserImage()).isEqualTo(user.getProfileImage());
     }
