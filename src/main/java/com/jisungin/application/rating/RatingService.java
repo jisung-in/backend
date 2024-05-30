@@ -48,7 +48,7 @@ public class RatingService {
 
     public RatingGetOneResponse getRating(Long userId, String isbn) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                .orElse(null);
 
         Book book = bookRepository.findById(isbn)
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
@@ -56,7 +56,7 @@ public class RatingService {
         Rating rating = ratingRepository.findRatingByUserAndBook(user, book)
                 .orElse(null);
 
-        if (rating == null) {
+        if (rating == null || user == null) {
             return RatingGetOneResponse.of(null, null, book.getIsbn());
         }
 

@@ -118,6 +118,21 @@ class RatingServiceTest extends ServiceTestSupport {
         assertThat(result.getIsbn()).isEqualTo(book.getIsbn());
     }
 
+    @DisplayName("게스트가 책의 별점을 조회한다.")
+    @Test
+    void getRatingWithGuest() {
+        //given
+        Book book = bookRepository.save(createBook("제목1", "내용1", "1234"));
+
+        //when
+        RatingGetOneResponse result = ratingService.getRating(-1L, book.getIsbn());
+
+        //then
+        assertThat(result.getId()).isNull();
+        assertThat(result.getRating()).isNull();
+        assertThat(result.getIsbn()).isEqualTo(book.getIsbn());
+    }
+
     @DisplayName("유저가 별점을 수정한다.")
     @Test
     void updateRating() {
