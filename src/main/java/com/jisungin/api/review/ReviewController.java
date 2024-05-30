@@ -3,6 +3,7 @@ package com.jisungin.api.review;
 import com.jisungin.api.ApiResponse;
 import com.jisungin.api.support.Auth;
 import com.jisungin.api.review.request.ReviewCreateRequest;
+import com.jisungin.api.support.GuestOrAuth;
 import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.SliceResponse;
 import com.jisungin.application.review.ReviewService;

@@ -11,6 +11,7 @@ public class ReviewWithRatingResponse {
 
     private Long reviewId;
     private Long ratingId;
+    private Long creatorId;
     private String username;
     private String profileImage;
     private String reviewContent;
@@ -19,10 +20,11 @@ public class ReviewWithRatingResponse {
 
     @Builder
     @QueryProjection
-    public ReviewWithRatingResponse(Long reviewId, Long ratingId, String username, String profileImage,
+    public ReviewWithRatingResponse(Long reviewId, Long ratingId, Long creatorId, String username, String profileImage,
                                      String reviewContent, Double starRating, Long likeCount) {
         this.reviewId = reviewId;
         this.ratingId = ratingId;
+        this.creatorId = creatorId;
         this.username = username;
         this.profileImage = profileImage;
         this.reviewContent = reviewContent;
@@ -30,7 +32,7 @@ public class ReviewWithRatingResponse {
         this.likeCount = likeCount;
     }
 
-    public static ReviewWithRatingResponse of(Long reviewId, Long ratingId, String username, String profileImage,
+    public static ReviewWithRatingResponse of(Long reviewId, Long ratingId, Long creatorId, String username, String profileImage,
                                               String reviewContent, Double starRating, Long likeCount) {
        return ReviewWithRatingResponse.builder()
                .reviewId(reviewId)

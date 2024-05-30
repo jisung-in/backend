@@ -53,6 +53,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 select(new QReviewWithRatingResponse(
                         review.id.as("reviewId"),
                         rating1.id.as("ratingId"),
+                        user.id.as("creatorId"),
                         user.name.as("username"),
                         user.profileImage.as("profileImage"),
                         review.content.as("reviewContent"),

@@ -53,6 +53,7 @@ public class ReviewControllerDocsTest extends RestDocsSupport {
                 .mapToObj(i -> ReviewWithRatingResponse.builder()
                         .reviewId(i)
                         .ratingId(i)
+                        .creatorId(i)
                         .username("작성자 " + i)
                         .profileImage("http://www.profile-image.com/" + i)
                         .reviewContent("리뷰 내용 " + i)
@@ -114,6 +115,8 @@ public class ReviewControllerDocsTest extends RestDocsSupport {
                                         .description("리뷰 ID"),
                                 fieldWithPath("data.content[].ratingId").type(JsonFieldType.NUMBER)
                                         .description("별점 ID"),
+                                fieldWithPath("data.content[].creatorId").type(JsonFieldType.NUMBER)
+                                        .description("작성자 유저 ID"),
                                 fieldWithPath("data.content[].username").type(JsonFieldType.STRING)
                                         .description("작성자 이름"),
                                 fieldWithPath("data.content[].profileImage").type(JsonFieldType.STRING)
