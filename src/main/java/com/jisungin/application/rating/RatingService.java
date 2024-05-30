@@ -54,7 +54,11 @@ public class RatingService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
         Rating rating = ratingRepository.findRatingByUserAndBook(user, book)
-                .orElseThrow(() -> new BusinessException(RATING_NOT_FOUND));
+                .orElse(null);
+
+        if (rating == null) {
+            return RatingGetOneResponse.of(null, null, book.getIsbn());
+        }
 
         return RatingGetOneResponse.of(rating.getId(), rating.getRating(), book.getIsbn());
     }

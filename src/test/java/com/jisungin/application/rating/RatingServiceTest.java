@@ -85,7 +85,7 @@ class RatingServiceTest extends ServiceTestSupport {
                 .hasMessage("이미 별점이 존재합니다.");
     }
 
-    @DisplayName("유저가 해당 책의 별점을 조회한다.")
+    @DisplayName("유저가 해당 등록한 별점을 조회한다.")
     @Test
     void getRating() {
         //given
@@ -100,6 +100,22 @@ class RatingServiceTest extends ServiceTestSupport {
         assertThat(result.getId()).isEqualTo(savadRating.getId());
         assertThat(result.getRating()).isEqualTo(savadRating.getRating());
         assertThat(result.getIsbn()).isEqualTo(savadRating.getBook().getIsbn());
+    }
+
+    @DisplayName("유저가 해당 등록하지 않은 책의 별점을 조회한다.")
+    @Test
+    void getRatingWithEmpty() {
+        //given
+        User user = userRepository.save(createUser("1"));
+        Book book = bookRepository.save(createBook("제목1", "내용1", "1234"));
+
+        //when
+        RatingGetOneResponse result = ratingService.getRating(user.getId(), book.getIsbn());
+
+        //then
+        assertThat(result.getId()).isNull();
+        assertThat(result.getRating()).isNull();
+        assertThat(result.getIsbn()).isEqualTo(book.getIsbn());
     }
 
     @DisplayName("유저가 별점을 수정한다.")
