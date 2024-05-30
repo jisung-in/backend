@@ -4,9 +4,12 @@ import com.jisungin.application.book.request.BookCreateServiceRequest;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import net.minidev.json.annotate.JsonIgnore;
 
 @Getter
-public class CrawlingBook {
+@NoArgsConstructor
+public class CrawledBook {
 
     private String title;
     private String content;
@@ -18,8 +21,8 @@ public class CrawlingBook {
     private LocalDateTime dateTime;
 
     @Builder
-    private CrawlingBook(String title, String content, String isbn, String publisher, String imageUrl, String thumbnail,
-                         String authors, LocalDateTime dateTime) {
+    private CrawledBook(String title, String content, String isbn, String publisher, String imageUrl, String thumbnail,
+                        String authors, LocalDateTime dateTime) {
         this.title = title;
         this.content = content;
         this.isbn = isbn;
@@ -30,9 +33,9 @@ public class CrawlingBook {
         this.dateTime = dateTime;
     }
 
-    public static CrawlingBook of(String title, String content, String isbn, String publisher, String imageUrl,
-                                  String thumbnail, String authors, LocalDateTime dateTime) {
-        return CrawlingBook.builder()
+    public static CrawledBook of(String title, String content, String isbn, String publisher, String imageUrl,
+                                 String thumbnail, String authors, LocalDateTime dateTime) {
+        return CrawledBook.builder()
                 .title(title)
                 .content(content)
                 .isbn(isbn)
@@ -55,6 +58,10 @@ public class CrawlingBook {
                 .authors(convertAuthorsToString())
                 .dateTime(dateTime)
                 .build();
+    }
+
+    public boolean isBlankIsbn() {
+        return isbn == null || isbn.isBlank();
     }
 
     private String[] convertAuthorsToArr(String authors) {

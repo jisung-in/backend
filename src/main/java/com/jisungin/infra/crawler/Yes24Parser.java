@@ -35,7 +35,7 @@ public class Yes24Parser implements Parser {
     }
 
     @Override
-    public CrawlingBook parseBook(Document doc) {
+    public CrawledBook parseBook(Document doc) {
         String json = doc.select(bookJsonCss).html();
 
         String title = parseJsonToString(json, "$.name");
@@ -47,7 +47,7 @@ public class Yes24Parser implements Parser {
         String content = Jsoup.clean(doc.select(bookContentCss).text(), Safelist.none());
         LocalDateTime dateTime = parseDate(parseJsonToString(json, "$.workExample[0].datePublished"));
 
-        return CrawlingBook.of(title, content, isbn, publisher, imageUrl, thumbnail, authors, dateTime);
+        return CrawledBook.of(title, content, isbn, publisher, imageUrl, thumbnail, authors, dateTime);
     }
 
     @Override
