@@ -181,9 +181,12 @@ public class UserControllerDocsTest extends RestDocsSupport {
                                         .description("책 ISBN"),
                                 fieldWithPath("data.reviewContents.queryResponse[].title").type(JsonFieldType.STRING)
                                         .description("책 제목"),
-                                fieldWithPath("data.reviewContents.queryResponse[].bookImage").type(
-                                                JsonFieldType.STRING)
+                                fieldWithPath("data.reviewContents.queryResponse[].bookImage").type(JsonFieldType.STRING)
                                         .description("책 표지"),
+                                fieldWithPath("data.reviewContents.queryResponse[].authors").type(JsonFieldType.STRING)
+                                        .description("책 저자"),
+                                fieldWithPath("data.reviewContents.queryResponse[].publisher").type(JsonFieldType.STRING)
+                                        .description("책 출판사"),
                                 fieldWithPath("data.reviewContents.totalCount").type(JsonFieldType.NUMBER)
                                         .description("총 리뷰 개수"),
                                 fieldWithPath("data.reviewContents.size").type(JsonFieldType.NUMBER)
@@ -323,6 +326,8 @@ public class UserControllerDocsTest extends RestDocsSupport {
                         .isbn(String.valueOf(i))
                         .title("title" + i)
                         .bookImage("bookImage" + i)
+                        .authors("저자" + i)
+                        .publisher("출판사" + i)
                         .build())
                 .toList();
     }

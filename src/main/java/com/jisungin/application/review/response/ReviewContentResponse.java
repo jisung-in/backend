@@ -25,11 +25,14 @@ public class ReviewContentResponse {
 
     private String bookImage;
 
+    private String authors;
+
+    private String publisher;
+
     @Builder
     @QueryProjection
-    public ReviewContentResponse(
-            Long reviewId, String userImage, String userName, Double rating, String content,
-            String isbn, String title, String bookImage) {
+    public ReviewContentResponse(Long reviewId, String userImage, String userName, Double rating, String content,
+                                 String isbn, String title, String bookImage, String authors, String publisher) {
         this.reviewId = reviewId;
         this.userImage = userImage;
         this.userName = userName;
@@ -38,6 +41,7 @@ public class ReviewContentResponse {
         this.isbn = isbn;
         this.title = title;
         this.bookImage = bookImage;
+        this.authors = authors;
+        this.publisher = publisher;
     }
-
 }
