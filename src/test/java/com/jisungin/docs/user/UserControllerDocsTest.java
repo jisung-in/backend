@@ -8,7 +8,9 @@ import com.jisungin.application.review.response.ReviewContentResponse;
 import com.jisungin.application.user.UserService;
 import com.jisungin.application.user.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.application.user.request.UserRatingGetAllServiceRequest;
+import com.jisungin.application.user.request.UserReadingStatusGetAllServiceRequest;
 import com.jisungin.application.user.response.UserInfoResponse;
+import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
 import com.jisungin.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -179,15 +181,87 @@ public class UserControllerDocsTest extends RestDocsSupport {
                                         .description("책 ISBN"),
                                 fieldWithPath("data.reviewContents.queryResponse[].title").type(JsonFieldType.STRING)
                                         .description("책 제목"),
-                                fieldWithPath("data.reviewContents.queryResponse[].bookImage").type(
-                                                JsonFieldType.STRING)
+                                fieldWithPath("data.reviewContents.queryResponse[].bookImage").type(JsonFieldType.STRING)
                                         .description("책 표지"),
+                                fieldWithPath("data.reviewContents.queryResponse[].authors").type(JsonFieldType.STRING)
+                                        .description("책 저자"),
+                                fieldWithPath("data.reviewContents.queryResponse[].publisher").type(JsonFieldType.STRING)
+                                        .description("책 출판사"),
                                 fieldWithPath("data.reviewContents.totalCount").type(JsonFieldType.NUMBER)
                                         .description("총 리뷰 개수"),
                                 fieldWithPath("data.reviewContents.size").type(JsonFieldType.NUMBER)
                                         .description("해당 페이지 리뷰 개수"),
                                 fieldWithPath("data.userLikes").type(JsonFieldType.ARRAY)
                                         .description("유저가 좋아요한 리뷰 ID 목록")
+                        )
+                ));
+    }
+
+    @DisplayName("유저 독서 상태 페이징 조회 API")
+    @Test
+    void getReadingStatuses() throws Exception {
+        List<UserReadingStatusResponse> readingStatusesResponse = createReadingStatusResponse();
+
+        PageResponse<UserReadingStatusResponse> response = PageResponse.<UserReadingStatusResponse>builder()
+                .size(10)
+                .totalCount(10)
+                .queryResponse(readingStatusesResponse)
+                .build();
+
+        given(userService.getUserReadingStatuses(anyLong(), any(UserReadingStatusGetAllServiceRequest.class)))
+                .willReturn(response);
+
+        mockMvc.perform(get("/v1/users/statuses")
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("order", "dictionary")
+                        .param("status", "want")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print())
+                .andDo(document("user-library/get-status",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        queryParameters(
+                                parameterWithName("page")
+                                        .description("페이지 번호"),
+                                parameterWithName("size")
+                                        .description("페이지 사이즈"),
+                                parameterWithName("order")
+                                        .description(
+                                                "정렬 기준 : dictionary(가나다순), rating_avg_desc(평균 별점 높은 순)"),
+                                parameterWithName("status")
+                                        .description(
+                                                "선택 기준 : want(읽고 싶은), reading(읽는 중), pause(잠시 멈춤)," +
+                                                        "stop(중단), none(상관없음)")
+                        ),
+                        responseFields(
+                                fieldWithPath("code").type(JsonFieldType.NUMBER)
+                                        .description("코드"),
+                                fieldWithPath("status").type(JsonFieldType.STRING)
+                                        .description("상태"),
+                                fieldWithPath("message").type(JsonFieldType.STRING)
+                                        .description("메시지"),
+                                fieldWithPath("data").type(JsonFieldType.OBJECT)
+                                        .description("응답 데이터"),
+                                fieldWithPath("data.queryResponse").type(JsonFieldType.ARRAY)
+                                        .description("책 목록"),
+                                fieldWithPath("data.queryResponse[].isbn").type(JsonFieldType.STRING)
+                                        .description("책 isbn"),
+                                fieldWithPath("data.queryResponse[].bookTitle").type(JsonFieldType.STRING)
+                                        .description("책 제목"),
+                                fieldWithPath("data.queryResponse[].bookImage").type(JsonFieldType.STRING)
+                                        .description("책 표지"),
+                                fieldWithPath("data.queryResponse[].ratingAvg").type(JsonFieldType.NUMBER)
+                                        .description("책 평균 별점"),
+                                fieldWithPath("data.totalCount").type(JsonFieldType.NUMBER)
+                                        .description("데이터 총 개수"),
+                                fieldWithPath("data.size").type(JsonFieldType.NUMBER)
+                                        .description("해당 페이지 데이터 개수")
                         )
                 ));
     }
@@ -252,6 +326,8 @@ public class UserControllerDocsTest extends RestDocsSupport {
                         .isbn(String.valueOf(i))
                         .title("title" + i)
                         .bookImage("bookImage" + i)
+                        .authors("저자" + i)
+                        .publisher("출판사" + i)
                         .build())
                 .toList();
     }
@@ -261,6 +337,17 @@ public class UserControllerDocsTest extends RestDocsSupport {
                 .mapToLong(i -> i)
                 .boxed()
                 .collect(Collectors.toList());
+    }
+
+    private List<UserReadingStatusResponse> createReadingStatusResponse() {
+        return IntStream.range(0, 10)
+                .mapToObj(i -> UserReadingStatusResponse.builder()
+                        .isbn(String.valueOf(i))
+                        .bookTitle("책 제목" + i)
+                        .bookImage("책 표지" + i)
+                        .ratingAvg(i % 5.0 + 1)
+                        .build())
+                .toList();
     }
 
 }

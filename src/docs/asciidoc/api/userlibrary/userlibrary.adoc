@@ -60,3 +60,15 @@ include::{snippets}/user-library/delete/path-parameters.adoc[]
 ===== Response Body
 include::{snippets}/user-library/delete/response-body.adoc[]
 include::{snippets}/user-library/delete/response-fields.adoc[]
+
+=== 독서 상태 페이지 조회
+
+==== HTTP Request
+include::{snippets}/user-library/get-status/http-request.adoc[]
+include::{snippets}/user-library/get-status/query-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/user-library/get-status/http-response.adoc[]
+===== Response Body
+include::{snippets}/user-library/get-status/response-body.adoc[]
+include::{snippets}/user-library/get-status/response-fields.adoc[]

@@ -27,7 +27,8 @@ public class UserLibraryRepositoryImpl implements UserLibraryRepositoryCustom {
             Long userId, ReadingStatus readingStatus, ReadingStatusOrderType orderType, int size, int offset) {
         log.info("--------------start--------------");
         List<UserReadingStatusResponse> userReadingStatuses = queryFactory
-                .select(new QUserReadingStatusResponse(userLibrary.book.imageUrl, userLibrary.book.title, rating1.rating.avg()))
+                .select(new QUserReadingStatusResponse(
+                        userLibrary.book.isbn, userLibrary.book.imageUrl, userLibrary.book.title, rating1.rating.avg()))
                 .from(userLibrary)
                 .join(rating1).on(userLibrary.book.eq(rating1.book))
                 .where(userLibrary.user.id.eq(userId), userLibrary.status.eq(readingStatus))

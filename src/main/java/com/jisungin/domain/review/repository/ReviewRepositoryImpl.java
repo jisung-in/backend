@@ -82,7 +82,8 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         return queryFactory
                 .select(new QReviewContentResponse(
                         review.id, review.user.profileImage, review.user.name, rating1.rating, review.content,
-                        review.book.isbn, review.book.title, review.book.imageUrl
+                        review.book.isbn, review.book.title, review.book.imageUrl, review.book.authors,
+                        review.book.publisher
                 ))
                 .from(review)
                 .leftJoin(rating1).on(review.user.eq(rating1.user), review.book.eq(rating1.book))

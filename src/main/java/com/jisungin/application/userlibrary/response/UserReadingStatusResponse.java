@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserReadingStatusResponse {
 
+    private String isbn;
+
     private String bookImage;
 
     private String bookTitle;
@@ -17,7 +19,8 @@ public class UserReadingStatusResponse {
 
     @QueryProjection
     @Builder
-    public UserReadingStatusResponse(String bookImage, String bookTitle, Double ratingAvg) {
+    public UserReadingStatusResponse(String isbn, String bookImage, String bookTitle, Double ratingAvg) {
+        this.isbn = isbn;
         this.bookImage = bookImage;
         this.bookTitle = bookTitle;
         this.ratingAvg = ratingAvg;

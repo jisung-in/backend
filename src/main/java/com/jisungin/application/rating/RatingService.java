@@ -48,13 +48,17 @@ public class RatingService {
 
     public RatingGetOneResponse getRating(Long userId, String isbn) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                .orElse(null);
 
         Book book = bookRepository.findById(isbn)
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
         Rating rating = ratingRepository.findRatingByUserAndBook(user, book)
-                .orElseThrow(() -> new BusinessException(RATING_NOT_FOUND));
+                .orElse(null);
+
+        if (rating == null || user == null) {
+            return RatingGetOneResponse.of(null, null, book.getIsbn());
+        }
 
         return RatingGetOneResponse.of(rating.getId(), rating.getRating(), book.getIsbn());
     }
