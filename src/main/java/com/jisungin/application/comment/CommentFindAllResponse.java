@@ -62,7 +62,7 @@ public class CommentFindAllResponse {
         return Optional.ofNullable(commentImages)
                 .orElseGet(ArrayList::new)
                 .stream()
-                .map(CommentImage::getImageUrl)
+                .map(commentImage -> commentImage != null ? commentImage.getImageUrl() : null)
                 .toList();
     }
 

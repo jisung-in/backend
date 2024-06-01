@@ -117,7 +117,7 @@ class CommentServiceTest extends ServiceTestSupport {
         // then
         assertThat(response)
                 .extracting("content", "userName", "imageUrls")
-                .contains("의견 남기기", "user@gmail.com", List.of(""));
+                .contains("의견 남기기", "user@gmail.com", List.of());
     }
 
     @Test
@@ -576,6 +576,49 @@ class CommentServiceTest extends ServiceTestSupport {
                         tuple("의견 4", List.of("이미지 4")),
                         tuple("의견 3", List.of("이미지 3")),
                         tuple("의견 2", List.of("이미지 2")),
+                        tuple("의견 1", List.of("이미지 1"))
+                );
+    }
+
+    @Test
+    @DisplayName("의견을 조회할 때 이미지도 같이 조회 된다.(2)")
+    void findAllCommentsWithImage2() {
+        // given
+        User user = userRepository.save(createUser());
+        Book book = bookRepository.save(createBook());
+        TalkRoom talkRoom = talkRoomRepository.save(createTalkRoom(book, user));
+
+        createTalkRoomRole(talkRoom);
+
+        List<Comment> comments = IntStream.range(1, 6)
+                .mapToObj(i -> Comment.builder()
+                        .talkRoom(talkRoom)
+                        .user(user)
+                        .content("의견 " + i)
+                        .registeredDateTime(LocalDateTime.now())
+                        .build())
+                .toList();
+
+        for (int i = 0; i < 5; i++) {
+            commentRepository.save(comments.get(i));
+        }
+
+        CommentImage images = CommentImage.createImages(comments.get(0), "이미지 1");
+
+        commentImageRepository.save(images);
+
+        // when
+        PageResponse<CommentFindAllResponse> result = commentService.findAllComments(talkRoom.getId());
+
+        // then
+        assertThat(result.getTotalCount()).isEqualTo(5L);
+        assertThat(result.getQueryResponse()).hasSize(5)
+                .extracting("content", "commentImages")
+                .containsExactly(
+                        tuple("의견 5", List.of()),
+                        tuple("의견 4", List.of()),
+                        tuple("의견 3", List.of()),
+                        tuple("의견 2", List.of()),
                         tuple("의견 1", List.of("이미지 1"))
                 );
     }
