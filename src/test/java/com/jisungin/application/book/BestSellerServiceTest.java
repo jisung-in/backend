@@ -7,23 +7,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.jisungin.RedisTestContainer;
+import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.book.BestSellerService;
 import com.jisungin.application.book.event.BestSellerUpdatedEvent;
 import com.jisungin.application.book.event.BestSellerUpdatedEventListener;
-import com.jisungin.application.book.request.BookServicePageRequest;
-import com.jisungin.application.book.response.BestSellerResponse;
+import com.jisungin.application.book.response.BookWithRankingResponse;
 import com.jisungin.domain.book.repository.BestSellerRedisRepository;
 import com.jisungin.domain.book.repository.BookRepository;
+import com.jisungin.infra.crawler.CrawledBook;
 import com.jisungin.infra.crawler.Crawler;
-import com.jisungin.infra.crawler.CrawlingBook;
 import com.jisungin.infra.s3.S3FileManager;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,7 +33,6 @@ import org.springframework.test.context.event.RecordApplicationEvents;
 
 @SpringBootTest
 @RecordApplicationEvents
-@Slf4j
 public class BestSellerServiceTest extends RedisTestContainer {
 
     @Autowired
@@ -68,15 +65,12 @@ public class BestSellerServiceTest extends RedisTestContainer {
     @DisplayName("베스트 셀러 페이지를 조회한다.")
     public void getBestSellers() {
         // given
-        Map<Long, CrawlingBook> bestSellers = createSampleBestSellers();
-
-        bestSellerRedisRepository.updateAll(bestSellers);
+        bestSellerRedisRepository.updateAll(createCrawledBookMap());
 
         // when
-        PageResponse<BestSellerResponse> result = bestSellerService.getBestSellers(BookServicePageRequest.builder()
-                .page(1)
-                .size(5)
-                .build());
+        PageResponse<BookWithRankingResponse> result = bestSellerService.getBestSellers(OffsetLimit
+                .ofRange(1, 5));
+
         // then
         assertThat(result.getSize()).isEqualTo(5);
         assertThat(result.getTotalCount()).isEqualTo(6);
@@ -95,15 +89,15 @@ public class BestSellerServiceTest extends RedisTestContainer {
     @DisplayName("베스트 셀러를 갱신 한다.")
     public void updateBestSellers() {
         // given
-        Map<Long, CrawlingBook> bestSellers = createSampleBestSellers();
+        Map<Long, CrawledBook> crawledBookMap = createCrawledBookMap();
 
-        when(crawler.crawlBestSellerBook()).thenReturn(bestSellers);
+        when(crawler.crawlBestSellerBook()).thenReturn(crawledBookMap);
 
         // when
         bestSellerService.updateBestSellers();
 
         // then
-        List<BestSellerResponse> bookResponses = bestSellerRedisRepository.findAll();
+        List<BookWithRankingResponse> bookResponses = bestSellerRedisRepository.findAll();
 
         assertThat(bookResponses.size()).isEqualTo(6);
         assertThat(bookResponses).extracting("title", "isbn", "publisher", "authors")
@@ -121,8 +115,8 @@ public class BestSellerServiceTest extends RedisTestContainer {
     @DisplayName("베스트 셀러를 갱신하면 DB에 새로 등록된 책을 저장하는 이벤트가 발생한다.")
     public void updateBestSellerEventRaised() {
         // given
-        Map<Long, CrawlingBook> bestSellers = createSampleBestSellers();
-        when(crawler.crawlBestSellerBook()).thenReturn(bestSellers);
+        Map<Long, CrawledBook> crawledBookMap = createCrawledBookMap();
+        when(crawler.crawlBestSellerBook()).thenReturn(crawledBookMap);
 
         // when
         bestSellerService.updateBestSellers();
@@ -131,11 +125,11 @@ public class BestSellerServiceTest extends RedisTestContainer {
         verify(eventEventListener).handleBestSellerUpdatedEvent(any(BestSellerUpdatedEvent.class));
     }
 
-    private static Map<Long, CrawlingBook> createSampleBestSellers() {
+    private static Map<Long, CrawledBook> createCrawledBookMap() {
         return IntStream.rangeClosed(1, 6)
                 .boxed()
                 .collect(Collectors.toMap(Long::valueOf,
-                        i -> CrawlingBook.of("title" + i, "content" + i, "isbn" + i,
+                        i -> CrawledBook.of("title" + i, "content" + i, "isbn" + i,
                                 "publisher" + i, "imageUrl" + i, "thumbnail" + i, "author" + i,
                                 LocalDateTime.of(2024, 1, 1, 0, 0))));
     }
