@@ -2,18 +2,16 @@ package com.jisungin.api.book;
 
 import com.jisungin.api.ApiResponse;
 import com.jisungin.api.book.request.BookCreateRequest;
-import com.jisungin.api.book.request.BookPageRequest;
 import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.book.BestSellerService;
 import com.jisungin.application.book.BookService;
-import com.jisungin.application.book.response.BestSellerResponse;
-import com.jisungin.application.book.response.BookResponse;
 import com.jisungin.application.book.response.BookFindAllResponse;
+import com.jisungin.application.book.response.BookResponse;
+import com.jisungin.application.book.response.BookWithRankingResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,8 +42,11 @@ public class BookController {
     }
 
     @GetMapping("/books/best-seller")
-    public ApiResponse<PageResponse<BestSellerResponse>> getBestSellers(@ModelAttribute BookPageRequest page) {
-        return ApiResponse.ok(bestSellerService.getBestSellers(page.toService()));
+    public ApiResponse<PageResponse<BookWithRankingResponse>> getBestSellers(
+            @RequestParam(required = false, defaultValue = "1") Integer page,
+            @RequestParam(required = false, defaultValue = "5") Integer size
+    ) {
+        return ApiResponse.ok(bestSellerService.getBestSellers(OffsetLimit.ofRange(page, size)));
     }
 
     @PostMapping("/books")

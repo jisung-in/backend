@@ -1,7 +1,6 @@
 package com.jisungin.application.book.request;
 
 import com.jisungin.domain.book.Book;
-import com.jisungin.infra.crawler.CrawlingBook;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;

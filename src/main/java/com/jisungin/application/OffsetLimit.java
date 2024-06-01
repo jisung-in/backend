@@ -35,6 +35,13 @@ public class OffsetLimit {
                 .build();
     }
 
+    public static OffsetLimit ofRange(Integer page, Integer size) {
+        return OffsetLimit.builder()
+                .offset(calculateOffset(page, size))
+                .limit(page * size - 1)
+                .build();
+    }
+
     private static Integer calculateOffset(Integer page, Integer size) {
         return (max(1, page) - 1) * min(size, MAX_SIZE);
     }

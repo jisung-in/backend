@@ -1,18 +1,18 @@
 package com.jisungin.domain.book.repository;
 
-import com.jisungin.application.PageResponse;
-import com.jisungin.application.book.request.BookServicePageRequest;
-import com.jisungin.application.book.response.BestSellerResponse;
-import com.jisungin.infra.crawler.CrawlingBook;
+import com.jisungin.application.book.response.BookWithRankingResponse;
+import com.jisungin.infra.crawler.CrawledBook;
 import java.util.List;
 import java.util.Map;
 
 public interface BestSellerRepository {
 
-    List<BestSellerResponse> findAll();
+    Long count();
 
-    PageResponse<BestSellerResponse> findBestSellerByPage(BookServicePageRequest request);
+    List<BookWithRankingResponse> findAll();
 
-    void updateAll(Map<Long, CrawlingBook> bestSellers);
+    List<BookWithRankingResponse> findBooksWithRank(Integer offset, Integer limit);
+
+    void updateAll(Map<Long, CrawledBook> crawledBookMap);
 
 }

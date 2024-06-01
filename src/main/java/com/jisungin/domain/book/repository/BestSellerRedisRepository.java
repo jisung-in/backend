@@ -1,17 +1,13 @@
 package com.jisungin.domain.book.repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jisungin.application.PageResponse;
-import com.jisungin.application.book.request.BookServicePageRequest;
-import com.jisungin.application.book.response.BestSellerResponse;
-import com.jisungin.exception.BusinessException;
-import com.jisungin.exception.ErrorCode;
-import com.jisungin.infra.crawler.CrawlingBook;
-import java.util.Comparator;
+import com.jisungin.application.book.response.BookWithRankingResponse;
+import com.jisungin.infra.JsonConverter;
+import com.jisungin.infra.crawler.CrawledBook;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
+import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -21,65 +17,49 @@ import org.springframework.stereotype.Component;
 public class BestSellerRedisRepository implements BestSellerRepository {
 
     private static final String BEST_SELLER_REDIS_KEY = "BEST_SELLER";
-    private final ObjectMapper om;
+
+    private final JsonConverter converter;
     private final RedisTemplate<String, String> redisTemplate;
 
     @Override
-    public PageResponse<BestSellerResponse> findBestSellerByPage(BookServicePageRequest request) {
-        List<BestSellerResponse> queryResponse = redisTemplate.opsForHash()
-                .multiGet(BEST_SELLER_REDIS_KEY, createHashKeys(request.extractStartIndex(), request.extractEndIndex()))
-                .stream()
-                .map(this::parseToBestSellerResponse)
-                .sorted(Comparator.comparing(BestSellerResponse::getRanking))
-                .toList();
-
-        return PageResponse.<BestSellerResponse>builder()
-                .size(request.getSize())
-                .totalCount(redisTemplate.opsForHash().size(BEST_SELLER_REDIS_KEY))
-                .queryResponse(queryResponse)
-                .build();
+    public Long count() {
+        return redisTemplate.opsForZSet().zCard(BEST_SELLER_REDIS_KEY);
     }
 
     @Override
-    public List<BestSellerResponse> findAll() {
-        Map<Object, Object> bestSellers = redisTemplate.opsForHash().entries(BEST_SELLER_REDIS_KEY);
+    public List<BookWithRankingResponse> findBooksWithRank(Integer offset, Integer limit) {
+        Set<String> bookJsonSet = Optional.ofNullable(
+                        redisTemplate.opsForZSet().range(BEST_SELLER_REDIS_KEY, offset, limit))
+                .orElse(Collections.emptySet());
 
-        return bestSellers.values().stream()
-                .map(this::parseToBestSellerResponse)
-                .sorted(Comparator.comparing(BestSellerResponse::getRanking))
+        return bookJsonSet.stream()
+                .map(json -> {
+                    Long rank = redisTemplate.opsForZSet().rank(BEST_SELLER_REDIS_KEY, json);
+                    return BookWithRankingResponse.ofRankIncrement(rank, converter.fromJson(json, CrawledBook.class));
+                })
                 .toList();
     }
 
     @Override
-    public void updateAll(Map<Long, CrawlingBook> bestSellers) {
-        bestSellers.forEach((key, value) -> redisTemplate.opsForHash()
-                .put(BEST_SELLER_REDIS_KEY, String.valueOf(key), parseToBestSellerResponseJson(key, value)));
-    }
+    public List<BookWithRankingResponse> findAll() {
+        Set<String> bookJsonSet = Optional.ofNullable(
+                        redisTemplate.opsForZSet().range(BEST_SELLER_REDIS_KEY, 0, -1))
+                .orElse(Collections.emptySet());
 
-    private BestSellerResponse parseToBestSellerResponse(Object value) {
-        try {
-            return om.readValue((String) value, BestSellerResponse.class);
-        } catch (JsonProcessingException e) {
-            throw new BusinessException(ErrorCode.BOOK_INVALID_INFO);
-        }
-    }
-
-    private String parseToBestSellerResponseJson(Long key, CrawlingBook book) {
-        try {
-            return om.writeValueAsString(
-                    BestSellerResponse.of(key, book.getIsbn(), book.getTitle(), book.getPublisher(),
-                            book.getThumbnail(), book.getAuthors(), book.getDateTime()));
-        } catch (JsonProcessingException e) {
-            throw new BusinessException(ErrorCode.BOOK_INVALID_INFO);
-        }
-    }
-
-    private List<Object> createHashKeys(Integer startIndex, Integer endIndex) {
-        return IntStream.rangeClosed(startIndex, endIndex)
-                .boxed()
-                .map(Object::toString)
-                .map(obj -> (Object) obj)
+        return bookJsonSet.stream()
+                .map(json -> {
+                    Long rank = redisTemplate.opsForZSet().rank(BEST_SELLER_REDIS_KEY, json);
+                    return BookWithRankingResponse.ofRankIncrement(rank, converter.fromJson(json, CrawledBook.class));
+                })
                 .toList();
+    }
+
+    @Override
+    public void updateAll(Map<Long, CrawledBook> crawledBookMap) {
+        redisTemplate.delete(BEST_SELLER_REDIS_KEY);
+
+        crawledBookMap.forEach((key, value) -> redisTemplate.opsForZSet()
+                .add(BEST_SELLER_REDIS_KEY, converter.toJson(value), key));
     }
 
 }
