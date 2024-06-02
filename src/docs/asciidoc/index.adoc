@@ -43,9 +43,9 @@ include::api/book/book.adoc[]
 == User API
 include::api/user/user.adoc[]
 
-[[UserLibrary-API]]
-== UserLibrary API
-include::api/userlibrary/userlibrary.adoc[]
+[[Library-API]]
+== Library API
+include::api/library/library.adoc[]
 
 [[Rating-API]]
 == Rating API
