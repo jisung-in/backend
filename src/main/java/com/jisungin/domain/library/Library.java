@@ -1,4 +1,4 @@
-package com.jisungin.domain.userlibrary;
+package com.jisungin.domain.library;
 
 import com.jisungin.domain.BaseEntity;
 import com.jisungin.domain.ReadingStatus;
@@ -10,11 +10,11 @@ import lombok.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class UserLibrary extends BaseEntity {
+public class Library extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_library_id")
+    @Column(name = "library_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -26,17 +26,17 @@ public class UserLibrary extends BaseEntity {
     private Book book;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "user_library_reading_status")
+    @Column(name = "library_reading_status")
     private ReadingStatus status;
 
     @Builder
-    private UserLibrary(User user, Book book, ReadingStatus status) {
+    private Library(User user, Book book, ReadingStatus status) {
         this.user = user;
         this.book = book;
         this.status = status;
     }
 
-    public boolean isUserLibraryOwner(Long userId) {
+    public boolean isLibraryOwner(Long userId) {
         return user.isMe(userId);
     }
 

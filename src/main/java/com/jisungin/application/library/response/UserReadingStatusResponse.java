@@ -1,4 +1,4 @@
-package com.jisungin.application.userlibrary.response;
+package com.jisungin.application.library.response;
 
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;

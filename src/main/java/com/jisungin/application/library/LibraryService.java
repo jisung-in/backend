@@ -1,18 +1,18 @@
-package com.jisungin.application.userlibrary;
+package com.jisungin.application.library;
 
-import com.jisungin.application.userlibrary.request.UserLibraryCreateServiceRequest;
-import com.jisungin.application.userlibrary.request.UserLibraryEditServiceRequest;
-import com.jisungin.application.userlibrary.response.UserLibraryResponse;
+import com.jisungin.application.library.request.LibraryCreateServiceRequest;
+import com.jisungin.application.library.request.LibraryEditServiceRequest;
+import com.jisungin.application.library.response.LibraryResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
-import com.jisungin.domain.userlibrary.UserLibrary;
+import com.jisungin.domain.library.Library;
+import com.jisungin.domain.library.repository.LibraryRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
-import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
-import java.util.Optional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,68 +22,71 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class UserLibraryService {
+public class LibraryService {
 
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
-    private final UserLibraryRepository userLibraryRepository;
+    private final LibraryRepository libraryRepository;
 
-    public UserLibraryResponse getUserLibrary(Long userId, String isbn) {
-        return userLibraryRepository.findByUserIdAndBookId(userId, isbn)
-                .map(UserLibraryResponse::of)
-                .orElseGet(UserLibraryResponse::empty);
+    public List<LibraryResponse> findLibraries(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        return LibraryResponse.fromList(libraryRepository.findAllByUserId(user.getId()));
     }
 
     @Transactional
-    public UserLibraryResponse createUserLibrary(UserLibraryCreateServiceRequest request, Long userId) {
+    public LibraryResponse createLibrary(LibraryCreateServiceRequest request, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Book book = bookRepository.findById(request.getIsbn())
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
-        if (userLibraryRepository.existsByUserIdAndBookId(user.getId(), book.getIsbn())) {
+        if (libraryRepository.existsByUserIdAndBookId(user.getId(), book.getIsbn())) {
             throw new BusinessException(ErrorCode.USER_LIBRARY_ALREADY_EXIST);
         }
 
-        return UserLibraryResponse.of(userLibraryRepository.save(request.toEntity(user, book)));
+        Library savedLibrary = libraryRepository.save(request.toEntity(user, book));
+
+        return LibraryResponse.of(savedLibrary.getId(), book.getIsbn(), savedLibrary.getStatus().getText());
     }
 
     @Transactional
-    public void editUserLibrary(Long userLibraryId, Long userId, UserLibraryEditServiceRequest request) {
+    public void editLibrary(Long userLibraryId, Long userId, LibraryEditServiceRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Book book = bookRepository.findById(request.getIsbn())
                 .orElseThrow(() -> new BusinessException(ErrorCode.BOOK_NOT_FOUND));
 
-        UserLibrary userLibrary = userLibraryRepository.findByIdWithBookAndUser(userLibraryId)
+        Library library = libraryRepository.findByIdWithBookAndUser(userLibraryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_LIBRARY_NOT_FOUND));
 
-        if (!userLibrary.isUserLibraryOwner(user.getId())) {
+        if (!library.isLibraryOwner(user.getId())) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
         }
 
-        if (!userLibrary.isSameBook(book.getIsbn())) {
+        if (!library.isSameBook(book.getIsbn())) {
             throw new BusinessException(ErrorCode.BOOK_INVALID_INFO);
         }
 
-        userLibrary.editReadingStatus(ReadingStatus.createReadingStatus(request.getReadingStatus()));
+        library.editReadingStatus(ReadingStatus.createReadingStatus(request.getReadingStatus()));
     }
 
     @Transactional
-    public void deleteUserLibrary(Long userLibraryId, Long userId) {
+    public void deleteLibrary(Long userLibraryId, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        UserLibrary userLibrary = userLibraryRepository.findByIdWithBookAndUser(userLibraryId)
+        Library library = libraryRepository.findByIdWithBookAndUser(userLibraryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_LIBRARY_NOT_FOUND));
 
-        if (!userLibrary.isUserLibraryOwner(user.getId())) {
+        if (!library.isLibraryOwner(user.getId())) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_REQUEST);
         }
 
-        userLibraryRepository.deleteById(userLibrary.getId());
+        libraryRepository.deleteById(library.getId());
     }
 
 }

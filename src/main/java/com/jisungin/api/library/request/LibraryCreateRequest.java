@@ -1,6 +1,6 @@
-package com.jisungin.api.userlibrary.request;
+package com.jisungin.api.library.request;
 
-import com.jisungin.application.userlibrary.request.UserLibraryCreateServiceRequest;
+import com.jisungin.application.library.request.LibraryCreateServiceRequest;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class UserLibraryCreateRequest {
+public class LibraryCreateRequest {
 
     @NotBlank(message = "책 isbn 입력은 필수 입니다.")
     private String isbn;
@@ -17,13 +17,13 @@ public class UserLibraryCreateRequest {
     private String readingStatus;
 
     @Builder
-    private UserLibraryCreateRequest(String isbn, String readingStatus) {
+    private LibraryCreateRequest(String isbn, String readingStatus) {
         this.isbn = isbn;
         this.readingStatus = readingStatus;
     }
 
-    public UserLibraryCreateServiceRequest toServiceRequest() {
-        return UserLibraryCreateServiceRequest.builder()
+    public LibraryCreateServiceRequest toServiceRequest() {
+        return LibraryCreateServiceRequest.builder()
                 .isbn(isbn)
                 .readingStatus(readingStatus)
                 .build();
