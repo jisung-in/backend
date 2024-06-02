@@ -1,4 +1,4 @@
-package com.jisungin.api.userlibrary;
+package com.jisungin.api.library;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -10,22 +10,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jisungin.ControllerTestSupport;
-import com.jisungin.api.userlibrary.request.UserLibraryCreateRequest;
-import com.jisungin.api.userlibrary.request.UserLibraryEditRequest;
+import com.jisungin.api.library.request.LibraryCreateRequest;
+import com.jisungin.api.library.request.LibraryEditRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-public class UserLibraryControllerTest extends ControllerTestSupport {
+public class LibraryControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("서재 정보를 조회한다.")
-    public void getUserLibrary() throws Exception {
-        // given
-        String isbn = "00001";
-
+    public void findLibraries() throws Exception {
         // when // then
-        mockMvc.perform(get("/v1/user-libraries")
-                        .param("isbn", isbn)
+        mockMvc.perform(get("/v1/libraries")
                         .accept(APPLICATION_JSON)
                         .session(mockHttpSession))
                 .andExpect(status().isOk())
@@ -36,28 +32,17 @@ public class UserLibraryControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("서재 정보 조회 시 책 isbn 입력은 필수이다.")
-    public void getUserLibraryWithoutIsbn() throws Exception {
-        // when // then
-        mockMvc.perform(get("/v1/user-libraries")
-                        .accept(APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("400"))
-                .andExpect(jsonPath("$.message").value("유효하지 않은 파라미터 입니다."))
-                .andDo(print());
-    }
-
-    @Test
     @DisplayName("서재 정보를 생성한다.")
-    public void createUseLibrary() throws Exception {
+    public void createLibrary() throws Exception {
         // given
-        UserLibraryCreateRequest request = UserLibraryCreateRequest.builder()
+        LibraryCreateRequest request = LibraryCreateRequest.builder()
                 .isbn("00001")
                 .readingStatus("want")
                 .build();
 
         // when // then
-        mockMvc.perform(post("/v1/user-libraries")
+        mockMvc.perform(post("/v1/libraries")
+                        .accept(APPLICATION_JSON)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .session(mockHttpSession))
@@ -70,14 +55,14 @@ public class UserLibraryControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("서재 정보 등록 시 isbn 입력은 필수이다.")
-    public void createUserLibraryWithoutIsbn() throws Exception {
+    public void createLibraryWithoutIsbn() throws Exception {
         // given
-        UserLibraryCreateRequest request = UserLibraryCreateRequest.builder()
+        LibraryCreateRequest request = LibraryCreateRequest.builder()
                 .readingStatus("want")
                 .build();
 
         // when // then
-        mockMvc.perform(post("/v1/user-libraries")
+        mockMvc.perform(post("/v1/libraries")
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .session(mockHttpSession))
@@ -89,14 +74,14 @@ public class UserLibraryControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("사재 정보 등록 시 독서 상태 입력은 필수이다.")
-    public void createUserLibraryWithoutReadingStatus() throws Exception {
+    public void createLibraryWithoutReadingStatus() throws Exception {
         // given
-        UserLibraryCreateRequest request = UserLibraryCreateRequest.builder()
+        LibraryCreateRequest request = LibraryCreateRequest.builder()
                 .isbn("00001")
                 .build();
 
         // when // then
-        mockMvc.perform(post("/v1/user-libraries")
+        mockMvc.perform(post("/v1/libraries")
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .session(mockHttpSession))
@@ -108,17 +93,17 @@ public class UserLibraryControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("서재 정보를 수정한다.")
-    public void editUserLibrary() throws Exception {
+    public void editLibrary() throws Exception {
         // given
-        Long userLibraryId = 1L;
+        Long libraryId = 1L;
 
-        UserLibraryEditRequest request = UserLibraryEditRequest.builder()
+        LibraryEditRequest request = LibraryEditRequest.builder()
                 .isbn("00001")
                 .readingStatus("want")
                 .build();
 
         // when // then
-        mockMvc.perform(patch("/v1/user-libraries/{userLibraryId}", userLibraryId)
+        mockMvc.perform(patch("/v1/libraries/{libraryId}", libraryId)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .session(mockHttpSession))
@@ -131,16 +116,16 @@ public class UserLibraryControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("서재 정보를 수정시 isbn 입력은 필수이다.")
-    public void editUserLibraryWithoutIsbn() throws Exception {
+    public void editLibraryWithoutIsbn() throws Exception {
         // given
-        Long userLibraryId = 1L;
+        Long libraryId = 1L;
 
-        UserLibraryEditRequest request = UserLibraryEditRequest.builder()
+        LibraryEditRequest request = LibraryEditRequest.builder()
                 .readingStatus("want")
                 .build();
 
         // when // then
-        mockMvc.perform(patch("/v1/user-libraries/{userLibraryId}", userLibraryId)
+        mockMvc.perform(patch("/v1/libraries/{libraryId}", libraryId)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .session(mockHttpSession))
@@ -152,16 +137,16 @@ public class UserLibraryControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("서재 정보를 수정시 독서 상태 정보 입력은 필수이다.")
-    public void editUserLibraryWithoutReadingStatus() throws Exception {
+    public void editLibraryWithoutReadingStatus() throws Exception {
         // given
-        Long userLibraryId = 1L;
+        Long libraryId = 1L;
 
-        UserLibraryEditRequest request = UserLibraryEditRequest.builder()
+        LibraryEditRequest request = LibraryEditRequest.builder()
                 .isbn("00001")
                 .build();
 
         // when // then
-        mockMvc.perform(patch("/v1/user-libraries/{userLibraryId}", userLibraryId)
+        mockMvc.perform(patch("/v1/libraries/{libraryId}", libraryId)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .session(mockHttpSession))
@@ -173,12 +158,12 @@ public class UserLibraryControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("서재 정보를 삭제한다.")
-    public void deleteUserLibrary() throws Exception {
+    public void deleteLibrary() throws Exception {
         // given
-        Long userLibraryId = 1L;
+        Long libraryId = 1L;
 
         // when // then
-        mockMvc.perform(delete("/v1/user-libraries/{userLibraryId}", userLibraryId)
+        mockMvc.perform(delete("/v1/libraries/{libraryId}", libraryId)
                         .session(mockHttpSession))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))

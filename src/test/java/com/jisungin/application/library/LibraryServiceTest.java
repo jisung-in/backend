@@ -1,31 +1,32 @@
-package com.jisungin.application.userlibrary;
+package com.jisungin.application.library;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jisungin.ServiceTestSupport;
-import com.jisungin.application.userlibrary.request.UserLibraryCreateServiceRequest;
-import com.jisungin.application.userlibrary.request.UserLibraryEditServiceRequest;
-import com.jisungin.application.userlibrary.response.UserLibraryResponse;
+import com.jisungin.application.library.request.LibraryCreateServiceRequest;
+import com.jisungin.application.library.request.LibraryEditServiceRequest;
+import com.jisungin.application.library.response.LibraryResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
-import com.jisungin.domain.userlibrary.UserLibrary;
+import com.jisungin.domain.library.Library;
+import com.jisungin.domain.library.repository.LibraryRepository;
 import com.jisungin.domain.user.OauthId;
 import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
-import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
 import com.jisungin.exception.BusinessException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.stream.IntStream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class UserLibraryServiceTest extends ServiceTestSupport {
+public class LibraryServiceTest extends ServiceTestSupport {
 
     @Autowired
     private UserRepository userRepository;
@@ -34,180 +35,156 @@ public class UserLibraryServiceTest extends ServiceTestSupport {
     private BookRepository bookRepository;
 
     @Autowired
-    private UserLibraryRepository userLibraryRepository;
+    private LibraryRepository libraryRepository;
 
     @Autowired
-    private UserLibraryService userLibraryService;
+    private LibraryService libraryService;
 
-    @BeforeEach
+    @AfterEach
     public void tearDown() {
-        userLibraryRepository.deleteAllInBatch();
+        libraryRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
     }
 
     @Test
     @DisplayName("사용자가 서재 정보를 조회한다.")
-    public void getUserLibrary() {
+    public void findLibraries() {
         // given
         User user = userRepository.save(createUser());
-        Book book = bookRepository.save(createBook());
-        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
+        List<Book> books = bookRepository.saveAll(createBooks());
+        List<Library> libraries = libraryRepository.saveAll(createLibraries(user, books));
 
         // when
-        UserLibraryResponse response = userLibraryService.getUserLibrary(user.getId(), book.getIsbn());
+        List<LibraryResponse> result = libraryService.findLibraries(user.getId());
 
         // then
-        assertThat(response.getId()).isEqualTo(userLibrary.getId());
-        assertThat(response.getStatus()).isEqualTo(userLibrary.getStatus().getText());
-        assertThat(response.getHasReadingStatus()).isTrue();
+        assertThat(result).hasSize(5)
+                .extracting("bookIsbn")
+                .containsExactly("1", "2", "3", "4", "5");
     }
 
     @Test
-    @DisplayName("비로그인으로 서재 정보 조회시 빈 응답을 받는다.")
-    public void getUserLibraryForUnAuthenticatedUser() {
+    @DisplayName("서재 정보 조회할 때 서재 정보가 없으면 빈 리스트를 반환한다.")
+    public void findLibrariesWithoutLibraries() {
         // given
-        String bookIsbn = "0000X";
+        User user = userRepository.save(createUser());
 
         // when
-        UserLibraryResponse response = userLibraryService.getUserLibrary(null, bookIsbn);
+        List<LibraryResponse> result = libraryService.findLibraries(user.getId());
 
         // then
-        assertThat(response).isNotNull();
-        assertThat(response.getId()).isNull();
-        assertThat(response.getStatus()).isNull();
-        assertThat(response.getHasReadingStatus()).isFalse();
+        assertThat(result).isEmpty();
     }
 
     @Test
-    @DisplayName("서재 정보 조회 시 isbn이 없는 경우 빈 응답을 받는다.")
-    public void getUserLibraryWithNonIsbn() {
+    @DisplayName("서재 정보 조회 시 사용자 정보가 존재해야 한다.")
+    public void findLibrariesWithoutUser() {
         // given
-        String invalidIsbn = "0000X";
-        User user = userRepository.save(createUser());
+        Long invalidUserId = 1L;
 
-        // when
-        UserLibraryResponse response = userLibraryService.getUserLibrary(user.getId(), invalidIsbn);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.getId()).isNull();
-        assertThat(response.getStatus()).isNull();
-        assertThat(response.getHasReadingStatus()).isFalse();
-    }
-
-    @Test
-    @DisplayName("서재 정보 조회 시 서재 정보가 없을 시 빈 응답을 받는다.")
-    public void getUserLibraryWhenLibraryEmpty() {
-        // given
-        User user = userRepository.save(createUser());
-        Book book = bookRepository.save(createBook());
-
-        // when
-        UserLibraryResponse response = userLibraryService.getUserLibrary(user.getId(), book.getIsbn());
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.getId()).isNull();
-        assertThat(response.getStatus()).isNull();
-        assertThat(response.getHasReadingStatus()).isFalse();
+        // when // then
+        assertThatThrownBy(() -> libraryService.findLibraries(invalidUserId))
+                .hasMessage("사용자를 찾을 수 없습니다.")
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     @DisplayName("사용자가 서재 정보를 생성한다.")
-    public void createUserLibrary() {
+    public void createLibrary() {
         // given
         User user = userRepository.save(createUser());
         Book book = bookRepository.save(createBook());
 
-        UserLibraryCreateServiceRequest request = UserLibraryCreateServiceRequest.builder()
+        LibraryCreateServiceRequest request = LibraryCreateServiceRequest.builder()
                 .isbn(book.getIsbn())
                 .readingStatus("want")
                 .build();
 
         // when
-        UserLibraryResponse response = userLibraryService.createUserLibrary(request, user.getId());
+        LibraryResponse result = libraryService.createLibrary(request, user.getId());
 
         // then
-        UserLibrary savedUserLibrary = userLibraryRepository.findAll().get(0);
+        Library savedLibrary = libraryRepository.findAll().get(0);
 
-        assertThat(response.getId()).isEqualTo(savedUserLibrary.getId());
-        assertThat(response.getStatus()).isEqualTo(ReadingStatus.WANT.getText());
+        assertThat(result.getId()).isEqualTo(savedLibrary.getId());
+        assertThat(result.getBookIsbn()).isEqualTo(book.getIsbn());
+        assertThat(result.getStatus()).isEqualTo(ReadingStatus.WANT.getText());
     }
 
     @Test
     @DisplayName("서재 등록시 사용자 정보가 존재해야 한다.")
-    public void createUserLibraryWithoutUser() {
+    public void createLibraryWithoutUser() {
         // given
         Long invalidUserId = -1L;
         Book book = bookRepository.save(createBook());
 
-        UserLibraryCreateServiceRequest request = UserLibraryCreateServiceRequest.builder()
+        LibraryCreateServiceRequest request = LibraryCreateServiceRequest.builder()
                 .isbn(book.getIsbn())
                 .readingStatus("want")
                 .build();
 
         // when // then
-        assertThatThrownBy(() -> userLibraryService.createUserLibrary(request, invalidUserId))
+        assertThatThrownBy(() -> libraryService.createLibrary(request, invalidUserId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
     }
 
     @Test
     @DisplayName("서재 등록 시 책 정보가 존재해야 한다.")
-    public void createUserLibraryWithoutBook() {
+    public void createLibraryWithoutBook() {
         // given
         String invalidIsbn = "XXXXXXXXXXX";
         User user = userRepository.save(createUser());
 
-        UserLibraryCreateServiceRequest request = UserLibraryCreateServiceRequest.builder()
+        LibraryCreateServiceRequest request = LibraryCreateServiceRequest.builder()
                 .isbn(invalidIsbn)
                 .readingStatus("want")
                 .build();
 
         // when // then
-        assertThatThrownBy(() -> userLibraryService.createUserLibrary(request, user.getId()))
+        assertThatThrownBy(() -> libraryService.createLibrary(request, user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("책을 찾을 수 없습니다.");
     }
 
     @Test
     @DisplayName("서재 등록 시 동일한 정보의 서재가 존재하지 않아야 한다.")
-    public void createUserLibraryAlreadyExists() {
+    public void createLibraryAlreadyExists() {
         // given
         User user = userRepository.save(createUser());
         Book book = bookRepository.save(createBook());
-        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
+        Library library = libraryRepository.save(create(user, book));
 
-        UserLibraryCreateServiceRequest request = UserLibraryCreateServiceRequest.builder()
+        LibraryCreateServiceRequest request = LibraryCreateServiceRequest.builder()
                 .isbn(book.getIsbn())
                 .readingStatus("reading")
                 .build();
 
         // when // then
-        assertThatThrownBy(() -> userLibraryService.createUserLibrary(request, user.getId()))
+        assertThatThrownBy(() -> libraryService.createLibrary(request, user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 등록된 서재 정보 입니다.");
     }
 
     @Test
     @DisplayName("서재 정보를 수정한다.")
-    public void editUserLibrary() {
+    public void editLibrary() {
         // given
         User user = userRepository.save(createUser());
         Book book = bookRepository.save(createBook());
-        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
+        Library library = libraryRepository.save(create(user, book));
 
-        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+        LibraryEditServiceRequest request = LibraryEditServiceRequest.builder()
                 .isbn(book.getIsbn())
                 .readingStatus("read")
                 .build();
 
         // when
-        userLibraryService.editUserLibrary(userLibrary.getId(), user.getId(), request);
+        libraryService.editLibrary(library.getId(), user.getId(), request);
 
         // then
-        Optional<UserLibrary> savedLibrary = userLibraryRepository.findById(userLibrary.getId());
+        Optional<Library> savedLibrary = libraryRepository.findById(library.getId());
 
         assertThat(savedLibrary).isNotEmpty();
         assertThat(savedLibrary.get().getStatus()).isEqualTo(ReadingStatus.READ);
@@ -215,163 +192,163 @@ public class UserLibraryServiceTest extends ServiceTestSupport {
 
     @Test
     @DisplayName("서재 정보 수정 시 사용자 정보가 존재해야 한다.")
-    public void editUserLibraryWithoutUser() {
+    public void editLibraryWithoutUser() {
         // given
         Long userLibraryId = 1L;
         Long userId = 1L;
         Book book = bookRepository.save(createBook());
 
-        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+        LibraryEditServiceRequest request = LibraryEditServiceRequest.builder()
                 .isbn(book.getIsbn())
                 .readingStatus("read")
                 .build();
 
         // when // then
-        assertThatThrownBy(() -> userLibraryService.editUserLibrary(userLibraryId, userId, request))
+        assertThatThrownBy(() -> libraryService.editLibrary(userLibraryId, userId, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
     }
 
     @Test
     @DisplayName("서재 정보 수정 시 책 정보가 존재해야 한다.")
-    public void editUserLibraryWithoutBook() {
+    public void editLibraryWithoutBook() {
         // given
         Long userLibraryId = 1L;
         String bookIsbn = "0000X";
         User user = userRepository.save(createUser());
 
-        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+        LibraryEditServiceRequest request = LibraryEditServiceRequest.builder()
                 .isbn(bookIsbn)
                 .readingStatus("read")
                 .build();
 
         // when // then
-        assertThatThrownBy(() -> userLibraryService.editUserLibrary(userLibraryId, user.getId(), request))
+        assertThatThrownBy(() -> libraryService.editLibrary(userLibraryId, user.getId(), request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("책을 찾을 수 없습니다.");
     }
 
     @Test
     @DisplayName("서재 정보 수정 시 서재 정보가 존재해야 한다.")
-    public void editUserLibraryWithoutUserLibrary() {
+    public void editLibraryWithoutLibrary() {
         // given
         Long userLibraryId = 1L;
         User user = userRepository.save(createUser());
         Book book = bookRepository.save(createBook());
 
-        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+        LibraryEditServiceRequest request = LibraryEditServiceRequest.builder()
                 .isbn(book.getIsbn())
                 .readingStatus("read")
                 .build();
 
         // when // then
-        assertThatThrownBy(() -> userLibraryService.editUserLibrary(userLibraryId, user.getId(), request))
+        assertThatThrownBy(() -> libraryService.editLibrary(userLibraryId, user.getId(), request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("서재 정보를 찾을 수 없습니다.");
     }
 
     @Test
     @DisplayName("서재 정보 수정 시 서재 정보와 사용자 정보는 일치해야 한다.")
-    public void editUserLibraryInvalidUser() {
+    public void editLibraryInvalidUser() {
         // given
         User user = userRepository.save(createUser());
         User anotherUser = userRepository.save(createAnotherUser());
 
         Book book = bookRepository.save(createBook());
 
-        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
+        Library library = libraryRepository.save(create(user, book));
 
-        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+        LibraryEditServiceRequest request = LibraryEditServiceRequest.builder()
                 .isbn(book.getIsbn())
                 .readingStatus("read")
                 .build();
 
         // when // then
-        assertThatThrownBy(() -> userLibraryService.editUserLibrary(userLibrary.getId(), anotherUser.getId(), request))
+        assertThatThrownBy(() -> libraryService.editLibrary(library.getId(), anotherUser.getId(), request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
 
     @Test
     @DisplayName("서재 정보 수정 시 서재 정보와 도서 정보는 일치해야 한다.")
-    public void editUserLibraryInvalidBook() {
+    public void editLibraryInvalidBook() {
         // given
         User user = userRepository.save(createUser());
 
         Book book = bookRepository.save(createBookWithIsbn("00001"));
         Book anotherBook = bookRepository.save(createBookWithIsbn("00002"));
 
-        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
+        Library library = libraryRepository.save(create(user, book));
 
-        UserLibraryEditServiceRequest request = UserLibraryEditServiceRequest.builder()
+        LibraryEditServiceRequest request = LibraryEditServiceRequest.builder()
                 .isbn(anotherBook.getIsbn())
                 .readingStatus("read")
                 .build();
 
         // when // then
-        assertThatThrownBy(() -> userLibraryService.editUserLibrary(userLibrary.getId(), user.getId(), request))
+        assertThatThrownBy(() -> libraryService.editLibrary(library.getId(), user.getId(), request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("올바르지 않은 책 정보 입니다.");
     }
 
     @Test
     @DisplayName("서재 정보를 삭제한다.")
-    public void deleteUserLibrary() {
+    public void deleteLibrary() {
         // given
         User user = userRepository.save(createUser());
         Book book = bookRepository.save(createBook());
-        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
+        Library library = libraryRepository.save(create(user, book));
 
         // when
-        userLibraryService.deleteUserLibrary(userLibrary.getId(), user.getId());
+        libraryService.deleteLibrary(library.getId(), user.getId());
 
         // then
-        List<UserLibrary> response = userLibraryRepository.findAll();
+        List<Library> response = libraryRepository.findAll();
 
         assertThat(response).isEmpty();
     }
 
     @Test
     @DisplayName("서재 정보 삭제 시 사용자 정보가 존재해야 한다.")
-    public void deleteUserLibraryWithoutUser() {
+    public void deleteLibraryWithoutUser() {
         // given
         Long userLibraryId = 1L;
         Long userId = 1L;
         Book book = bookRepository.save(createBook());
 
         // when // then
-        assertThatThrownBy(() -> userLibraryService.deleteUserLibrary(userLibraryId, userId))
+        assertThatThrownBy(() -> libraryService.deleteLibrary(userLibraryId, userId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
     }
 
     @Test
     @DisplayName("서재 정보 삭제 시 서재 정보가 존재해야 한다.")
-    public void deleteUserLibraryWithoutUserLibrary() {
+    public void deleteLibraryWithoutLibrary() {
         // given
         Long userLibraryId = 1L;
         User user = userRepository.save(createUser());
 
         // when // then
-        assertThatThrownBy(() -> userLibraryService.deleteUserLibrary(userLibraryId, user.getId()))
+        assertThatThrownBy(() -> libraryService.deleteLibrary(userLibraryId, user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("서재 정보를 찾을 수 없습니다.");
     }
 
     @Test
     @DisplayName("서재 정보 삭제 시 서재 정보와 사용자 정보는 일치해야 한다.")
-    public void deleteUserLibraryInvalidUser() {
+    public void deleteLibraryInvalidUser() {
         // given
         User user = userRepository.save(createUser());
         User anotherUser = userRepository.save(createAnotherUser());
 
         Book book = bookRepository.save(createBook());
 
-        UserLibrary userLibrary = userLibraryRepository.save(create(user, book));
+        Library library = libraryRepository.save(create(user, book));
 
         // when // then
         assertThatThrownBy(
-                () -> userLibraryService.deleteUserLibrary(userLibrary.getId(), anotherUser.getId()))
+                () -> libraryService.deleteLibrary(library.getId(), anotherUser.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("권한이 없는 사용자입니다.");
     }
@@ -428,12 +405,24 @@ public class UserLibraryServiceTest extends ServiceTestSupport {
                 .build();
     }
 
-    public static UserLibrary create(User user, Book book) {
-        return UserLibrary.builder()
+    private static List<Book> createBooks() {
+        return IntStream.rangeClosed(1, 5)
+                .mapToObj(i -> createBookWithIsbn(String.valueOf(i)))
+                .toList();
+    }
+
+    public static Library create(User user, Book book) {
+        return Library.builder()
                 .user(user)
                 .book(book)
                 .status(ReadingStatus.WANT)
                 .build();
+    }
+
+    public static List<Library> createLibraries(User user, List<Book> books) {
+        return IntStream.range(0, 5)
+                .mapToObj(i -> create(user, books.get(i)))
+                .toList();
     }
 
 }

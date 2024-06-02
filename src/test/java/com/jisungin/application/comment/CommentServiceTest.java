@@ -26,8 +26,8 @@ import com.jisungin.domain.user.OauthId;
 import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
-import com.jisungin.domain.userlibrary.UserLibrary;
-import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
+import com.jisungin.domain.library.Library;
+import com.jisungin.domain.library.repository.LibraryRepository;
 import com.jisungin.exception.BusinessException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -65,7 +65,7 @@ class CommentServiceTest extends ServiceTestSupport {
     UserRepository userRepository;
 
     @Autowired
-    UserLibraryRepository userLibraryRepository;
+    LibraryRepository libraryRepository;
 
     @Autowired
     CommentService commentService;
@@ -78,7 +78,7 @@ class CommentServiceTest extends ServiceTestSupport {
         talkRoomImageRepository.deleteAllInBatch();
         talkRoomRoleRepository.deleteAllInBatch();
         talkRoomRepository.deleteAllInBatch();
-        userLibraryRepository.deleteAllInBatch();
+        libraryRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
     }
@@ -96,13 +96,13 @@ class CommentServiceTest extends ServiceTestSupport {
         TalkRoom talkRoom = createTalkRoom(book, user);
         talkRoomRepository.save(talkRoom);
 
-        UserLibrary userLibrary = UserLibrary.builder()
+        Library library = Library.builder()
                 .user(user)
                 .book(book)
                 .status(ReadingStatus.READING)
                 .build();
 
-        userLibraryRepository.save(userLibrary);
+        libraryRepository.save(library);
 
         createTalkRoomRole(talkRoom);
 
@@ -133,13 +133,13 @@ class CommentServiceTest extends ServiceTestSupport {
         TalkRoom talkRoom = createTalkRoom(book, user);
         talkRoomRepository.save(talkRoom);
 
-        UserLibrary userLibrary = UserLibrary.builder()
+        Library library = Library.builder()
                 .user(user)
                 .book(book)
                 .status(ReadingStatus.PAUSE)
                 .build();
 
-        userLibraryRepository.save(userLibrary);
+        libraryRepository.save(library);
 
         createTalkRoomRole(talkRoom);
 
@@ -167,12 +167,12 @@ class CommentServiceTest extends ServiceTestSupport {
         TalkRoom talkRoom = createTalkRoom(book, user);
         talkRoomRepository.save(talkRoom);
 
-        UserLibrary userLibrary = UserLibrary.builder()
+        Library library = Library.builder()
                 .user(user)
                 .book(book)
                 .build();
 
-        userLibraryRepository.save(userLibrary);
+        libraryRepository.save(library);
 
         createTalkRoomRole(talkRoom);
 
@@ -232,13 +232,13 @@ class CommentServiceTest extends ServiceTestSupport {
         TalkRoom talkRoom = createTalkRoom(book, user);
         talkRoomRepository.save(talkRoom);
 
-        UserLibrary userLibrary = UserLibrary.builder()
+        Library library = Library.builder()
                 .user(user)
                 .book(book)
                 .status(ReadingStatus.READING)
                 .build();
 
-        userLibraryRepository.save(userLibrary);
+        libraryRepository.save(library);
 
         createTalkRoomRole(talkRoom);
 

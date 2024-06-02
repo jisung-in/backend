@@ -12,7 +12,7 @@ import com.jisungin.api.support.SessionUser;
 import com.jisungin.api.talkroom.TalkRoomController;
 import com.jisungin.api.talkroomlike.TalkRoomLikeController;
 import com.jisungin.api.user.UserController;
-import com.jisungin.api.userlibrary.UserLibraryController;
+import com.jisungin.api.library.LibraryController;
 import com.jisungin.application.book.BestSellerService;
 import com.jisungin.application.book.BookService;
 import com.jisungin.application.comment.CommentService;
@@ -24,7 +24,7 @@ import com.jisungin.application.search.SearchService;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroomlike.TalkRoomLikeService;
 import com.jisungin.application.user.UserService;
-import com.jisungin.application.userlibrary.UserLibraryService;
+import com.jisungin.application.library.LibraryService;
 import com.jisungin.config.SecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ import org.springframework.test.web.servlet.MockMvc;
         ReviewLikeController.class,
         ImageController.class,
         SearchController.class,
-        UserLibraryController.class
+        LibraryController.class
 },
         excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
@@ -96,7 +96,7 @@ public abstract class ControllerTestSupport {
     protected SearchService searchService;
 
     @MockBean
-    protected UserLibraryService userLibraryService;
+    protected LibraryService libraryService;
 
     protected MockHttpSession mockHttpSession;
 
