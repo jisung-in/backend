@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 class ReviewControllerTest extends ControllerTestSupport {
 
     @DisplayName("도서와 연관된 리뷰를 조회한다.")
+    @Test
     void findBookReviews() throws Exception {
         // given
         String isbn = "000000000000";
@@ -26,8 +27,29 @@ class ReviewControllerTest extends ControllerTestSupport {
                         .param("size", "5")
                         .param("order", "like")
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("code").value("200"))
+                .andExpect(jsonPath("status").value("OK"))
+                .andExpect(jsonPath("message").value("OK"))
+                .andDo(print());
     }
+
+    @DisplayName("도서와 연관된 리뷰의 개수를 조회한다.")
+    @Test
+    void findBookReviewsCount() throws Exception {
+        // given
+        String isbn = "000000000000";
+
+        // when // then
+        mockMvc.perform(get("/v1/books/{isbn}/reviews/count", isbn)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("code").value("200"))
+                .andExpect(jsonPath("status").value("OK"))
+                .andExpect(jsonPath("message").value("OK"))
+                .andDo(print());
+    }
+
 
     @DisplayName("유저가 리뷰를 등록한다.")
     @Test

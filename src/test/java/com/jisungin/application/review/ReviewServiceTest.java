@@ -1,5 +1,8 @@
 package com.jisungin.application.review;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.SliceResponse;
@@ -7,25 +10,22 @@ import com.jisungin.application.review.request.ReviewCreateServiceRequest;
 import com.jisungin.application.review.response.ReviewWithRatingResponse;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
+import com.jisungin.domain.review.Review;
+import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.domain.reviewlike.ReviewLike;
 import com.jisungin.domain.reviewlike.repository.ReviewLikeRepository;
 import com.jisungin.domain.user.OauthId;
 import com.jisungin.domain.user.OauthType;
-import com.jisungin.domain.review.Review;
-import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.*;
 
 class ReviewServiceTest extends ServiceTestSupport {
 
@@ -90,6 +90,34 @@ class ReviewServiceTest extends ServiceTestSupport {
         assertThatThrownBy(() -> reviewService.findBookReviews(invalidBookIsbn, offsetLimit))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("책을 찾을 수 없습니다.");
+    }
+
+    @DisplayName("도서와 연관된 리뷰 개수를 조회한다.")
+    @Test
+    void findBookReviewsCount() {
+        // given
+        Book book = bookRepository.save(createBook());
+
+        List<User> users = userRepository.saveAll(createUsers());
+        List<Review> reviews = reviewRepository.saveAll(createReviews(users, book));
+
+        // when
+        Long result = reviewService.findBookReviewsCount(book.getIsbn());
+
+        // then
+        assertThat(result).isEqualTo(20L);
+    }
+
+    @DisplayName("도서와 연관된 리뷰 개수 조회시 도서가 존재해야 한다.")
+    @Test
+    void findBookReviewsCountWithoutBook() {
+        // given
+        String invalidIsbn = "0000X";
+
+        // when // then
+        assertThatThrownBy(() -> reviewService.findBookReviewsCount(invalidIsbn))
+                .hasMessage("책을 찾을 수 없습니다.")
+                .isInstanceOf(BusinessException.class);
     }
 
     @DisplayName("유저가 리뷰를 등록한다.")

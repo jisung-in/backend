@@ -131,6 +131,39 @@ public class ReviewControllerDocsTest extends RestDocsSupport {
                 );
     }
 
+    @DisplayName("도서와 연관된 리뷰 개수 조회 API")
+    @Test
+    void findBookReviewsCount() throws Exception {
+        // given
+        String isbn = "000000000001";
+
+        given(reviewService.findBookReviewsCount(anyString()))
+                .willReturn(20L);
+
+        // when // then
+        mockMvc.perform(get("/v1/books/{isbn}/reviews/count", isbn)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("review/get-related-book-count",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(
+                                parameterWithName("isbn").description("도서 ISBN")
+                        ),
+                        responseFields(
+                                fieldWithPath("code").type(JsonFieldType.NUMBER)
+                                        .description("코드"),
+                                fieldWithPath("status").type(JsonFieldType.STRING)
+                                        .description("상태"),
+                                fieldWithPath("message").type(JsonFieldType.STRING)
+                                        .description("메세지"),
+                                fieldWithPath("data").type(JsonFieldType.NUMBER)
+                                        .description("도서와 연관된 리뷰 총 개수")
+                        )
+                ));
+    }
+
     @DisplayName("한줄평을 생성하는 API")
     @Test
     void createReview() throws Exception {
