@@ -246,7 +246,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
     @Test
     public void findBookReviewsCount() {
         // given
-        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001", "저자명", "출판사"));
 
         List<User> users = userRepository.saveAll(createUsers());
         List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
@@ -262,7 +262,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
     @Test
     public void findBookReviewsCountWithoutReview() {
         // given
-        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001", "저자명", "출판사"));
 
         // when
         Long result = reviewRepository.countByBookId(book.getIsbn());
