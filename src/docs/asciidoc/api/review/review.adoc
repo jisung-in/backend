@@ -13,6 +13,15 @@ include::{snippets}/review/get-related-book/query-parameters.adoc[]
 include::{snippets}/review/get-related-book/http-response.adoc[]
 include::{snippets}/review/get-related-book/response-fields.adoc[]
 
+=== 도서와 연관된 리뷰 개수 조회
+==== HTTP Request
+include::{snippets}/review/get-related-book-count/http-request.adoc[]
+include::{snippets}/review/get-related-book-count/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/review/get-related-book-count/http-response.adoc[]
+include::{snippets}/review/get-related-book-count/response-fields.adoc[]
+
 === 한줄평 생성
 
 ==== HTTP Request
