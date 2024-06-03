@@ -29,6 +29,11 @@ public class ReviewController {
         return ApiResponse.ok(reviewService.findBookReviews(isbn, OffsetLimit.of(page, size, order)));
     }
 
+    @GetMapping("/books/{isbn}/reviews/count")
+    public ApiResponse<Long> findBookReviewsCount(@PathVariable String isbn) {
+        return ApiResponse.ok(reviewService.findBookReviewsCount(isbn));
+    }
+
     @PostMapping("/reviews")
     public ApiResponse<Void> createReview(@Valid @RequestBody ReviewCreateRequest request,
                                           @Auth Long userId) {

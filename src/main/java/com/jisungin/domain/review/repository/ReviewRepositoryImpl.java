@@ -96,6 +96,14 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .fetch();
     }
 
+    public Long countByBookId(String isbn) {
+        return queryFactory.select(review.count())
+                .from(review)
+                .join(review.book, book)
+                .where(book.isbn.eq(isbn))
+                .fetchOne();
+    }
+
     private long getTotalCount(Long userId, Double rating) {
         return queryFactory
                 .select(review.count())
