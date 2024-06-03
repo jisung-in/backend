@@ -187,6 +187,8 @@ public class UserControllerDocsTest extends RestDocsSupport {
                                         .description("책 저자"),
                                 fieldWithPath("data.reviewContents.queryResponse[].publisher").type(JsonFieldType.STRING)
                                         .description("책 출판사"),
+                                fieldWithPath("data.reviewContents.queryResponse[].likeCount").type(JsonFieldType.NUMBER)
+                                        .description("좋아요 총개수"),
                                 fieldWithPath("data.reviewContents.totalCount").type(JsonFieldType.NUMBER)
                                         .description("총 리뷰 개수"),
                                 fieldWithPath("data.reviewContents.size").type(JsonFieldType.NUMBER)
@@ -328,6 +330,7 @@ public class UserControllerDocsTest extends RestDocsSupport {
                         .bookImage("bookImage" + i)
                         .authors("저자" + i)
                         .publisher("출판사" + i)
+                        .likeCount((long) i)
                         .build())
                 .toList();
     }

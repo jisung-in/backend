@@ -20,10 +20,12 @@ import com.jisungin.domain.user.OauthId;
 import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -74,13 +76,13 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
         //then
         assertThat(result.getTotalCount()).isEqualTo(20);
         assertThat(result.getQueryResponse()).hasSize(4)
-                .extracting(
-                        "userImage", "userName", "rating", "content", "isbn", "title", "bookImage")
+                .extracting("userImage", "userName", "rating", "content", "isbn", "title", "bookImage",
+                        "authors", "publisher", "likeCount")
                 .containsExactly(
-                        tuple("userImage", "김도형", 1.0, "리뷰 내용1", "1", "제목1", "bookImage"),
-                        tuple("userImage", "김도형", 1.0, "리뷰 내용11", "11", "제목11", "bookImage"),
-                        tuple("userImage", "김도형", 1.0, "리뷰 내용16", "16", "제목16", "bookImage"),
-                        tuple("userImage", "김도형", 1.0, "리뷰 내용6", "6", "제목6", "bookImage")
+                        tuple("userImage", "김도형", 1.0, "리뷰 내용1", "1", "제목1", "bookImage", "저자1", "출판사1", 2L),
+                        tuple("userImage", "김도형", 1.0, "리뷰 내용11", "11", "제목11", "bookImage", "저자11", "출판사11", 2L),
+                        tuple("userImage", "김도형", 1.0, "리뷰 내용16", "16", "제목16", "bookImage", "저자16", "출판사16", 2L),
+                        tuple("userImage", "김도형", 1.0, "리뷰 내용6", "6", "제목6", "bookImage", "저자6", "출판사6", 2L)
                 );
     }
 
@@ -88,7 +90,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
     @Test
     void findAllByBookById() {
         // given
-        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001", "저자명", "출판사"));
         List<User> users = userRepository.saveAll(createUsers());
         List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
         List<Rating> ratings = ratingRepository.saveAll(createRatingsForBookWithUsers(users, book));
@@ -114,7 +116,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
     @Test
     void findAllByBookIdOrderByRecent() {
         // given
-        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001", "저자명", "출판사"));
         List<User> users = userRepository.saveAll(createUsers());
         List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
         List<Rating> ratings = ratingRepository.saveAll(createRatingsForBookWithUsers(users, book));
@@ -146,7 +148,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
     @Test
     public void findAllBookIdOrderByRatingDesc() {
         // given
-        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001", "저자명", "출판사"));
         List<User> users = userRepository.saveAll(createUsers());
         List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
         List<Rating> ratings = ratingRepository.saveAll(createRatingsForBookWithUsers(users, book));
@@ -172,7 +174,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
     @Test
     public void findAllBookIdOrderByRatingDescWithoutRating() {
         // given
-        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001", "저자명", "출판사"));
         List<User> users = userRepository.saveAll(createUsers());
         List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
         List<ReviewLike> reviewLikes = reviewLikeRepository.saveAll(
@@ -195,7 +197,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
     @Test
     public void findAllBookIdOrderByRatingAsc() {
         // given
-        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001", "저자명", "출판사"));
         List<User> users = userRepository.saveAll(createUsers());
         List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
         List<Rating> ratings = ratingRepository.saveAll(createRatingsForBookWithUsers(users, book));
@@ -221,7 +223,7 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
     @Test
     public void findAllBookIdOrderByRatingAscWithoutRating() {
         // given
-        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001"));
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001", "저자명", "출판사"));
         List<User> users = userRepository.saveAll(createUsers());
         List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
         List<ReviewLike> reviewLikes = reviewLikeRepository.saveAll(
@@ -243,17 +245,17 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
     private static List<Book> createBooks() {
         return IntStream.rangeClosed(1, 20)
                 .mapToObj(i -> createBook(
-                        "제목" + String.valueOf(i), "내용" + String.valueOf(i), String.valueOf(i)))
+                        "제목" + i, "내용" + i, String.valueOf(i), "저자" + i, "출판사" + i))
                 .collect(Collectors.toList());
     }
 
-    private static Book createBook(String title, String content, String isbn) {
+    private static Book createBook(String title, String content, String isbn, String authors, String publisher) {
         return Book.builder()
                 .title(title)
                 .content(content)
-                .authors("김도형")
+                .authors(authors)
                 .isbn(isbn)
-                .publisher("지성인")
+                .publisher(publisher)
                 .dateTime(LocalDateTime.of(2024, 1, 1, 0, 0))
                 .imageUrl("bookImage")
                 .build();

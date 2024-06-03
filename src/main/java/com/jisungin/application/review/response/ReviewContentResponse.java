@@ -29,10 +29,13 @@ public class ReviewContentResponse {
 
     private String publisher;
 
+    private Long likeCount;
+
     @Builder
     @QueryProjection
     public ReviewContentResponse(Long reviewId, String userImage, String userName, Double rating, String content,
-                                 String isbn, String title, String bookImage, String authors, String publisher) {
+                                 String isbn, String title, String bookImage, String authors, String publisher,
+                                 Long likeCount) {
         this.reviewId = reviewId;
         this.userImage = userImage;
         this.userName = userName;
@@ -43,5 +46,7 @@ public class ReviewContentResponse {
         this.bookImage = bookImage;
         this.authors = authors;
         this.publisher = publisher;
+        this.likeCount = likeCount;
     }
+
 }

@@ -32,7 +32,7 @@ class UserControllerTest extends ControllerTestSupport {
     void getReviewContents() throws Exception {
         //given
         //when //then
-        mockMvc.perform(get("/v1/users/reviews?page=1&size=4&order=rating_asc")
+        mockMvc.perform(get("/v1/users/reviews?page=1&size=4&order=rating_avg_desc")
                         .contentType(APPLICATION_JSON)
                         .session(mockHttpSession)
                 )
