@@ -83,11 +83,13 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .select(new QReviewContentResponse(
                         review.id, review.user.profileImage, review.user.name, rating1.rating, review.content,
                         review.book.isbn, review.book.title, review.book.imageUrl, review.book.authors,
-                        review.book.publisher
+                        review.book.publisher, reviewLike.id.count()
                 ))
                 .from(review)
                 .leftJoin(rating1).on(review.user.eq(rating1.user), review.book.eq(rating1.book))
+                .leftJoin(reviewLike).on(review.eq(reviewLike.review))
                 .where(review.user.id.eq(userId))
+                .groupBy(review.id)
                 .orderBy(createSpecifier(orderType), review.book.title.asc())
                 .offset(offset)
                 .limit(size)

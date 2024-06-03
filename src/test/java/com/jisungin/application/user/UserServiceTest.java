@@ -5,7 +5,7 @@ import static com.jisungin.domain.ReadingStatus.READ;
 import static com.jisungin.domain.ReadingStatus.READING;
 import static com.jisungin.domain.ReadingStatus.STOP;
 import static com.jisungin.domain.ReadingStatus.WANT;
-import static com.jisungin.domain.review.RatingOrderType.RATING_ASC;
+import static com.jisungin.domain.review.RatingOrderType.*;
 import static com.jisungin.domain.userlibrary.ReadingStatusOrderType.DICTIONARY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
@@ -117,7 +117,8 @@ class UserServiceTest extends ServiceTestSupport {
         User user2 = userRepository.save(createUser("2"));
         List<Book> books = bookRepository.saveAll(createBooks());
         List<Review> reviews = reviewRepository.saveAll(createReviews(user1, books));
-        List<Rating> ratings = ratingRepository.saveAll(createRatings(user1, books));
+        List<Rating> ratings1 = ratingRepository.saveAll(createRatings(user1, books));
+        List<Rating> ratings2 = ratingRepository.saveAll(createRatings(user2, books));
         List<ReviewLike> reviewLikesWithUser1 = reviewLikeRepository.saveAll(createReviewLikes(user1, reviews));
         List<ReviewLike> reviewLikesWithUser2 = reviewLikeRepository.saveAll(createReviewLikes(user2, reviews));
 
@@ -125,7 +126,7 @@ class UserServiceTest extends ServiceTestSupport {
         ReviewContentGetAllServiceRequest request = ReviewContentGetAllServiceRequest.builder()
                 .page(1)
                 .size(4)
-                .orderType(RATING_ASC)
+                .orderType(RATING_AVG_ASC)
                 .build();
 
         //when
