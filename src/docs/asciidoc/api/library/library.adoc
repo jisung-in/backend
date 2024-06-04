@@ -35,3 +35,12 @@ include::{snippets}/library/delete/http-request.adoc[]
 ==== HTTP Response
 include::{snippets}/library/delete/http-response.adoc[]
 include::{snippets}/library/delete/response-fields.adoc[]
+
+=== 독서 상태 페이지 조회
+==== HTTP Request
+include::{snippets}/library/get-status/http-request.adoc[]
+include::{snippets}/library/get-status/query-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/library/get-status/http-response.adoc[]
+include::{snippets}/library/get-status/response-fields.adoc[]
