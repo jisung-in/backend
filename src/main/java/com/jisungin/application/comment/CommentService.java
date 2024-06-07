@@ -15,7 +15,7 @@ import com.jisungin.domain.talkroom.repository.TalkRoomRepository;
 import com.jisungin.domain.talkroom.repository.TalkRoomRoleRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
-import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
+import com.jisungin.domain.library.repository.LibraryRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
 import java.time.LocalDateTime;
@@ -34,7 +34,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final TalkRoomRepository talkRoomRepository;
     private final UserRepository userRepository;
-    private final UserLibraryRepository userLibraryRepository;
+    private final LibraryRepository libraryRepository;
     private final TalkRoomRoleRepository talkRoomRoleRepository;
     private final CommentImageRepository commentImageRepository;
 
@@ -47,7 +47,7 @@ public class CommentService {
         TalkRoom talkRoom = talkRoomRepository.findById(talkRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TALK_ROOM_NOT_FOUND));
 
-        Optional<ReadingStatus> userReadingStatus = userLibraryRepository.findByUserId(user.getId(),
+        Optional<ReadingStatus> userReadingStatus = libraryRepository.findReadingStatusByUserId(user.getId(),
                 talkRoom.getBook().getIsbn());
 
         List<ReadingStatus> talkRoomReadingStatus = talkRoomRoleRepository.findTalkRoomRoleByTalkRoomId(

@@ -5,23 +5,26 @@ import static com.jisungin.domain.ReadingStatus.READ;
 import static com.jisungin.domain.ReadingStatus.READING;
 import static com.jisungin.domain.ReadingStatus.STOP;
 import static com.jisungin.domain.ReadingStatus.WANT;
-import static com.jisungin.domain.review.RatingOrderType.*;
-import static com.jisungin.domain.userlibrary.ReadingStatusOrderType.DICTIONARY;
+import static com.jisungin.domain.library.ReadingStatusOrderType.DICTIONARY;
+import static com.jisungin.domain.review.RatingOrderType.RATING_ASC;
+import static com.jisungin.domain.review.RatingOrderType.RATING_AVG_ASC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.library.response.UserReadingStatusResponse;
 import com.jisungin.application.rating.response.RatingGetResponse;
 import com.jisungin.application.review.response.ReviewContentGetAllResponse;
 import com.jisungin.application.user.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.application.user.request.UserRatingGetAllServiceRequest;
 import com.jisungin.application.user.request.UserReadingStatusGetAllServiceRequest;
 import com.jisungin.application.user.response.UserInfoResponse;
-import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
+import com.jisungin.domain.library.Library;
+import com.jisungin.domain.library.repository.LibraryRepository;
 import com.jisungin.domain.rating.Rating;
 import com.jisungin.domain.rating.repository.RatingRepository;
 import com.jisungin.domain.review.Review;
@@ -32,15 +35,11 @@ import com.jisungin.domain.user.OauthId;
 import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
-import com.jisungin.domain.userlibrary.UserLibrary;
-import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -64,14 +63,14 @@ class UserServiceTest extends ServiceTestSupport {
     private ReviewLikeRepository reviewLikeRepository;
 
     @Autowired
-    private UserLibraryRepository userLibraryRepository;
+    private LibraryRepository libraryRepository;
 
     @Autowired
     private UserService userService;
 
     @AfterEach
     void tearDown() {
-        userLibraryRepository.deleteAllInBatch();
+        libraryRepository.deleteAllInBatch();
         reviewLikeRepository.deleteAllInBatch();
         reviewRepository.deleteAllInBatch();
         ratingRepository.deleteAllInBatch();
@@ -154,7 +153,7 @@ class UserServiceTest extends ServiceTestSupport {
         User user2 = userRepository.save(createUser("2"));
         List<Book> books = bookRepository.saveAll(createBooks());
         List<Rating> ratings1 = ratingRepository.saveAll(createRatings(user1, books));
-        List<UserLibrary> userLibraries = userLibraryRepository.saveAll(createUserLibraries(user1, books));
+        List<Library> userLibraries = libraryRepository.saveAll(createUserLibraries(user1, books));
 
         // 읽고 싶은 상태인 책을 사전 순으로 정렬하고 1페이지를 가져온다.
         UserReadingStatusGetAllServiceRequest request = UserReadingStatusGetAllServiceRequest.builder()
@@ -258,22 +257,22 @@ class UserServiceTest extends ServiceTestSupport {
                 .build();
     }
 
-    private static List<UserLibrary> createUserLibraries(User user, List<Book> books) {
-        List<UserLibrary> userLibraries = new ArrayList<>();
+    private static List<Library> createUserLibraries(User user, List<Book> books) {
+        List<Library> userLibraries = new ArrayList<>();
         List<ReadingStatus> statuses = List.of(WANT, READING, READ, PAUSE, STOP);
 
         IntStream.rangeClosed(1, 20)
                 .forEach(i -> {
                     ReadingStatus readingStatus = statuses.get((i - 1) % statuses.size());
-                    UserLibrary userLibrary = createUserLibrary(user, books.get(i - 1), readingStatus);
-                    userLibraries.add(userLibrary);
+                    Library library = createUserLibrary(user, books.get(i - 1), readingStatus);
+                    userLibraries.add(library);
                 });
 
         return userLibraries;
     }
 
-    private static UserLibrary createUserLibrary(User user, Book book, ReadingStatus readingStatus) {
-        return UserLibrary.builder()
+    private static Library createUserLibrary(User user, Book book, ReadingStatus readingStatus) {
+        return Library.builder()
                 .user(user)
                 .book(book)
                 .status(readingStatus)

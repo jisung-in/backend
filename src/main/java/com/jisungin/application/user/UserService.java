@@ -8,13 +8,13 @@ import com.jisungin.application.user.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.application.user.request.UserRatingGetAllServiceRequest;
 import com.jisungin.application.user.request.UserReadingStatusGetAllServiceRequest;
 import com.jisungin.application.user.response.UserInfoResponse;
-import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
+import com.jisungin.application.library.response.UserReadingStatusResponse;
 import com.jisungin.domain.rating.repository.RatingRepository;
 import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.domain.reviewlike.repository.ReviewLikeRepository;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
-import com.jisungin.domain.userlibrary.repository.UserLibraryRepository;
+import com.jisungin.domain.library.repository.LibraryRepository;
 import com.jisungin.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,7 +37,7 @@ public class UserService {
 
     private final ReviewLikeRepository reviewLikeRepository;
 
-    private final UserLibraryRepository userLibraryRepository;
+    private final LibraryRepository libraryRepository;
 
     public PageResponse<RatingGetResponse> getUserRatings(Long userId, UserRatingGetAllServiceRequest request) {
         User user = userRepository.findById(userId)
@@ -68,7 +68,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
-        return userLibraryRepository.findAllReadingStatusOrderBy(
+        return libraryRepository.findAllReadingStatusOrderBy(
                 user.getId(), request.getReadingStatus(), request.getOrderType(), request.getSize(), request.getOffset());
     }
 

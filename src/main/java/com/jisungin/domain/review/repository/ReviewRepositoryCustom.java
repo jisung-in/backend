@@ -13,4 +13,6 @@ public interface ReviewRepositoryCustom {
 
     SliceResponse<ReviewWithRatingResponse> findAllByBookId(String isbn, Integer offset, Integer limit, String order);
 
+    Long countByBookId(String isbn);
+
 }

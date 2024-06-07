@@ -76,6 +76,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                         .username("작성자 이름")
                         .title("토론방 제목")
                         .content("토론방 본문")
+                        .bookIsbn("1111111")
                         .bookName("책 제목")
                         .bookAuthor("책 저자")
                         .bookThumbnail("책 이미지 URL")
@@ -129,6 +130,8 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("토론방 본문"),
                                 fieldWithPath("data.images").type(JsonFieldType.ARRAY)
                                         .description("토론방 이미지 URL"),
+                                fieldWithPath("data.bookIsbn").type(JsonFieldType.STRING)
+                                        .description("책 ISBN"),
                                 fieldWithPath("data.bookName").type(JsonFieldType.STRING)
                                         .description("책 제목"),
                                 fieldWithPath("data.bookAuthor").type(JsonFieldType.STRING)
@@ -316,6 +319,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                         .username("작성자 이름")
                         .title("토론방 제목")
                         .content("토론방 본문")
+                        .bookIsbn("000000000000")
                         .bookName("책 제목")
                         .bookAuthor("책 저자")
                         .bookThumbnail("책 이미지 URL")
@@ -362,6 +366,8 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("토론방 본문"),
                                 fieldWithPath("data.images").type(JsonFieldType.ARRAY)
                                         .description("토론방 이미지 URL"),
+                                fieldWithPath("data.bookIsbn").type(JsonFieldType.STRING)
+                                        .description("책 ISBN"),
                                 fieldWithPath("data.bookName").type(JsonFieldType.STRING)
                                         .description("책 제목"),
                                 fieldWithPath("data.bookAuthor").type(JsonFieldType.STRING)

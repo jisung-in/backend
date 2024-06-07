@@ -242,6 +242,35 @@ class ReviewRepositoryTest extends RepositoryTestSupport {
         assertThat(result.getContent()).hasSize(0);
     }
 
+    @DisplayName("도서와 연관된 리뷰의 개수를 조회한다.")
+    @Test
+    public void findBookReviewsCount() {
+        // given
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001", "저자명", "출판사"));
+
+        List<User> users = userRepository.saveAll(createUsers());
+        List<Review> reviews = reviewRepository.saveAll(createReviewsForBook(users, book));
+
+        // when
+        Long result = reviewRepository.countByBookId(book.getIsbn());
+
+        // then
+        assertThat(result).isEqualTo(20L);
+    }
+
+    @DisplayName("도서와 연관된 리뷰가 없는 경우 0을 리턴한다.")
+    @Test
+    public void findBookReviewsCountWithoutReview() {
+        // given
+        Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "00001", "저자명", "출판사"));
+
+        // when
+        Long result = reviewRepository.countByBookId(book.getIsbn());
+
+        // then
+        assertThat(result).isEqualTo(0L);
+    }
+
     private static List<Book> createBooks() {
         return IntStream.rangeClosed(1, 20)
                 .mapToObj(i -> createBook(

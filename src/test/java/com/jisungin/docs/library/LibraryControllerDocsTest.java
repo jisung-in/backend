@@ -1,9 +1,8 @@
-package com.jisungin.docs.userlibrary;
+package com.jisungin.docs.library;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -14,7 +13,7 @@ import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuild
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
-import static org.springframework.restdocs.payload.JsonFieldType.BOOLEAN;
+import static org.springframework.restdocs.payload.JsonFieldType.ARRAY;
 import static org.springframework.restdocs.payload.JsonFieldType.NUMBER;
 import static org.springframework.restdocs.payload.JsonFieldType.OBJECT;
 import static org.springframework.restdocs.payload.JsonFieldType.STRING;
@@ -23,80 +22,77 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.requestF
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
-import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.jisungin.api.userlibrary.UserLibraryController;
-import com.jisungin.api.userlibrary.request.UserLibraryCreateRequest;
-import com.jisungin.api.userlibrary.request.UserLibraryEditRequest;
-import com.jisungin.application.userlibrary.UserLibraryService;
-import com.jisungin.application.userlibrary.request.UserLibraryCreateServiceRequest;
-import com.jisungin.application.userlibrary.response.UserLibraryResponse;
+import com.jisungin.api.library.LibraryController;
+import com.jisungin.api.library.request.LibraryCreateRequest;
+import com.jisungin.api.library.request.LibraryEditRequest;
+import com.jisungin.application.library.LibraryService;
+import com.jisungin.application.library.request.LibraryCreateServiceRequest;
+import com.jisungin.application.library.response.LibraryResponse;
 import com.jisungin.docs.RestDocsSupport;
+import java.util.List;
+import java.util.stream.LongStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-public class UserLibraryControllerDocsTest extends RestDocsSupport {
+public class LibraryControllerDocsTest extends RestDocsSupport {
 
-    private final UserLibraryService userLibraryService = mock(UserLibraryService.class);
+    private final LibraryService libraryService = mock(LibraryService.class);
 
     @Override
     protected Object initController() {
-        return new UserLibraryController(userLibraryService);
+        return new LibraryController(libraryService);
     }
 
     @Test
-    @DisplayName("서재 단건 조회 API")
-    public void getUserLibrary() throws Exception {
-        String isbn = "000000000001";
+    @DisplayName("서재 조회 API")
+    public void findLibraries() throws Exception {
+        // given
+        given(libraryService.findLibraries(anyLong()))
+                .willReturn(createLibraryResponses());
 
-        given(userLibraryService.getUserLibrary(anyLong(), anyString()))
-                .willReturn(createUserLibraryResponse());
-
-        mockMvc.perform(get("/v1/user-libraries")
-                        .param("isbn", isbn)
+        // when // then
+        mockMvc.perform(get("/v1/libraries")
                         .accept(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(document("user-library/get",
+                .andDo(document("library/get",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
-                        queryParameters(
-                                parameterWithName("isbn").description("도서 ISBN")
-                        ),
                         responseFields(
                                 fieldWithPath("code").type(NUMBER).description("코드"),
                                 fieldWithPath("status").type(STRING).description("상태"),
                                 fieldWithPath("message").type(STRING).description("메세지"),
-                                fieldWithPath("data").type(OBJECT).description("응답 데이터"),
-                                fieldWithPath("data.id").type(NUMBER).description("서재 ID"),
-                                fieldWithPath("data.status").type(STRING).description("서재 도서 상태"),
-                                fieldWithPath("data.hasReadingStatus").type(BOOLEAN).description("서재 도서 상태 존재 여부")
+                                fieldWithPath("data[]").type(ARRAY).description("응답 데이터"),
+                                fieldWithPath("data[].id").type(NUMBER).description("서재 ID"),
+                                fieldWithPath("data[].bookIsbn").type(STRING).description("도서 ISBN"),
+                                fieldWithPath("data[].status").type(STRING).description("서재 도서 상태")
                         )
                 ));
     }
 
     @Test
     @DisplayName("서재 생성 API")
-    public void createUserLibrary() throws Exception {
+    public void createLibrary() throws Exception {
         String isbn = "000000000001";
 
-        UserLibraryCreateRequest request = UserLibraryCreateRequest.builder()
+        LibraryCreateRequest request = LibraryCreateRequest.builder()
                 .isbn(isbn)
                 .readingStatus("read")
                 .build();
 
-        given(userLibraryService.createUserLibrary(any(UserLibraryCreateServiceRequest.class), anyLong()))
-                .willReturn(createUserLibraryResponse());
+        given(libraryService.createLibrary(any(LibraryCreateServiceRequest.class), anyLong()))
+                .willReturn(createLibraryResponse(1L, isbn));
 
-        mockMvc.perform(post("/v1/user-libraries")
+        mockMvc.perform(post("/v1/libraries")
                         .accept(APPLICATION_JSON)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(document("user-library/create",
+                .andDo(document("library/create",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
                         requestFields(
@@ -110,8 +106,8 @@ public class UserLibraryControllerDocsTest extends RestDocsSupport {
                                 fieldWithPath("message").type(STRING).description("메세지"),
                                 fieldWithPath("data").type(OBJECT).description("응답 데이터"),
                                 fieldWithPath("data.id").type(NUMBER).description("서재 ID"),
-                                fieldWithPath("data.status").type(STRING).description("서재 도서 상태"),
-                                fieldWithPath("data.hasReadingStatus").type(BOOLEAN).description("서재 도서 상태 존재 여부")
+                                fieldWithPath("data.bookIsbn").type(STRING).description("도서 ISBN"),
+                                fieldWithPath("data.status").type(STRING).description("서재 도서 상태")
                         )
                 ));
     }
@@ -121,21 +117,21 @@ public class UserLibraryControllerDocsTest extends RestDocsSupport {
     public void editUserLibrary() throws Exception {
         String isbn = "000000000001";
 
-        UserLibraryEditRequest request = UserLibraryEditRequest.builder()
+        LibraryEditRequest request = LibraryEditRequest.builder()
                 .isbn(isbn)
                 .readingStatus("pause")
                 .build();
 
-        mockMvc.perform(patch("/v1/user-libraries/{userLibraryId}", 1L)
+        mockMvc.perform(patch("/v1/libraries/{libraryId}", 1L)
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(document("user-library/edit",
+                .andDo(document("library/edit",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
                         pathParameters(
-                                parameterWithName("userLibraryId").description("서재 ID")
+                                parameterWithName("libraryId").description("서재 ID")
                         ),
                         requestFields(
                                 fieldWithPath("isbn").description("도서 ISBN"),
@@ -154,15 +150,15 @@ public class UserLibraryControllerDocsTest extends RestDocsSupport {
 
     @Test
     @DisplayName("서재 삭제 API")
-    public void deleteUserLibrary() throws Exception {
-        mockMvc.perform(delete("/v1/user-libraries/{userLibraryId}", 1L))
+    public void deleteLibrary() throws Exception {
+        mockMvc.perform(delete("/v1/libraries/{libraryId}", 1L))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(document("user-library/delete",
+                .andDo(document("library/delete",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
                         pathParameters(
-                                parameterWithName("userLibraryId").description("서재 ID")
+                                parameterWithName("libraryId").description("서재 ID")
                         ),
                         responseFields(
                                 fieldWithPath("code").type(NUMBER).description("코드"),
@@ -174,12 +170,18 @@ public class UserLibraryControllerDocsTest extends RestDocsSupport {
 
     }
 
-    private UserLibraryResponse createUserLibraryResponse() {
-        return UserLibraryResponse.builder()
-                .id(1L)
+    private LibraryResponse createLibraryResponse(Long id, String bookIsbn) {
+        return LibraryResponse.builder()
+                .id(id)
+                .bookIsbn(bookIsbn)
                 .status("읽음")
-                .hasReadingStatus(true)
                 .build();
+    }
+
+    private List<LibraryResponse> createLibraryResponses() {
+        return LongStream.rangeClosed(1, 5)
+                .mapToObj(i -> createLibraryResponse(i, String.valueOf(i)))
+                .toList();
     }
 
 }

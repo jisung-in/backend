@@ -1,8 +1,9 @@
-package com.jisungin.domain.userlibrary.repository;
+package com.jisungin.domain.library.repository;
 
 import com.jisungin.RepositoryTestSupport;
 import com.jisungin.application.PageResponse;
-import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
+import com.jisungin.domain.library.LibraryQueryEntity;
+import com.jisungin.application.library.response.UserReadingStatusResponse;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
@@ -10,7 +11,7 @@ import com.jisungin.domain.rating.Rating;
 import com.jisungin.domain.rating.repository.RatingRepository;
 import com.jisungin.domain.review.Review;
 import com.jisungin.domain.review.repository.ReviewRepository;
-import com.jisungin.domain.userlibrary.UserLibrary;
+import com.jisungin.domain.library.Library;
 import com.jisungin.domain.user.OauthId;
 import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
@@ -27,10 +28,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.jisungin.domain.ReadingStatus.*;
-import static com.jisungin.domain.userlibrary.ReadingStatusOrderType.*;
+import static com.jisungin.domain.library.ReadingStatusOrderType.*;
 import static org.assertj.core.api.Assertions.*;
 
-class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
+class LibraryRepositoryImplTest extends RepositoryTestSupport {
 
     @Autowired
     private UserRepository userRepository;
@@ -45,15 +46,44 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
     private RatingRepository ratingRepository;
 
     @Autowired
-    private UserLibraryRepository userLibraryRepository;
+    private LibraryRepository libraryRepository;
 
     @AfterEach
     void tearDown() {
-        userLibraryRepository.deleteAllInBatch();
+        libraryRepository.deleteAllInBatch();
         reviewRepository.deleteAllInBatch();
         ratingRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
+    }
+
+    @DisplayName("유저 아이디에 대한 독서 상태를 가져온다.")
+    @Test
+    void findAllByUserId() {
+        // given
+        User user = userRepository.save(createUser("1"));
+        List<Book> books = bookRepository.saveAll(createBooks());
+        List<Library> libraries = libraryRepository.saveAll(createUserLibraries(user, books));
+
+        // when
+        List<LibraryQueryEntity> result = libraryRepository.findAllByUserId(user.getId());
+
+        // then
+        assertThat(result).hasSize(20);
+    }
+
+    @DisplayName("유저 아이디에 대한 독서 상태가 존재하지 않는 경우 빈 배열을 반환한다.")
+    @Test
+    void findAllByUserIdWithoutLibrary() {
+        // given
+        User user = userRepository.save(createUser("1"));
+        List<Book> books = bookRepository.saveAll(createBooks());
+
+        // when
+        List<LibraryQueryEntity> result = libraryRepository.findAllByUserId(user.getId());
+
+        // then
+        assertThat(result).hasSize(0);
     }
 
     @DisplayName("유저가 저장한 모든 독서 상태를 가져온다.")
@@ -64,10 +94,10 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
         User user2 = userRepository.save(createUser("2"));
         List<Book> books = bookRepository.saveAll(createBooks());
         List<Rating> ratings = ratingRepository.saveAll(createRatings(user1, books));
-        List<UserLibrary> userLibraries = userLibraryRepository.saveAll(createUserLibraries(user1, books));
+        List<Library> userLibraries = libraryRepository.saveAll(createUserLibraries(user1, books));
 
         //when
-        PageResponse<UserReadingStatusResponse> result = userLibraryRepository.findAllReadingStatusOrderBy(
+        PageResponse<UserReadingStatusResponse> result = libraryRepository.findAllReadingStatusOrderBy(
                 user1.getId(), WANT, DICTIONARY, 4, 0);
 
         //then
@@ -91,7 +121,7 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
         Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "0000X"));
 
         // when
-        Boolean result = userLibraryRepository.existsByUserIdAndBookId(user.getId(), book.getIsbn());
+        Boolean result = libraryRepository.existsByUserIdAndBookId(user.getId(), book.getIsbn());
 
         // then
         assertThat(result).isFalse();
@@ -103,11 +133,11 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
         // given
         User user = userRepository.save(createUser("1"));
         Book book = bookRepository.save(createBook("도서 제목", "도서 내용", "0000X"));
-        UserLibrary userLibrary = userLibraryRepository.save(createUserLibrary(user, book, WANT));
+        Library library = libraryRepository.save(createUserLibrary(user, book, WANT));
 
 
         // when
-        Boolean result = userLibraryRepository.existsByUserIdAndBookId(user.getId(), book.getIsbn());
+        Boolean result = libraryRepository.existsByUserIdAndBookId(user.getId(), book.getIsbn());
 
         // then
         assertThat(result).isTrue();
@@ -162,22 +192,22 @@ class UserLibraryRepositoryImplTest extends RepositoryTestSupport {
                 .build();
     }
 
-    private static List<UserLibrary> createUserLibraries(User user, List<Book> books) {
-        List<UserLibrary> userLibraries = new ArrayList<>();
+    private static List<Library> createUserLibraries(User user, List<Book> books) {
+        List<Library> userLibraries = new ArrayList<>();
         List<ReadingStatus> statuses = List.of(WANT, READING, READ, PAUSE, STOP);
 
         IntStream.rangeClosed(1, 20)
                 .forEach(i -> {
                     ReadingStatus readingStatus = statuses.get((i - 1) % statuses.size());
-                    UserLibrary userLibrary = createUserLibrary(user, books.get(i - 1), readingStatus);
-                    userLibraries.add(userLibrary);
+                    Library library = createUserLibrary(user, books.get(i - 1), readingStatus);
+                    userLibraries.add(library);
                 });
 
         return userLibraries;
     }
 
-    private static UserLibrary createUserLibrary(User user, Book book, ReadingStatus readingStatus) {
-        return UserLibrary.builder()
+    private static Library createUserLibrary(User user, Book book, ReadingStatus readingStatus) {
+        return Library.builder()
                 .user(user)
                 .book(book)
                 .status(readingStatus)

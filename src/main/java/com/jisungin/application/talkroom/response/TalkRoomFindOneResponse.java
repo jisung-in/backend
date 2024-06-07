@@ -21,6 +21,7 @@ public class TalkRoomFindOneResponse {
     private String username;
     private String title;
     private String content;
+    private String bookIsbn;
     private String bookName;
     private String bookAuthor;
     private String bookThumbnail;
@@ -33,14 +34,15 @@ public class TalkRoomFindOneResponse {
     @Builder
     @QueryProjection
     public TalkRoomFindOneResponse(Long id, String profileImage, String username, String title, String content,
-                                   String bookName, String bookAuthor, String bookThumbnail, Long likeCount,
-                                   List<String> readingStatuses,
-                                   LocalDateTime registeredDateTime, List<String> images, Long creatorId) {
+                                   String bookIsbn, String bookName, String bookAuthor, String bookThumbnail,
+                                   Long likeCount, List<String> readingStatuses, LocalDateTime registeredDateTime,
+                                   List<String> images, Long creatorId) {
         this.id = id;
         this.profileImage = profileImage;
         this.username = username;
         this.title = title;
         this.content = content;
+        this.bookIsbn = bookIsbn;
         this.bookName = bookName;
         this.bookAuthor = bookAuthor;
         this.bookThumbnail = bookThumbnail;
@@ -59,6 +61,7 @@ public class TalkRoomFindOneResponse {
                 .username(user.getName())
                 .title(talkRoom.getTitle())
                 .content(talkRoom.getContent())
+                .bookIsbn(book.getIsbn())
                 .bookName(book.getTitle())
                 .bookAuthor(book.getAuthors())
                 .bookThumbnail(book.getThumbnail())
@@ -78,6 +81,7 @@ public class TalkRoomFindOneResponse {
                 .username(talkRoom.getUsername())
                 .title(talkRoom.getTitle())
                 .content(talkRoom.getContent())
+                .bookIsbn(talkRoom.getBookIsbn())
                 .bookName(talkRoom.getBookName())
                 .bookAuthor(talkRoom.getBookAuthor())
                 .bookThumbnail(talkRoom.getBookThumbnail())

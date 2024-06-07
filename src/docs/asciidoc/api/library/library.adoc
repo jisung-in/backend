@@ -1,0 +1,46 @@
+=== 서재 조회
+==== HTTP Request
+include::{snippets}/library/get/http-request.adoc[]
+
+==== HTTP Response
+include::{snippets}/library/get/http-response.adoc[]
+include::{snippets}/library/get/response-fields.adoc[]
+
+=== 서재 생성
+==== HTTP Request
+include::{snippets}/library/create/http-request.adoc[]
+===== Request Body
+include::{snippets}/library/create/request-body.adoc[]
+include::{snippets}/library/create/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/library/create/http-response.adoc[]
+include::{snippets}/library/create/response-fields.adoc[]
+
+=== 서재 수정
+==== HTTP Request
+include::{snippets}/library/edit/http-request.adoc[]
+===== Request Body
+include::{snippets}/library/edit/request-body.adoc[]
+include::{snippets}/library/edit/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/library/edit/http-response.adoc[]
+include::{snippets}/library/edit/response-fields.adoc[]
+
+=== 서재 삭제
+==== HTTP Request
+include::{snippets}/library/delete/http-request.adoc[]
+
+==== HTTP Response
+include::{snippets}/library/delete/http-response.adoc[]
+include::{snippets}/library/delete/response-fields.adoc[]
+
+=== 독서 상태 페이지 조회
+==== HTTP Request
+include::{snippets}/library/get-status/http-request.adoc[]
+include::{snippets}/library/get-status/query-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/library/get-status/http-response.adoc[]
+include::{snippets}/library/get-status/response-fields.adoc[]

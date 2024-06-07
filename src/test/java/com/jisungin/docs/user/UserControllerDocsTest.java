@@ -10,7 +10,7 @@ import com.jisungin.application.user.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.application.user.request.UserRatingGetAllServiceRequest;
 import com.jisungin.application.user.request.UserReadingStatusGetAllServiceRequest;
 import com.jisungin.application.user.response.UserInfoResponse;
-import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
+import com.jisungin.application.library.response.UserReadingStatusResponse;
 import com.jisungin.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -225,7 +225,7 @@ public class UserControllerDocsTest extends RestDocsSupport {
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("OK"))
                 .andDo(print())
-                .andDo(document("user-library/get-status",
+                .andDo(document("library/get-status",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
                         queryParameters(

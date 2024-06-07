@@ -37,6 +37,13 @@ public class ReviewService {
                 offsetLimit.getOrder());
     }
 
+    public Long findBookReviewsCount(String isbn) {
+        Book book = bookRepository.findById(isbn)
+                .orElseThrow(() -> new BusinessException(BOOK_NOT_FOUND));
+
+        return reviewRepository.countByBookId(book.getIsbn());
+    }
+
     @Transactional
     public void createReview(ReviewCreateServiceRequest request, Long userId) {
         User user = userRepository.findById(userId)

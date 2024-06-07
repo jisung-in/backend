@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,15 @@ public class BookRepositoryTest extends RepositoryTestSupport {
 
     @Autowired
     private CommentRepository commentRepository;
+
+    @AfterEach
+    void tearDown() {
+        commentRepository.deleteAllInBatch();
+        talkRoomRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+        bookRepository.deleteAllInBatch();
+    }
+
 
     @Test
     @DisplayName("최근 등록된 책 페이지 조회 쿼리")

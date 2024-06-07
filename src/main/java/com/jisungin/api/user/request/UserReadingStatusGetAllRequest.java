@@ -2,7 +2,7 @@ package com.jisungin.api.user.request;
 
 import com.jisungin.application.user.request.UserReadingStatusGetAllServiceRequest;
 import com.jisungin.domain.ReadingStatus;
-import com.jisungin.domain.userlibrary.ReadingStatusOrderType;
+import com.jisungin.domain.library.ReadingStatusOrderType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

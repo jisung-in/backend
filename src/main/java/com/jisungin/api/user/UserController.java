@@ -10,7 +10,7 @@ import com.jisungin.application.rating.response.RatingGetResponse;
 import com.jisungin.application.review.response.ReviewContentGetAllResponse;
 import com.jisungin.application.user.UserService;
 import com.jisungin.application.user.response.UserInfoResponse;
-import com.jisungin.application.userlibrary.response.UserReadingStatusResponse;
+import com.jisungin.application.library.response.UserReadingStatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;

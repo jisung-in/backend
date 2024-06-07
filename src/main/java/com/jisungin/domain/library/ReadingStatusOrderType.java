@@ -1,4 +1,4 @@
-package com.jisungin.domain.userlibrary;
+package com.jisungin.domain.library;
 
 import java.util.Locale;
 

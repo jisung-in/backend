@@ -11,6 +11,7 @@ import static com.jisungin.domain.user.QUser.user;
 
 import com.jisungin.application.talkroom.response.QTalkRoomQueryResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
+import com.jisungin.domain.talkroom.TalkRoom;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -51,6 +52,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         user.name.as("username"),
                         talkRoom.title,
                         talkRoom.content,
+                        book.isbn.as("bookIsbn"),
                         book.title.as("bookName"),
                         book.authors.as("bookAuthor"),
                         book.thumbnail.as("bookThumbnail"),
@@ -68,7 +70,6 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .limit(size)
                 .orderBy(talkRoomLike.count().desc())
                 .fetch();
-
     }
 
     public Long countTalkRoomsRelatedBook(String isbn) {
@@ -95,6 +96,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         user.name.as("username"),
                         talkRoom.title,
                         talkRoom.content,
+                        book.isbn.as("bookIsbn"),
                         book.title.as("bookName"),
                         book.authors.as("bookAuthor"),
                         book.thumbnail.as("bookThumbnail"),
@@ -141,6 +143,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         user.name.as("userName"),
                         talkRoom.title,
                         talkRoom.content,
+                        book.isbn.as("bookIsbn"),
                         book.title,
                         book.authors.as("bookAuthor"),
                         book.thumbnail.as("bookThumbnail"),
@@ -202,6 +205,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         user.name.as("username"),
                         talkRoom.title,
                         talkRoom.content,
+                        book.isbn.as("bookIsbn"),
                         book.title,
                         book.authors.as("bookAuthor"),
                         book.thumbnail.as("bookImage"),
