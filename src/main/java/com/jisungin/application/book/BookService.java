@@ -3,9 +3,9 @@ package com.jisungin.application.book;
 import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.book.request.BookCreateServiceRequest;
+import com.jisungin.application.book.request.BookCreateServiceRequests;
 import com.jisungin.application.book.response.BookFindAllResponse;
 import com.jisungin.application.book.response.BookResponse;
-import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.rating.repository.RatingRepository;
@@ -13,6 +13,7 @@ import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
 import com.jisungin.infra.crawler.Crawler;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,17 +57,11 @@ public class BookService {
     }
 
     @Transactional
-    public void addNewBooks(List<BookCreateServiceRequest> requests) {
-        requests.stream()
-                .filter(request -> !bookRepository.existsBookByIsbn(request.getIsbn()))
-                .map(BookCreateServiceRequest::toEntity)
-                .forEach(bookRepository::save);
-    }
+    public void addNewBooks(BookCreateServiceRequests requests) {
+        Set<String> existIsbns = bookRepository.findExistIsbns(requests.getIsbns());
+        List<Book> newBooks = requests.toEntitiesNotInclude(existIsbns);
 
-    private List<Long> extractTalkRoomIds(List<TalkRoomQueryResponse> talkRooms) {
-        return talkRooms.stream()
-                .map(TalkRoomQueryResponse::getId)
-                .toList();
+        bookRepository.saveAll(newBooks);
     }
 
 }

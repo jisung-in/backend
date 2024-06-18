@@ -1,32 +1,28 @@
 package com.jisungin.application.search;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jisungin.RedisTestContainer;
 import com.jisungin.infra.s3.S3FileManager;
+import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.test.context.event.RecordApplicationEvents;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@RecordApplicationEvents
 public class SearchServiceTest extends RedisTestContainer {
 
     @Autowired
     private SearchService searchService;
 
     @Autowired
-    private @Qualifier("redisTemplateSecond") RedisTemplate<String, String> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
     @MockBean
     private S3FileManager s3FileManager;
@@ -46,7 +42,7 @@ public class SearchServiceTest extends RedisTestContainer {
         //then
         ZSetOperations<String, String> zset = redisTemplate.opsForZSet();
         Double score = zset.score("ranking", keyword);
-        assertThat(score).isEqualTo(1.0); // 검색어의 점수가 1.0인지 확인
+        assertThat(score).isEqualTo(1.0);
 
     }
 
@@ -61,7 +57,7 @@ public class SearchServiceTest extends RedisTestContainer {
 
         //then
         List<String> rankKeywords = searchService.getRankKeywords();
-        Assertions.assertThat(rankKeywords).contains(keyword); // 랭킹에 추가된 검색어가 있는지 확인
+        Assertions.assertThat(rankKeywords).contains(keyword);
     }
 
 }

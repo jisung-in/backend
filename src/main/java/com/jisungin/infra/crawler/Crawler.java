@@ -4,7 +4,7 @@ import java.util.Map;
 
 public interface Crawler {
 
-    CrawlingBook crawlBook(String isbn);
-    Map<Long, CrawlingBook> crawlBestSellerBook();
+    CrawledBook crawlBook(String isbn);
+    Map<Long, CrawledBook> crawlBestSellerBook();
 
 }

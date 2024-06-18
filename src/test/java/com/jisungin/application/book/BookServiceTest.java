@@ -24,7 +24,7 @@ import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.infra.crawler.Crawler;
-import com.jisungin.infra.crawler.CrawlingBook;
+import com.jisungin.infra.crawler.CrawledBook;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -161,7 +161,7 @@ public class BookServiceTest extends ServiceTestSupport {
                 .build();
 
         when(crawler.crawlBook(request.getIsbn()))
-                .thenReturn(CrawlingBook.of("도서 제목", "도서 내용", "123456789X", "도서 출판사",
+                .thenReturn(CrawledBook.of("도서 제목", "도서 내용", "123456789X", "도서 출판사",
                         "도서 imageUrl", "도서 썸네일", "도서 작가1,도서 작가2", registeredDateTime));
 
         // when
