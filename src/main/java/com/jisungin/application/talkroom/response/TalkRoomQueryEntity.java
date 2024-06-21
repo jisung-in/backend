@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class TalkRoomQueryResponse {
+public class TalkRoomQueryEntity {
 
     private Long id;
     private String profileImage;
@@ -25,9 +25,9 @@ public class TalkRoomQueryResponse {
 
     @Builder
     @QueryProjection
-    public TalkRoomQueryResponse(Long id, String profileImage, String username, String title, String content,
-                                 String bookIsbn, String bookName, String bookAuthor, String bookThumbnail,
-                                 Long likeCount, LocalDateTime registeredDateTime, Long creatorId) {
+    public TalkRoomQueryEntity(Long id, String profileImage, String username, String title, String content,
+                               String bookIsbn, String bookName, String bookAuthor, String bookThumbnail,
+                               Long likeCount, LocalDateTime registeredDateTime, Long creatorId) {
         this.id = id;
         this.profileImage = profileImage;
         this.username = username;
