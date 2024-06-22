@@ -45,7 +45,7 @@ public class TalkRoomFindAllResponse {
         this.creatorId = creatorId;
     }
 
-    public static TalkRoomFindAllResponse of(TalkRoomQueryResponse talkRoom, List<ReadingStatus> readingStatuses) {
+    public static TalkRoomFindAllResponse of(TalkRoomQueryEntity talkRoom, List<ReadingStatus> readingStatuses) {
         return TalkRoomFindAllResponse.builder()
                 .id(talkRoom.getId())
                 .profileImage(talkRoom.getProfileImage())
@@ -62,7 +62,7 @@ public class TalkRoomFindAllResponse {
                 .build();
     }
 
-    public static List<TalkRoomFindAllResponse> toList(List<TalkRoomQueryResponse> talkRooms,
+    public static List<TalkRoomFindAllResponse> toList(List<TalkRoomQueryEntity> talkRooms,
                                                        Map<Long, List<ReadingStatus>> readingStatuses) {
         return talkRooms.stream()
                 .map(talkRoom -> TalkRoomFindAllResponse.of(talkRoom, readingStatuses.get(talkRoom.getId())))

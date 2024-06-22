@@ -38,7 +38,7 @@ public class TalkRoomRelatedBookResponse {
         this.creatorId = creatorId;
     }
 
-    public static TalkRoomRelatedBookResponse of(TalkRoomQueryResponse talkRoom,
+    public static TalkRoomRelatedBookResponse of(TalkRoomQueryEntity talkRoom,
                                                  List<ReadingStatus> readingStatuses) {
         return TalkRoomRelatedBookResponse.builder()
                 .id(talkRoom.getId())
@@ -55,7 +55,7 @@ public class TalkRoomRelatedBookResponse {
                 .build();
     }
 
-    public static List<TalkRoomRelatedBookResponse> toList(List<TalkRoomQueryResponse> talkRooms,
+    public static List<TalkRoomRelatedBookResponse> toList(List<TalkRoomQueryEntity> talkRooms,
                                                            Map<Long, List<ReadingStatus>> readingStatusesMap) {
         return talkRooms.stream()
                 .map(talkRoom -> TalkRoomRelatedBookResponse.of(talkRoom, readingStatusesMap.get(talkRoom.getId())))
