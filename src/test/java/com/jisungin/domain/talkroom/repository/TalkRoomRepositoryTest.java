@@ -5,7 +5,7 @@ import static org.assertj.core.groups.Tuple.tuple;
 
 import com.jisungin.RepositoryTestSupport;
 import com.jisungin.application.OffsetLimit;
-import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
+import com.jisungin.application.talkroom.response.TalkRoomQueryEntity;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
@@ -88,7 +88,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         OffsetLimit offsetLimit = OffsetLimit.of(1, 10, "recent");
 
         // when
-        List<TalkRoomQueryResponse> response = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+        List<TalkRoomQueryEntity> response = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), offsetLimit.getOrder(), null, null, LocalDateTime.now());
 
         // then
@@ -153,7 +153,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         OffsetLimit offsetLimit = OffsetLimit.of(2, 10, "recent");
 
         // when
-        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+        List<TalkRoomQueryEntity> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), offsetLimit.getOrder(),
                 null, null, LocalDateTime.now());
 
@@ -215,7 +215,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        TalkRoomQueryResponse response = talkRoomRepository.findOneTalkRoom(talkRoom.get(0).getId());
+        TalkRoomQueryEntity response = talkRoomRepository.findOneTalkRoom(talkRoom.get(0).getId());
 
         // then
         assertThat(5L).isEqualTo(response.getLikeCount());
@@ -277,7 +277,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         OffsetLimit offsetLimit = OffsetLimit.of(1, 10, "recommend");
 
         // when
-        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+        List<TalkRoomQueryEntity> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), offsetLimit.getOrder(), null, null, LocalDateTime.now());
         // then
         assertThat(result.get(0).getLikeCount()).isEqualTo(10L);
@@ -364,7 +364,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         OffsetLimit offsetLimit = OffsetLimit.of(1, 10);
 
         // when
-        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+        List<TalkRoomQueryEntity> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), null, "검색어", null, LocalDateTime.now());
 
         // then
@@ -434,7 +434,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         talkRoomLikeRepository.saveAll(likes2);
 
         // when
-        List<TalkRoomQueryResponse> talkRoomsRelatedBook = talkRoomRepository.findTalkRoomsRelatedBook(book.getIsbn(),
+        List<TalkRoomQueryEntity> talkRoomsRelatedBook = talkRoomRepository.findTalkRoomsRelatedBook(book.getIsbn(),
                 0, 20);
 
         // then
@@ -547,7 +547,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         OffsetLimit offsetLimit = OffsetLimit.of(1, 10, "recent");
 
         // when
-        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+        List<TalkRoomQueryEntity> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), offsetLimit.getOrder(), null, "1d", now);
 
         // then
@@ -604,7 +604,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         OffsetLimit offsetLimit = OffsetLimit.of(1, 10, "recent");
 
         // when
-        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+        List<TalkRoomQueryEntity> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), offsetLimit.getOrder(), null, "1w", now);
 
         // then
@@ -661,7 +661,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         OffsetLimit offsetLimit = OffsetLimit.of(1, 10, "recent");
 
         // when
-        List<TalkRoomQueryResponse> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
+        List<TalkRoomQueryEntity> result = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), offsetLimit.getOrder(), null, "1m", now);
 
         // then
@@ -706,7 +706,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         OffsetLimit offsetLimit = OffsetLimit.of(1, 10);
 
         // when
-        List<TalkRoomQueryResponse> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
+        List<TalkRoomQueryEntity> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), true, true, false, user.getId());
 
         // then
@@ -750,7 +750,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         OffsetLimit offsetLimit = OffsetLimit.of(1, 10);
 
         // when
-        List<TalkRoomQueryResponse> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
+        List<TalkRoomQueryEntity> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), true, false, true, user.getId());
 
         // then
@@ -804,7 +804,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         OffsetLimit offsetLimit = OffsetLimit.of(1, 10);
 
         // when
-        List<TalkRoomQueryResponse> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
+        List<TalkRoomQueryEntity> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), true, true, true,
                 user.getId());
 
@@ -871,7 +871,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
         OffsetLimit offsetLimit = OffsetLimit.of(1, 10);
 
         // when
-        List<TalkRoomQueryResponse> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
+        List<TalkRoomQueryEntity> result = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), false, false, true, userA.getId());
 
         // then
