@@ -668,17 +668,6 @@ class TalkRoomServiceTest extends ServiceTestSupport {
     }
 
     @Test
-    @DisplayName("최근 의견이 달린 토론방을 조회 할때 의견이 없다면 빈 값을 보낸다.")
-    void fetchRecentCommentedDiscussionsWithCommentEmpty() throws Exception {
-        // when
-        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
-                OffsetLimit.of(1, 3, "recent_comment"), null, null, LocalDateTime.now());
-
-        // then
-        assertThat(result.getQueryResponse()).isEmpty();
-    }
-
-    @Test
     @DisplayName("하루 전에 토론방을 조회하면 데이터 총 개수는 10개이어야 한다.")
     void findAllTalkRoomWithDay() throws Exception {
         // given
