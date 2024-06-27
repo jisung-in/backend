@@ -36,22 +36,10 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         return selectFromTalkRoomQueryEntity()
                 .where(searchQuery(search), dataTimeEq(OrderDay.of(day), now))
                 .offset(offset)
-                .limit(size)
+                .limit(size + 1)
                 .groupBy(talkRoom.id)
                 .orderBy(TalkRoomOrderType.getOrderSpecifierByName(order))
                 .fetch();
-    }
-
-    // 토크방 페이징 개수 조회
-    @Override
-    public Long countTalkRooms(String search, String day, LocalDateTime now) {
-        return queryFactory
-                .select(talkRoom.count())
-                .from(talkRoom)
-                .join(talkRoom.user, user)
-                .join(talkRoom.book, book)
-                .where(searchQuery(search), dataTimeEq(OrderDay.of(day), now))
-                .fetchOne();
     }
 
     // 도서와 연관된 토크룸 페이징 조회

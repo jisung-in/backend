@@ -9,8 +9,6 @@ public interface TalkRoomRepositoryCustom {
     List<TalkRoomQueryEntity> findAllTalkRoom(Integer offset, Integer size, String order, String search, String day,
                                               LocalDateTime now);
 
-    Long countTalkRooms(String search, String day, LocalDateTime now);
-
     List<TalkRoomQueryEntity> findTalkRoomsRelatedBook(String isbn, long offset, Integer size);
 
     Long countTalkRoomsRelatedBook(String isbn);
