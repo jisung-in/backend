@@ -2,6 +2,7 @@ package com.jisungin.application.talkroom;
 
 import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
@@ -86,20 +87,17 @@ public class TalkRoomService {
         return TalkRoomFindOneResponse.of(talkRoom, book, user, imageUrls, readingStatus);
     }
 
-    public PageResponse<TalkRoomFindAllResponse> findAllTalkRoom(OffsetLimit offsetLimit, String search, String day,
-                                                                 LocalDateTime now
+    public SliceResponse<TalkRoomFindAllResponse> findAllTalkRoom(OffsetLimit offsetLimit, String search, String day,
+                                                                  LocalDateTime now
     ) {
         List<TalkRoomQueryEntity> talkRooms = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
                 offsetLimit.getLimit(), offsetLimit.getOrder(), search, day, now);
 
         List<Long> talkRoomIds = talkRooms.stream().map(TalkRoomQueryEntity::getId).toList();
-
         Map<Long, List<ReadingStatus>> talkRoomRoleMap = talkRoomRoleRepository.findTalkRoomRoleByIds(talkRoomIds);
 
-        Long totalCount = talkRoomRepository.countTalkRooms(search, day, now);
-
-        return PageResponse.of(talkRooms.size(), totalCount,
-                TalkRoomFindAllResponse.toList(talkRooms, talkRoomRoleMap));
+        return SliceResponse.of(TalkRoomFindAllResponse.toList(talkRooms, talkRoomRoleMap), offsetLimit.getOffset(),
+                offsetLimit.getLimit());
     }
 
     public TalkRoomFindOneResponse findOneTalkRoom(Long talkRoomId) {

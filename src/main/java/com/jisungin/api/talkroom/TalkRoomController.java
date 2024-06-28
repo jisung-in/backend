@@ -6,6 +6,7 @@ import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
@@ -49,7 +50,7 @@ public class TalkRoomController {
     }
 
     @GetMapping("/talk-rooms")
-    public ApiResponse<PageResponse<TalkRoomFindAllResponse>> findAllTalkRoom(
+    public ApiResponse<SliceResponse<TalkRoomFindAllResponse>> findAllTalkRoom(
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "size", required = false, defaultValue = "10") Integer size,
             @RequestParam(value = "order", required = false, defaultValue = "recent") String order,
@@ -58,9 +59,7 @@ public class TalkRoomController {
     ) {
         LocalDateTime now = LocalDateTime.now();
 
-        return ApiResponse.ok(
-                talkRoomService.findAllTalkRoom(OffsetLimit.of(page, size, order), search, day,
-                        now));
+        return ApiResponse.ok(talkRoomService.findAllTalkRoom(OffsetLimit.of(page, size, order), search, day, now));
     }
 
     @GetMapping("/talk-rooms/{talkRoomId}")
