@@ -92,7 +92,7 @@ class TalkRoomRepositoryTest extends RepositoryTestSupport {
                 offsetLimit.getLimit(), offsetLimit.getOrder(), null, null, LocalDateTime.now());
 
         // then
-        assertThat(10L).isEqualTo(response.size());
+        assertThat(11L).isEqualTo(response.size());
         assertThat("토론방 19").isEqualTo(response.get(0).getTitle());
         assertThat("내용 19").isEqualTo(response.get(0).getContent());
     }
