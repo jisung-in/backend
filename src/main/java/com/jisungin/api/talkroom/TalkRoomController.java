@@ -8,6 +8,7 @@ import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
 import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
+import com.jisungin.application.talkroom.request.TalkRoomSearchCondition;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomRelatedBookResponse;
@@ -59,7 +60,8 @@ public class TalkRoomController {
     ) {
         LocalDateTime now = LocalDateTime.now();
 
-        return ApiResponse.ok(talkRoomService.findAllTalkRoom(OffsetLimit.of(page, size, order), search, day, now));
+        return ApiResponse.ok(talkRoomService.findAllTalkRoom(OffsetLimit.of(page, size, order),
+                TalkRoomSearchCondition.of(search, day), now));
     }
 
     @GetMapping("/talk-rooms/{talkRoomId}")

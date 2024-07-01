@@ -34,7 +34,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                                                      String day, LocalDateTime now
     ) {
         return selectFromTalkRoomQueryEntity()
-                .where(searchQuery(search), dataTimeEq(OrderDay.of(day), now))
+                .where(searchQuery(search), dateTimeEq(OrderDay.of(day), now))
                 .offset(offset)
                 .limit(size + 1)
                 .groupBy(talkRoom.id)
@@ -129,7 +129,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         return likeFilter ? talkRoomLike.user.id.eq(userId) : null;
     }
 
-    private BooleanExpression dataTimeEq(OrderDay orderDay, LocalDateTime now) {
+    private BooleanExpression dateTimeEq(OrderDay orderDay, LocalDateTime now) {
         return orderDay != null ? talkRoom.registeredDateTime.goe(orderDay.getDataTime(now))
                 .and(talkRoom.registeredDateTime.loe(now)) : null;
     }
