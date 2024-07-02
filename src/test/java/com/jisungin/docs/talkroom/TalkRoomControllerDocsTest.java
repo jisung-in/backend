@@ -35,6 +35,7 @@ import com.jisungin.application.PageResponse;
 import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
+import com.jisungin.application.talkroom.request.TalkRoomSearchCondition;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomRelatedBookResponse;
@@ -167,7 +168,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .build();
 
         // when
-        given(talkRoomService.findAllTalkRoom(any(OffsetLimit.class), anyString(), anyString(),
+        given(talkRoomService.findAllTalkRoom(any(OffsetLimit.class), any(TalkRoomSearchCondition.class),
                 any(LocalDateTime.class))).willReturn(response);
 
         // then

@@ -9,6 +9,7 @@ import com.jisungin.application.PageResponse;
 import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
+import com.jisungin.application.talkroom.request.TalkRoomSearchCondition;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.domain.ReadingStatus;
@@ -287,9 +288,8 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         }
 
         // when
-
         SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(1, 10, "recent"),
-                null, null, LocalDateTime.now());
+                TalkRoomSearchCondition.of(null, null), LocalDateTime.now());
 
         // then
         assertThat(result.getContent().size()).isEqualTo(10L);
@@ -312,7 +312,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(5, 10, "recent"),
-                null, null, LocalDateTime.now());
+                TalkRoomSearchCondition.of(null, null), LocalDateTime.now());
 
         // then
         assertThat(result.getContent().size()).isEqualTo(10L);
@@ -334,8 +334,9 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         }
 
         // when
-        SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(11, 10, "recent"),
-                null, null, LocalDateTime.now());
+        SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
+                OffsetLimit.of(11, 10, "recent"),
+                TalkRoomSearchCondition.of(null, null), LocalDateTime.now());
 
         // then
         assertThat(result.getContent().size()).isEqualTo(3);
@@ -480,7 +481,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(2, 10, "recent"),
-                null, null, LocalDateTime.now());
+                TalkRoomSearchCondition.of(null, null), LocalDateTime.now());
 
         // then
         assertThat(result.getContent().get(9).getLikeCount()).isEqualTo(5L);
@@ -547,7 +548,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
-                OffsetLimit.of(1, 10, "recommend"), null, null, LocalDateTime.now());
+                OffsetLimit.of(1, 10, "recommend"), TalkRoomSearchCondition.of(null, null), LocalDateTime.now());
 
         // then
         assertThat(result.getContent().get(0).getLikeCount()).isEqualTo(10L);
@@ -616,8 +617,8 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(1, 10), "검색어",
-                null, LocalDateTime.now());
+        SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(1, 10),
+                TalkRoomSearchCondition.of("검색어", null), LocalDateTime.now());
 
         // then
         assertThat(result.getContent().get(0).getTitle()).isEqualTo(talkRoom1.getTitle());
@@ -704,7 +705,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
-                OffsetLimit.of(1, 20, "recent"), null, "1d", now);
+                OffsetLimit.of(1, 20, "recent"), TalkRoomSearchCondition.of(null, "1d"), now);
 
         // then
         assertThat(result.getSize()).isEqualTo(10L);
