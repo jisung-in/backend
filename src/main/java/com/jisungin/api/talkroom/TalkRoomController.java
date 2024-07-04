@@ -9,6 +9,7 @@ import com.jisungin.application.PageResponse;
 import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomSearchCondition;
+import com.jisungin.application.talkroom.request.UserTalkRoomSearchCondition;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomRelatedBookResponse;
@@ -99,9 +100,8 @@ public class TalkRoomController {
             @RequestParam(value = "likedFilter", required = false) boolean likedFilter,
             @Auth Long userId
     ) {
-        return ApiResponse.ok(
-                talkRoomService.findUserTalkRoom(OffsetLimit.of(page, size), userTalkRoomsFilter, commentedFilter,
-                        likedFilter, userId));
+        return ApiResponse.ok(talkRoomService.findUserTalkRoom(OffsetLimit.of(page, size),
+                UserTalkRoomSearchCondition.of(userTalkRoomsFilter, commentedFilter, likedFilter), userId));
     }
 
 }

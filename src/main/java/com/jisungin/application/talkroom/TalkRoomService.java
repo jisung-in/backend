@@ -6,6 +6,7 @@ import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomSearchCondition;
+import com.jisungin.application.talkroom.request.UserTalkRoomSearchCondition;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomQueryEntity;
@@ -88,7 +89,8 @@ public class TalkRoomService {
         return TalkRoomFindOneResponse.of(talkRoom, book, user, imageUrls, readingStatus);
     }
 
-    public SliceResponse<TalkRoomFindAllResponse> findAllTalkRoom(OffsetLimit offsetLimit, TalkRoomSearchCondition condition,
+    public SliceResponse<TalkRoomFindAllResponse> findAllTalkRoom(OffsetLimit offsetLimit,
+                                                                  TalkRoomSearchCondition condition,
                                                                   LocalDateTime now
     ) {
         List<TalkRoomQueryEntity> talkRooms = talkRoomRepository.findAllTalkRoom(offsetLimit.getOffset(),
@@ -169,24 +171,21 @@ public class TalkRoomService {
         talkRoomRepository.delete(talkRoom);
     }
 
-    public PageResponse<TalkRoomFindAllResponse> findUserTalkRoom(OffsetLimit offsetLimit, boolean userTalkRoomsFilter,
-                                                                  boolean commentedFilter, boolean likedFilter,
-                                                                  Long userId
+    public PageResponse<TalkRoomFindAllResponse> findUserTalkRoom(OffsetLimit offsetLimit,
+                                                                  UserTalkRoomSearchCondition condition, Long userId
     ) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         List<TalkRoomQueryEntity> findTalkRoom = talkRoomRepository.findByTalkRoomOwner(offsetLimit.getOffset(),
-                offsetLimit.getLimit(),
-                userTalkRoomsFilter, commentedFilter,
-                likedFilter,
-                user.getId());
+                offsetLimit.getLimit(), condition.isUserTalkRoomFilter(), condition.isCommentedFilter(),
+                condition.isLikedFilter(), user.getId());
 
         Map<Long, List<ReadingStatus>> talkRoomRoleMap = talkRoomRoleRepository.findTalkRoomRoleByIds(
                 findTalkRoom.stream().map(TalkRoomQueryEntity::getId).toList());
 
-        Long totalCount = talkRoomRepository.countTalkRoomsByUserId(user.getId(), userTalkRoomsFilter, commentedFilter,
-                likedFilter);
+        Long totalCount = talkRoomRepository.countTalkRoomsByUserId(user.getId(), condition.isUserTalkRoomFilter(),
+                condition.isCommentedFilter(), condition.isLikedFilter());
 
         return PageResponse.of(findTalkRoom.size(), totalCount,
                 TalkRoomFindAllResponse.toList(findTalkRoom, talkRoomRoleMap));
