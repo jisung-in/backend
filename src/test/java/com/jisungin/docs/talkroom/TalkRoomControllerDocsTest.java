@@ -1,7 +1,6 @@
 package com.jisungin.docs.talkroom;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -36,6 +35,7 @@ import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomSearchCondition;
+import com.jisungin.application.talkroom.request.UserTalkRoomSearchCondition;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomRelatedBookResponse;
@@ -487,7 +487,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .build();
 
         // when
-        given(talkRoomService.findUserTalkRoom(any(OffsetLimit.class), anyBoolean(), anyBoolean(), anyBoolean(),
+        given(talkRoomService.findUserTalkRoom(any(OffsetLimit.class), any(UserTalkRoomSearchCondition.class),
                 anyLong())).willReturn(response);
 
         mockMvc.perform(

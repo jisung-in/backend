@@ -10,6 +10,7 @@ import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomSearchCondition;
+import com.jisungin.application.talkroom.request.UserTalkRoomSearchCondition;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.domain.ReadingStatus;
@@ -732,7 +733,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
-                true, false, false, userA.getId());
+                UserTalkRoomSearchCondition.of(true, false, false), userA.getId());
 
         // then
         assertThat(result.getTotalCount()).isEqualTo(10);
@@ -768,7 +769,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
-                true, false, true, userA.getId());
+                UserTalkRoomSearchCondition.of(true, false, true), userA.getId());
 
         // then
         assertThat(result.getTotalCount()).isEqualTo(5);
@@ -799,7 +800,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
-                false, false, true, userA.getId());
+                UserTalkRoomSearchCondition.of(false, false, true), userA.getId());
 
         // then
         assertThat(result.getTotalCount()).isEqualTo(8);
@@ -831,7 +832,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
-                false, true, false, userA.getId());
+                UserTalkRoomSearchCondition.of(false, true, false), userA.getId());
 
         // then
         assertThat(result.getTotalCount()).isEqualTo(8);
