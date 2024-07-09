@@ -6,8 +6,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
 import com.jisungin.application.talkroom.request.TalkRoomEditServiceRequest;
+import com.jisungin.application.talkroom.request.TalkRoomSearchCondition;
+import com.jisungin.application.talkroom.request.UserTalkRoomSearchCondition;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.domain.ReadingStatus;
@@ -286,35 +289,13 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         }
 
         // when
-
-        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(1, 10, "recent"),
-                null, null, LocalDateTime.now());
-
-        // then
-        assertThat(result.getQueryResponse().size()).isEqualTo(10L);
-        assertThat(result.getQueryResponse().get(0).getTitle()).isEqualTo("토론방 19");
-        assertThat(result.getQueryResponse().get(0).getReadingStatuses().size()).isEqualTo(2);
-    }
-
-    @Test
-    @DisplayName("토크방이 총 103개가 생성 됐을 경우 토크방 개수는 총 103개여야 한다.")
-    void getTalkRoomsPageTotalCount() {
-        // given
-        User user = userRepository.save(createUser());
-        Book book = bookRepository.save(createBook());
-
-        List<TalkRoom> talkRooms = talkRoomRepository.saveAll(createTalkRooms(103, user, book));
-
-        for (TalkRoom t : talkRooms) {
-            createTalkRoomRole(t);
-        }
-
-        // when
-        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(1, 10, "recent"),
-                null, null, LocalDateTime.now());
+        SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(1, 10, "recent"),
+                TalkRoomSearchCondition.of(null, null), LocalDateTime.now());
 
         // then
-        assertThat(result.getTotalCount()).isEqualTo(103);
+        assertThat(result.getContent().size()).isEqualTo(10L);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("토론방 19");
+        assertThat(result.getContent().get(0).getReadingStatuses().size()).isEqualTo(2);
     }
 
     @Test
@@ -331,13 +312,13 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         }
 
         // when
-        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(5, 10, "recent"),
-                null, null, LocalDateTime.now());
+        SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(5, 10, "recent"),
+                TalkRoomSearchCondition.of(null, null), LocalDateTime.now());
 
         // then
-        assertThat(result.getQueryResponse().size()).isEqualTo(10L);
-        assertThat(result.getQueryResponse().get(0).getTitle()).isEqualTo("토론방 62");
-        assertThat(result.getQueryResponse().get(0).getContent()).isEqualTo("내용 62");
+        assertThat(result.getContent().size()).isEqualTo(10L);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("토론방 62");
+        assertThat(result.getContent().get(0).getContent()).isEqualTo("내용 62");
     }
 
     @Test
@@ -354,13 +335,14 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         }
 
         // when
-        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(11, 10, "recent"),
-                null, null, LocalDateTime.now());
+        SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
+                OffsetLimit.of(11, 10, "recent"),
+                TalkRoomSearchCondition.of(null, null), LocalDateTime.now());
 
         // then
-        assertThat(result.getQueryResponse().size()).isEqualTo(3);
-        assertThat(result.getQueryResponse().get(0).getTitle()).isEqualTo("토론방 2");
-        assertThat(result.getQueryResponse().get(0).getContent()).isEqualTo("내용 2");
+        assertThat(result.getContent().size()).isEqualTo(3);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("토론방 2");
+        assertThat(result.getContent().get(0).getContent()).isEqualTo("내용 2");
     }
 
     @Test
@@ -499,11 +481,11 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(2, 10, "recent"),
-                null, null, LocalDateTime.now());
+        SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(2, 10, "recent"),
+                TalkRoomSearchCondition.of(null, null), LocalDateTime.now());
 
         // then
-        assertThat(result.getQueryResponse().get(9).getLikeCount()).isEqualTo(5L);
+        assertThat(result.getContent().get(9).getLikeCount()).isEqualTo(5L);
     }
 
     @Test
@@ -566,11 +548,11 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
-                OffsetLimit.of(1, 10, "recommend"), null, null, LocalDateTime.now());
+        SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
+                OffsetLimit.of(1, 10, "recommend"), TalkRoomSearchCondition.of(null, null), LocalDateTime.now());
 
         // then
-        assertThat(result.getQueryResponse().get(0).getLikeCount()).isEqualTo(10L);
+        assertThat(result.getContent().get(0).getLikeCount()).isEqualTo(10L);
     }
 
     @Test
@@ -636,13 +618,13 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         talkRoomLikeRepository.saveAll(likes);
 
         // when
-        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(1, 10), "검색어",
-                null, LocalDateTime.now());
+        SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(OffsetLimit.of(1, 10),
+                TalkRoomSearchCondition.of("검색어", null), LocalDateTime.now());
 
         // then
-        assertThat(result.getQueryResponse().get(0).getTitle()).isEqualTo(talkRoom1.getTitle());
-        assertThat(result.getQueryResponse().get(1).getTitle()).isEqualTo(talkRoom2.getTitle());
-        assertThat(result.getQueryResponse().get(2).getTitle()).isEqualTo(talkRoom3.getTitle());
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo(talkRoom1.getTitle());
+        assertThat(result.getContent().get(1).getTitle()).isEqualTo(talkRoom2.getTitle());
+        assertThat(result.getContent().get(2).getTitle()).isEqualTo(talkRoom3.getTitle());
     }
 
     @Test
@@ -665,17 +647,6 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // then
         assertThat(response.getImages().get(0)).isEqualTo("image.png");
-    }
-
-    @Test
-    @DisplayName("최근 의견이 달린 토론방을 조회 할때 의견이 없다면 빈 값을 보낸다.")
-    void fetchRecentCommentedDiscussionsWithCommentEmpty() throws Exception {
-        // when
-        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
-                OffsetLimit.of(1, 3, "recent_comment"), null, null, LocalDateTime.now());
-
-        // then
-        assertThat(result.getQueryResponse()).isEmpty();
     }
 
     @Test
@@ -734,11 +705,11 @@ class TalkRoomServiceTest extends ServiceTestSupport {
         }
 
         // when
-        PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
-                OffsetLimit.of(1, 20, "recent"), null, "1d", now);
+        SliceResponse<TalkRoomFindAllResponse> result = talkRoomService.findAllTalkRoom(
+                OffsetLimit.of(1, 20, "recent"), TalkRoomSearchCondition.of(null, "1d"), now);
 
         // then
-        assertThat(result.getTotalCount()).isEqualTo(10L);
+        assertThat(result.getSize()).isEqualTo(10L);
     }
 
     @Test
@@ -762,7 +733,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
-                true, false, false, userA.getId());
+                UserTalkRoomSearchCondition.of(true, false, false), userA.getId());
 
         // then
         assertThat(result.getTotalCount()).isEqualTo(10);
@@ -798,7 +769,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
-                true, false, true, userA.getId());
+                UserTalkRoomSearchCondition.of(true, false, true), userA.getId());
 
         // then
         assertThat(result.getTotalCount()).isEqualTo(5);
@@ -829,7 +800,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
-                false, false, true, userA.getId());
+                UserTalkRoomSearchCondition.of(false, false, true), userA.getId());
 
         // then
         assertThat(result.getTotalCount()).isEqualTo(8);
@@ -861,7 +832,7 @@ class TalkRoomServiceTest extends ServiceTestSupport {
 
         // when
         PageResponse<TalkRoomFindAllResponse> result = talkRoomService.findUserTalkRoom(OffsetLimit.of(1, 10),
-                false, true, false, userA.getId());
+                UserTalkRoomSearchCondition.of(false, true, false), userA.getId());
 
         // then
         assertThat(result.getTotalCount()).isEqualTo(8);

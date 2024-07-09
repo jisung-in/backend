@@ -1,6 +1,6 @@
 package com.jisungin.application.book.response;
 
-import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
+import com.jisungin.application.talkroom.response.TalkRoomQueryEntity;
 import com.jisungin.domain.ReadingStatus;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,7 @@ public class BookRelatedTalkRoomResponse {
         this.readingStatuses = readingStatuses;
     }
 
-    public static List<BookRelatedTalkRoomResponse> create(List<TalkRoomQueryResponse> talkRooms,
+    public static List<BookRelatedTalkRoomResponse> create(List<TalkRoomQueryEntity> talkRooms,
                                                            Map<Long, List<ReadingStatus>> readingStatuses) {
         return talkRooms.stream()
                 .map(talkRoom -> {
@@ -54,7 +54,7 @@ public class BookRelatedTalkRoomResponse {
     }
 
     private static List<String> extractReadingStatuses(Map<Long, List<ReadingStatus>> readingStatuses,
-                                                       TalkRoomQueryResponse talkRoom) {
+                                                       TalkRoomQueryEntity talkRoom) {
         return readingStatuses.get(talkRoom.getId()).stream()
                 .map(ReadingStatus::getText)
                 .toList();

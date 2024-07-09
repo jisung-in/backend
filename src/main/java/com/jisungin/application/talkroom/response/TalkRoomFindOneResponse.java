@@ -73,7 +73,7 @@ public class TalkRoomFindOneResponse {
                 .build();
     }
 
-    public static TalkRoomFindOneResponse of(TalkRoomQueryResponse talkRoom, List<String> images,
+    public static TalkRoomFindOneResponse of(TalkRoomQueryEntity talkRoom, List<String> images,
                                              List<ReadingStatus> readingStatuses) {
         return TalkRoomFindOneResponse.builder()
                 .id(talkRoom.getId())

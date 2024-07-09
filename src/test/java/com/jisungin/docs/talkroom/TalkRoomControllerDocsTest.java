@@ -1,7 +1,6 @@
 package com.jisungin.docs.talkroom;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -32,8 +31,11 @@ import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
 import com.jisungin.application.talkroom.request.TalkRoomCreateServiceRequest;
+import com.jisungin.application.talkroom.request.TalkRoomSearchCondition;
+import com.jisungin.application.talkroom.request.UserTalkRoomSearchCondition;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomRelatedBookResponse;
@@ -156,14 +158,17 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
         // given
         List<TalkRoomFindAllResponse> talkRoomFindAllResponses = createTalkRoomFindAllResponses();
 
-        PageResponse<TalkRoomFindAllResponse> response = PageResponse.<TalkRoomFindAllResponse>builder()
-                .queryResponse(talkRoomFindAllResponses)
+        SliceResponse<TalkRoomFindAllResponse> response = SliceResponse.<TalkRoomFindAllResponse>builder()
+                .content(talkRoomFindAllResponses)
+                .hasContent(true)
+                .first(true)
+                .last(false)
+                .number(1)
                 .size(10)
-                .totalCount(10)
                 .build();
 
         // when
-        given(talkRoomService.findAllTalkRoom(any(OffsetLimit.class), anyString(), anyString(),
+        given(talkRoomService.findAllTalkRoom(any(OffsetLimit.class), any(TalkRoomSearchCondition.class),
                 any(LocalDateTime.class))).willReturn(response);
 
         // then
@@ -203,36 +208,42 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                                         .description("메시지"),
                                 fieldWithPath("data").type(JsonFieldType.OBJECT)
                                         .description("응답 데이터"),
-                                fieldWithPath("data.totalCount").type(JsonFieldType.NUMBER)
-                                        .description("토론방 총 개수"),
                                 fieldWithPath("data.size").type(JsonFieldType.NUMBER)
                                         .description("토론방 반환 사이즈"),
-                                fieldWithPath("data.queryResponse").type(JsonFieldType.ARRAY)
+                                fieldWithPath("data.hasContent").type(JsonFieldType.BOOLEAN)
+                                        .description("데이터 존재 여부"),
+                                fieldWithPath("data.number").type(NUMBER)
+                                        .description("현재 페이지 번호"),
+                                fieldWithPath("data.isFirst").type(JsonFieldType.BOOLEAN)
+                                        .description("첫 번째 페이지 여부"),
+                                fieldWithPath("data.isLast").type(JsonFieldType.BOOLEAN)
+                                        .description("마지막 페이지 여부"),
+                                fieldWithPath("data.content[]").type(JsonFieldType.ARRAY)
                                         .description("토론방 데이터"),
-                                fieldWithPath("data.queryResponse[].id").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.content[].id").type(JsonFieldType.NUMBER)
                                         .description("토론방 ID"),
-                                fieldWithPath("data.queryResponse[].profileImage").type(JsonFieldType.STRING)
+                                fieldWithPath("data.content[].profileImage").type(JsonFieldType.STRING)
                                         .description("유저 이미지 URL"),
-                                fieldWithPath("data.queryResponse[].username").type(JsonFieldType.STRING)
+                                fieldWithPath("data.content[].username").type(JsonFieldType.STRING)
                                         .description("유저 이름"),
-                                fieldWithPath("data.queryResponse[].title").type(JsonFieldType.STRING)
+                                fieldWithPath("data.content[].title").type(JsonFieldType.STRING)
                                         .description("토론방 제목"),
-                                fieldWithPath("data.queryResponse[].content").type(JsonFieldType.STRING)
+                                fieldWithPath("data.content[].content").type(JsonFieldType.STRING)
                                         .description("토론방 본문"),
-                                fieldWithPath("data.queryResponse[].bookName").type(JsonFieldType.STRING)
+                                fieldWithPath("data.content[].bookName").type(JsonFieldType.STRING)
                                         .description("책 제목"),
-                                fieldWithPath("data.queryResponse[].bookAuthor").type(JsonFieldType.STRING)
+                                fieldWithPath("data.content[].bookAuthor").type(JsonFieldType.STRING)
                                         .description("책 저자"),
-                                fieldWithPath("data.queryResponse[].bookThumbnail").type(JsonFieldType.STRING)
+                                fieldWithPath("data.content[].bookThumbnail").type(JsonFieldType.STRING)
                                         .description("책 이미지 URL"),
-                                fieldWithPath("data.queryResponse[].likeCount").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.content[].likeCount").type(JsonFieldType.NUMBER)
                                         .description("토론방 좋아요 개수"),
-                                fieldWithPath("data.queryResponse[].readingStatuses").type(JsonFieldType.ARRAY)
+                                fieldWithPath("data.content[].readingStatuses").type(JsonFieldType.ARRAY)
                                         .description("토론방 참가 조건"),
-                                fieldWithPath("data.queryResponse[].registeredDateTime").type(
+                                fieldWithPath("data.content[].registeredDateTime").type(
                                                 JsonFieldType.ARRAY)
                                         .description("토론방 생성 시간"),
-                                fieldWithPath("data.queryResponse[].creatorId").type(JsonFieldType.NUMBER)
+                                fieldWithPath("data.content[].creatorId").type(JsonFieldType.NUMBER)
                                         .description("토론방 생성자 ID")
                         )
                 ));
@@ -476,7 +487,7 @@ public class TalkRoomControllerDocsTest extends RestDocsSupport {
                 .build();
 
         // when
-        given(talkRoomService.findUserTalkRoom(any(OffsetLimit.class), anyBoolean(), anyBoolean(), anyBoolean(),
+        given(talkRoomService.findUserTalkRoom(any(OffsetLimit.class), any(UserTalkRoomSearchCondition.class),
                 anyLong())).willReturn(response);
 
         mockMvc.perform(

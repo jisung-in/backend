@@ -6,7 +6,10 @@ import com.jisungin.api.talkroom.request.TalkRoomCreateRequest;
 import com.jisungin.api.talkroom.request.TalkRoomEditRequest;
 import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.PageResponse;
+import com.jisungin.application.SliceResponse;
 import com.jisungin.application.talkroom.TalkRoomService;
+import com.jisungin.application.talkroom.request.TalkRoomSearchCondition;
+import com.jisungin.application.talkroom.request.UserTalkRoomSearchCondition;
 import com.jisungin.application.talkroom.response.TalkRoomFindAllResponse;
 import com.jisungin.application.talkroom.response.TalkRoomFindOneResponse;
 import com.jisungin.application.talkroom.response.TalkRoomRelatedBookResponse;
@@ -49,7 +52,7 @@ public class TalkRoomController {
     }
 
     @GetMapping("/talk-rooms")
-    public ApiResponse<PageResponse<TalkRoomFindAllResponse>> findAllTalkRoom(
+    public ApiResponse<SliceResponse<TalkRoomFindAllResponse>> findAllTalkRoom(
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "size", required = false, defaultValue = "10") Integer size,
             @RequestParam(value = "order", required = false, defaultValue = "recent") String order,
@@ -58,9 +61,8 @@ public class TalkRoomController {
     ) {
         LocalDateTime now = LocalDateTime.now();
 
-        return ApiResponse.ok(
-                talkRoomService.findAllTalkRoom(OffsetLimit.of(page, size, order), search, day,
-                        now));
+        return ApiResponse.ok(talkRoomService.findAllTalkRoom(OffsetLimit.of(page, size, order),
+                TalkRoomSearchCondition.of(search, day), now));
     }
 
     @GetMapping("/talk-rooms/{talkRoomId}")
@@ -98,9 +100,8 @@ public class TalkRoomController {
             @RequestParam(value = "likedFilter", required = false) boolean likedFilter,
             @Auth Long userId
     ) {
-        return ApiResponse.ok(
-                talkRoomService.findUserTalkRoom(OffsetLimit.of(page, size), userTalkRoomsFilter, commentedFilter,
-                        likedFilter, userId));
+        return ApiResponse.ok(talkRoomService.findUserTalkRoom(OffsetLimit.of(page, size),
+                UserTalkRoomSearchCondition.of(userTalkRoomsFilter, commentedFilter, likedFilter), userId));
     }
 
 }

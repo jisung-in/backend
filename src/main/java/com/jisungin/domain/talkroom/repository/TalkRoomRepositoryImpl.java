@@ -3,16 +3,11 @@ package com.jisungin.domain.talkroom.repository;
 import static com.jisungin.domain.book.QBook.book;
 import static com.jisungin.domain.comment.QComment.comment;
 import static com.jisungin.domain.talkroom.QTalkRoom.talkRoom;
-import static com.jisungin.domain.talkroom.repository.OrderType.RECENT;
-import static com.jisungin.domain.talkroom.repository.OrderType.RECENT_COMMENT;
-import static com.jisungin.domain.talkroom.repository.OrderType.RECOMMEND;
 import static com.jisungin.domain.talkroomlike.QTalkRoomLike.talkRoomLike;
 import static com.jisungin.domain.user.QUser.user;
 
-import com.jisungin.application.talkroom.response.QTalkRoomQueryResponse;
-import com.jisungin.application.talkroom.response.TalkRoomQueryResponse;
-import com.jisungin.domain.talkroom.TalkRoom;
-import com.querydsl.core.types.OrderSpecifier;
+import com.jisungin.application.talkroom.response.QTalkRoomQueryEntity;
+import com.jisungin.application.talkroom.response.TalkRoomQueryEntity;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -25,45 +20,32 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
+    // 토크방 단건 조회
     @Override
-    public List<TalkRoomQueryResponse> findAllTalkRoom(Integer offset, Integer size, String order, String search,
-                                                       String day,
-                                                       LocalDateTime now) {
-        return findTalkRoomBySearch(offset, size, order, search, day, now);
-    }
-
-    @Override
-    public Long countTalkRooms(String search, String day, LocalDateTime now) {
-        return queryFactory
-                .select(talkRoom.count())
-                .from(talkRoom)
-                .join(talkRoom.user, user)
-                .join(talkRoom.book, book)
-                .where(searchQuery(search), dataTimeEq(OrderDay.of(day), now))
+    public TalkRoomQueryEntity findOneTalkRoom(Long talkRoomId) {
+        return selectFromTalkRoomQueryEntity()
+                .where(talkRoom.id.eq(talkRoomId))
                 .fetchOne();
     }
 
-    // 책과 연관된 TalkRoomResponse 조회
+    // 토크방 페이징 조회
     @Override
-    public List<TalkRoomQueryResponse> findTalkRoomsRelatedBook(String isbn, long offset, Integer size) {
-        return queryFactory.select(new QTalkRoomQueryResponse(
-                        talkRoom.id,
-                        user.profileImage,
-                        user.name.as("username"),
-                        talkRoom.title,
-                        talkRoom.content,
-                        book.isbn.as("bookIsbn"),
-                        book.title.as("bookName"),
-                        book.authors.as("bookAuthor"),
-                        book.thumbnail.as("bookThumbnail"),
-                        talkRoomLike.count().as("likeCount"),
-                        talkRoom.registeredDateTime.as("registeredDateTime"),
-                        user.id.as("creatorId")
-                ))
-                .from(talkRoom)
-                .join(talkRoom.user, user)
-                .join(talkRoom.book, book)
-                .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
+    public List<TalkRoomQueryEntity> findAllTalkRoom(Integer offset, Integer size, String order, String search,
+                                                     String day, LocalDateTime now
+    ) {
+        return selectFromTalkRoomQueryEntity()
+                .where(searchQuery(search), dateTimeEq(OrderDay.of(day), now))
+                .offset(offset)
+                .limit(size + 1)
+                .groupBy(talkRoom.id)
+                .orderBy(TalkRoomOrderType.getOrderSpecifierByName(order))
+                .fetch();
+    }
+
+    // 도서와 연관된 토크룸 페이징 조회
+    @Override
+    public List<TalkRoomQueryEntity> findTalkRoomsRelatedBook(String isbn, long offset, Integer size) {
+        return selectFromTalkRoomQueryEntity()
                 .where(book.isbn.eq(isbn))
                 .groupBy(talkRoom.id)
                 .offset(offset)
@@ -72,6 +54,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .fetch();
     }
 
+    // 도서와 연관된 토크룸 페이징 개수 조회
     public Long countTalkRoomsRelatedBook(String isbn) {
         return queryFactory.select(talkRoom.count())
                 .from(talkRoom)
@@ -80,34 +63,12 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .fetchOne();
     }
 
-    // 토크룸 단건 조회
+    // 사용자 토크붕 페이징 조회
     @Override
-    public TalkRoomQueryResponse findOneTalkRoom(Long talkRoomId) {
-        return findTalkRoomByTalkRoomId(talkRoomId);
-    }
-
-    @Override
-    public List<TalkRoomQueryResponse> findByTalkRoomOwner(Integer offset, Integer size, boolean userTalkRoomsFilter,
-                                                           boolean commentFilter,
-                                                           boolean likeFilter, Long userId) {
-        return queryFactory.select(new QTalkRoomQueryResponse(
-                        talkRoom.id,
-                        user.profileImage,
-                        user.name.as("username"),
-                        talkRoom.title,
-                        talkRoom.content,
-                        book.isbn.as("bookIsbn"),
-                        book.title.as("bookName"),
-                        book.authors.as("bookAuthor"),
-                        book.thumbnail.as("bookThumbnail"),
-                        talkRoomLike.count().as("likeCount"),
-                        talkRoom.registeredDateTime.as("registeredDateTime"),
-                        user.id.as("creatorId")
-                ))
-                .from(talkRoom)
-                .join(talkRoom.user, user)
-                .join(talkRoom.book, book)
-                .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
+    public List<TalkRoomQueryEntity> findByTalkRoomOwner(Integer offset, Integer size, boolean userTalkRoomsFilter,
+                                                         boolean commentFilter, boolean likeFilter, Long userId
+    ) {
+        return selectFromTalkRoomQueryEntity()
                 .leftJoin(comment).on(talkRoom.eq(comment.talkRoom))
                 .where(userTalkRoomEq(userTalkRoomsFilter, userId), commentEq(commentFilter, userId),
                         likeEq(likeFilter, userId))
@@ -118,6 +79,7 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .fetch();
     }
 
+    // 사용자 토크방 페이징 개수 조회
     @Override
     public Long countTalkRoomsByUserId(Long userId, boolean userTalkRoomsFilter, boolean commentFilter,
                                        boolean likeFilter) {
@@ -133,11 +95,8 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                 .fetchOne();
     }
 
-    // 토크룸 페이징 조회 쿼리
-
-    private List<TalkRoomQueryResponse> findTalkRoomBySearch(long offset, int size, String order, String search,
-                                                             String day, LocalDateTime now) {
-        JPAQuery<TalkRoomQueryResponse> jpaQuery = queryFactory.select(new QTalkRoomQueryResponse(
+    private JPAQuery<TalkRoomQueryEntity> selectFromTalkRoomQueryEntity() {
+        return queryFactory.select(new QTalkRoomQueryEntity(
                         talkRoom.id.as("talkRoomId"),
                         user.profileImage,
                         user.name.as("userName"),
@@ -150,23 +109,12 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
                         talkRoomLike.count().as("likeCount"),
                         talkRoom.registeredDateTime.as("registeredDateTime"),
                         user.id.as("creatorId")
+
                 ))
                 .from(talkRoom)
                 .join(talkRoom.user, user)
                 .join(talkRoom.book, book)
-                .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
-                .from(talkRoom);
-
-        addJoinByOrder(jpaQuery, OrderType.convertToOrderType(order));
-
-        List<TalkRoomQueryResponse> response = jpaQuery.groupBy(talkRoom.id)
-                .where(searchQuery(search), dataTimeEq(OrderDay.of(day), now))
-                .offset(offset)
-                .limit(size)
-                .orderBy(condition(OrderType.convertToOrderType(order)))
-                .fetch();
-
-        return response;
+                .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom));
     }
 
     private BooleanExpression userTalkRoomEq(boolean userTalkRoomsFilter, Long userId) {
@@ -181,55 +129,13 @@ public class TalkRoomRepositoryImpl implements TalkRoomRepositoryCustom {
         return likeFilter ? talkRoomLike.user.id.eq(userId) : null;
     }
 
-    private void addJoinByOrder(JPAQuery<?> jpaQuery, OrderType orderType) {
-        if (RECENT_COMMENT.equals(orderType)) {
-            jpaQuery
-                    .leftJoin(comment).on(talkRoom.eq(comment.talkRoom));
-        }
-    }
-
-    private BooleanExpression dataTimeEq(OrderDay orderDay, LocalDateTime now) {
+    private BooleanExpression dateTimeEq(OrderDay orderDay, LocalDateTime now) {
         return orderDay != null ? talkRoom.registeredDateTime.goe(orderDay.getDataTime(now))
                 .and(talkRoom.registeredDateTime.loe(now)) : null;
     }
 
     private BooleanExpression searchQuery(String search) {
         return search != null ? talkRoom.title.contains(search) : null;
-    }
-
-    // 토크룸 단건 조회 쿼리
-    private TalkRoomQueryResponse findTalkRoomByTalkRoomId(Long talkRoomId) {
-        return queryFactory.select(new QTalkRoomQueryResponse(
-                        talkRoom.id.as("id"),
-                        user.profileImage,
-                        user.name.as("username"),
-                        talkRoom.title,
-                        talkRoom.content,
-                        book.isbn.as("bookIsbn"),
-                        book.title,
-                        book.authors.as("bookAuthor"),
-                        book.thumbnail.as("bookImage"),
-                        talkRoomLike.count().as("likeCount"),
-                        talkRoom.registeredDateTime.as("registeredDateTime"),
-                        user.id.as("creatorId")
-                ))
-                .from(talkRoom)
-                .join(talkRoom.user, user)
-                .join(talkRoom.book, book)
-                .leftJoin(talkRoomLike).on(talkRoom.eq(talkRoomLike.talkRoom))
-                .where(talkRoom.id.eq(talkRoomId))
-                .fetchOne();
-    }
-
-    private OrderSpecifier<?> condition(OrderType orderType) {
-        if (RECENT.equals(orderType)) {
-            return talkRoom.createDateTime.desc();
-        } else if (RECOMMEND.equals(orderType)) {
-            return talkRoomLike.count().desc();
-        } else if (RECENT_COMMENT.equals(orderType)) {
-            return comment.createDateTime.max().desc();
-        }
-        return OrderByNull.DEFAULT;
     }
 
 }
