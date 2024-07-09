@@ -145,6 +145,20 @@ jacoco {
 
 jacocoTestReport {
     dependsOn test
+
+    afterEvaluate { // report 작성 시 특정 파일 제외
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['**/JisunginApplication',
+                              '**/*Request*',
+                              '**/*Response*',
+                              'com/jisungin/config/**',
+                              'com/jisungin/exception/**',
+                              'com/jisungin/infra/**',
+                              'com/jisungin/trace/**'])
+        }))
+    }
+
     reports {
         xml.required.set(true)
     }
