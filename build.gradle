@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.1.9'
     id 'io.spring.dependency-management' version '1.1.4'
     id "org.asciidoctor.jvm.convert" version "3.3.2"
+    id 'jacoco'
 }
 
 group = 'com'
@@ -128,6 +129,38 @@ bootJar {
     dependsOn asciidoctor // asciidoctor 이후 bootJar 수행
     from("${asciidoctor.outputDir}") {
         into 'static/docs'
+    }
+}
+// -------------------
+
+// Jacoco 설정 -------------------
+test {
+    finalizedBy jacocoTestReport
+    useJUnitPlatform()
+}
+
+jacoco {
+    toolVersion = "0.8.8"
+}
+
+jacocoTestReport {
+    dependsOn test
+
+    afterEvaluate { // report 작성 시 특정 파일 제외
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['**/JisunginApplication',
+                              '**/*Request*',
+                              '**/*Response*',
+                              'com/jisungin/config/**',
+                              'com/jisungin/exception/**',
+                              'com/jisungin/infra/**',
+                              'com/jisungin/trace/**'])
+        }))
+    }
+
+    reports {
+        xml.required.set(true)
     }
 }
 // -------------------
