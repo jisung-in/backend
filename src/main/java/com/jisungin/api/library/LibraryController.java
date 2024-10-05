@@ -3,20 +3,18 @@ package com.jisungin.api.library;
 import com.jisungin.api.ApiResponse;
 import com.jisungin.api.library.request.LibraryCreateRequest;
 import com.jisungin.api.library.request.LibraryEditRequest;
+import com.jisungin.api.library.request.UserReadingStatusGetAllRequest;
 import com.jisungin.api.support.Auth;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.library.LibraryService;
 import com.jisungin.application.library.response.LibraryResponse;
+import com.jisungin.application.library.response.UserReadingStatusResponse;
 import jakarta.validation.Valid;
+
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -56,4 +54,13 @@ public class LibraryController {
         return ApiResponse.ok();
     }
 
+    @GetMapping("/users/libraries/statuses")
+    public ApiResponse<PageResponse<UserReadingStatusResponse>> getReadingStatuses(
+            @ModelAttribute UserReadingStatusGetAllRequest request,
+            @Auth Long userId
+    ) {
+        PageResponse<UserReadingStatusResponse> response = libraryService.getUserReadingStatuses(userId, request.toService());
+
+        return ApiResponse.ok(response);
+    }
 }

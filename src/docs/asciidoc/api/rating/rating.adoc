@@ -50,15 +50,15 @@ include::{snippets}/rating/delete/path-parameters.adoc[]
 include::{snippets}/rating/delete/http-response.adoc[]
 include::{snippets}/rating/delete/response-fields.adoc[]
 
-[[rating-findAll]]
-=== 별점 페이지 조회
+[[rating-users]]
+=== 유저 별점 페이지 조회
 
 ==== HTTP Request
 
-include::{snippets}/rating/findAll/http-request.adoc[]
-include::{snippets}/rating/findAll/query-parameters.adoc[]
+include::{snippets}/rating/user-ratings/http-request.adoc[]
+include::{snippets}/rating/user-ratings/query-parameters.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/rating/findAll/http-response.adoc[]
-include::{snippets}/rating/findAll/response-fields.adoc[]
+include::{snippets}/rating/user-ratings/http-response.adoc[]
+include::{snippets}/rating/user-ratings/response-fields.adoc[]

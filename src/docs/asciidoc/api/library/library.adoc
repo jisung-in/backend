@@ -36,11 +36,11 @@ include::{snippets}/library/delete/http-request.adoc[]
 include::{snippets}/library/delete/http-response.adoc[]
 include::{snippets}/library/delete/response-fields.adoc[]
 
-=== 독서 상태 페이지 조회
+=== 유저 독서 상태 페이지 조회
 ==== HTTP Request
-include::{snippets}/library/get-status/http-request.adoc[]
-include::{snippets}/library/get-status/query-parameters.adoc[]
+include::{snippets}/library/user-statuses/http-request.adoc[]
+include::{snippets}/library/user-statuses/query-parameters.adoc[]
 
 ==== HTTP Response
-include::{snippets}/library/get-status/http-response.adoc[]
-include::{snippets}/library/get-status/response-fields.adoc[]
+include::{snippets}/library/user-statuses/http-response.adoc[]
+include::{snippets}/library/user-statuses/response-fields.adoc[]

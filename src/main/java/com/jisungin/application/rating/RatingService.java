@@ -1,9 +1,12 @@
 package com.jisungin.application.rating;
 
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.rating.request.RatingCreateServiceRequest;
 import com.jisungin.application.rating.request.RatingUpdateServiceRequest;
 import com.jisungin.application.rating.response.RatingCreateResponse;
 import com.jisungin.application.rating.response.RatingGetOneResponse;
+import com.jisungin.application.rating.response.RatingGetResponse;
+import com.jisungin.application.rating.request.UserRatingGetAllServiceRequest;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.rating.Rating;
@@ -16,7 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.jisungin.exception.ErrorCode.*;
+import static com.jisungin.exception.ErrorCode.RATING_ALREADY_EXIST;
+import static com.jisungin.exception.ErrorCode.USER_NOT_FOUND;
 
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -88,4 +92,11 @@ public class RatingService {
         ratingRepository.deleteById(ratingId);
     }
 
+    public PageResponse<RatingGetResponse> getUserRatings(Long userId, UserRatingGetAllServiceRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        return ratingRepository.getAllRatingOrderBy(
+                user.getId(), request.getOrderType(), request.getRating(), request.getSize(), request.getOffset());
+    }
 }

@@ -3,12 +3,17 @@ package com.jisungin.domain.reviewlike;
 import com.jisungin.domain.review.Review;
 import com.jisungin.domain.user.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@ToString
+@Table(name = "review_like", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "review_id"})
+})
 public class ReviewLike {
 
     @Id
@@ -36,5 +41,4 @@ public class ReviewLike {
                 .review(review)
                 .build();
     }
-
 }

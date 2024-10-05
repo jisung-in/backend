@@ -1,9 +1,9 @@
 package com.jisungin.docs.review;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
@@ -18,21 +18,31 @@ import static org.springframework.restdocs.request.RequestDocumentation.paramete
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jisungin.api.review.ReviewController;
 import com.jisungin.api.review.request.ReviewCreateRequest;
 import com.jisungin.application.OffsetLimit;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.SliceResponse;
 import com.jisungin.application.review.ReviewService;
+import com.jisungin.application.review.response.ReviewContentGetAllResponse;
+import com.jisungin.application.review.response.ReviewContentResponse;
 import com.jisungin.application.review.response.ReviewWithRatingResponse;
+import com.jisungin.application.review.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.docs.RestDocsSupport;
+
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 public class ReviewControllerDocsTest extends RestDocsSupport {
 
@@ -230,4 +240,113 @@ public class ReviewControllerDocsTest extends RestDocsSupport {
                 ));
     }
 
+    @DisplayName("유저 한줄평 페이징 조회 API")
+    @Test
+    void getUserReviews() throws Exception {
+        List<ReviewContentResponse> reviewGetAllResponse = createReviewFindAllResponse();
+        List<Long> likeReviewIds = createLikeReviewIds();
+
+        PageResponse<ReviewContentResponse> reviewContents = PageResponse.<ReviewContentResponse>builder()
+                .size(10)
+                .totalCount(10)
+                .queryResponse(reviewGetAllResponse)
+                .build();
+
+        given(reviewService.getReviewContents(anyLong(), any(ReviewContentGetAllServiceRequest.class)))
+                .willReturn(ReviewContentGetAllResponse.of(reviewContents, likeReviewIds));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v1/users/reviews")
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("order", "rating_asc")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print())
+                .andDo(document("review/user-reviews",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        queryParameters(
+                                parameterWithName("page")
+                                        .description("페이지 번호"),
+                                parameterWithName("size")
+                                        .description("페이지 사이즈"),
+                                parameterWithName("order")
+                                        .description(
+                                                "정렬 기준 : date(날짜순), rating_asc(별점 오름차), rating_desc(별점 내림차), " +
+                                                        "rating_avg_asc(별점 평균 오름차), rating_avg_desc(별점 평균 내림차)")
+                        ),
+                        responseFields(
+                                fieldWithPath("code").type(JsonFieldType.NUMBER)
+                                        .description("코드"),
+                                fieldWithPath("status").type(JsonFieldType.STRING)
+                                        .description("상태"),
+                                fieldWithPath("message").type(JsonFieldType.STRING)
+                                        .description("메시지"),
+                                fieldWithPath("data").type(JsonFieldType.OBJECT)
+                                        .description("응답 데이터"),
+                                fieldWithPath("data.reviewContents").type(JsonFieldType.OBJECT)
+                                        .description("리뷰 컨텐츠"),
+                                fieldWithPath("data.reviewContents.queryResponse").type(JsonFieldType.ARRAY)
+                                        .description("리뷰 목록"),
+                                fieldWithPath("data.reviewContents.queryResponse[].reviewId").type(JsonFieldType.NUMBER)
+                                        .description("리뷰 ID"),
+                                fieldWithPath("data.reviewContents.queryResponse[].userImage").type(
+                                                JsonFieldType.STRING)
+                                        .description("유저 프로필 이미지"),
+                                fieldWithPath("data.reviewContents.queryResponse[].userName").type(JsonFieldType.STRING)
+                                        .description("유저 이름"),
+                                fieldWithPath("data.reviewContents.queryResponse[].rating").type(JsonFieldType.NUMBER)
+                                        .description("별점"),
+                                fieldWithPath("data.reviewContents.queryResponse[].content").type(JsonFieldType.STRING)
+                                        .description("리뷰 내용"),
+                                fieldWithPath("data.reviewContents.queryResponse[].isbn").type(JsonFieldType.STRING)
+                                        .description("책 ISBN"),
+                                fieldWithPath("data.reviewContents.queryResponse[].title").type(JsonFieldType.STRING)
+                                        .description("책 제목"),
+                                fieldWithPath("data.reviewContents.queryResponse[].bookImage").type(JsonFieldType.STRING)
+                                        .description("책 표지"),
+                                fieldWithPath("data.reviewContents.queryResponse[].authors").type(JsonFieldType.STRING)
+                                        .description("책 저자"),
+                                fieldWithPath("data.reviewContents.queryResponse[].publisher").type(JsonFieldType.STRING)
+                                        .description("책 출판사"),
+                                fieldWithPath("data.reviewContents.queryResponse[].likeCount").type(JsonFieldType.NUMBER)
+                                        .description("좋아요 총개수"),
+                                fieldWithPath("data.reviewContents.totalCount").type(JsonFieldType.NUMBER)
+                                        .description("총 리뷰 개수"),
+                                fieldWithPath("data.reviewContents.size").type(JsonFieldType.NUMBER)
+                                        .description("해당 페이지 리뷰 개수"),
+                                fieldWithPath("data.userLikes").type(JsonFieldType.ARRAY)
+                                        .description("유저가 좋아요한 리뷰 ID 목록")
+                        )
+                ));
+    }
+
+    private List<ReviewContentResponse> createReviewFindAllResponse() {
+        return IntStream.range(0, 10)
+                .mapToObj(i -> ReviewContentResponse.builder()
+                        .reviewId(i + 1L)
+                        .userImage("userImage" + i)
+                        .userName("name" + i)
+                        .rating(i % 5.0 + 1)
+                        .content("content" + i)
+                        .isbn(String.valueOf(i))
+                        .title("title" + i)
+                        .bookImage("bookImage" + i)
+                        .authors("저자" + i)
+                        .publisher("출판사" + i)
+                        .likeCount((long) i)
+                        .build())
+                .toList();
+    }
+
+    private List<Long> createLikeReviewIds() {
+        return IntStream.rangeClosed(1, 5)
+                .mapToLong(i -> i)
+                .boxed()
+                .collect(Collectors.toList());
+    }
 }

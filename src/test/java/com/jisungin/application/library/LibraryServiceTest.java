@@ -1,30 +1,41 @@
 package com.jisungin.application.library;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import com.jisungin.ServiceTestSupport;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.library.request.LibraryCreateServiceRequest;
 import com.jisungin.application.library.request.LibraryEditServiceRequest;
 import com.jisungin.application.library.response.LibraryResponse;
+import com.jisungin.application.library.response.UserReadingStatusResponse;
+import com.jisungin.application.library.request.UserReadingStatusGetAllServiceRequest;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
 import com.jisungin.domain.library.Library;
+import com.jisungin.domain.library.ReadingStatusOrderType;
 import com.jisungin.domain.library.repository.LibraryRepository;
+import com.jisungin.domain.rating.Rating;
+import com.jisungin.domain.rating.repository.RatingRepository;
 import com.jisungin.domain.user.OauthId;
 import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static com.jisungin.domain.ReadingStatus.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class LibraryServiceTest extends ServiceTestSupport {
 
@@ -35,6 +46,9 @@ public class LibraryServiceTest extends ServiceTestSupport {
     private BookRepository bookRepository;
 
     @Autowired
+    private RatingRepository ratingRepository;
+
+    @Autowired
     private LibraryRepository libraryRepository;
 
     @Autowired
@@ -43,6 +57,7 @@ public class LibraryServiceTest extends ServiceTestSupport {
     @AfterEach
     public void tearDown() {
         libraryRepository.deleteAllInBatch();
+        ratingRepository.deleteAllInBatch();
         bookRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
     }
@@ -353,6 +368,38 @@ public class LibraryServiceTest extends ServiceTestSupport {
                 .hasMessage("권한이 없는 사용자입니다.");
     }
 
+    @DisplayName("사용자의 독서 상태가 읽고 싶은 책을 가져온다.")
+    @Test
+    void getReadingStatuses() {
+        //given
+        User user = userRepository.save(createUser());
+        List<Book> books = bookRepository.saveAll(createBooks());
+        List<Rating> ratings = ratingRepository.saveAll(createRatings(user, books));
+        List<Library> userLibraries = libraryRepository.saveAll(createUserLibraries(user, books));
+
+        // 읽고 싶은 상태인 책을 사전 순으로 정렬하고 1페이지를 가져온다.
+        UserReadingStatusGetAllServiceRequest request = UserReadingStatusGetAllServiceRequest.builder()
+                .page(1)
+                .size(4)
+                .orderType(ReadingStatusOrderType.DICTIONARY)
+                .readingStatus(WANT)
+                .build();
+
+        //when
+        PageResponse<UserReadingStatusResponse> result = libraryService.getUserReadingStatuses(user.getId(), request);
+
+        //then
+        assertThat(result.getTotalCount()).isEqualTo(4);
+        assertThat(result.getQueryResponse()).hasSize(4)
+                .extracting("bookImage", "bookTitle", "ratingAvg")
+                .containsExactly(
+                        tuple("bookImage", "제목1", 1.0),
+                        tuple("bookImage", "제목11", 1.0),
+                        tuple("bookImage", "제목16", 1.0),
+                        tuple("bookImage", "제목6", 1.0)
+                );
+    }
+
     private static User createUser() {
         return User.builder()
                 .name("user@gmail.com")
@@ -376,6 +423,25 @@ public class LibraryServiceTest extends ServiceTestSupport {
                                 .oauthType(OauthType.KAKAO)
                                 .build()
                 )
+                .build();
+    }
+
+    private static List<Book> createBooks() {
+        return IntStream.rangeClosed(1, 20)
+                .mapToObj(i -> createBook(
+                        "제목" + String.valueOf(i), "내용" + String.valueOf(i), String.valueOf(i)))
+                .collect(Collectors.toList());
+    }
+
+    private static Book createBook(String title, String content, String isbn) {
+        return Book.builder()
+                .title(title)
+                .content(content)
+                .authors("김도형")
+                .isbn(isbn)
+                .publisher("지성인")
+                .dateTime(LocalDateTime.of(2024, 1, 1, 0, 0))
+                .imageUrl("bookImage")
                 .build();
     }
 
@@ -405,12 +471,6 @@ public class LibraryServiceTest extends ServiceTestSupport {
                 .build();
     }
 
-    private static List<Book> createBooks() {
-        return IntStream.rangeClosed(1, 5)
-                .mapToObj(i -> createBookWithIsbn(String.valueOf(i)))
-                .toList();
-    }
-
     public static Library create(User user, Book book) {
         return Library.builder()
                 .user(user)
@@ -425,4 +485,42 @@ public class LibraryServiceTest extends ServiceTestSupport {
                 .toList();
     }
 
+    private static List<Library> createUserLibraries(User user, List<Book> books) {
+        List<Library> userLibraries = new ArrayList<>();
+        List<ReadingStatus> statuses = List.of(WANT, READING, READ, PAUSE, STOP);
+
+        IntStream.rangeClosed(1, 20)
+                .forEach(i -> {
+                    ReadingStatus readingStatus = statuses.get((i - 1) % statuses.size());
+                    Library library = createUserLibrary(user, books.get(i - 1), readingStatus);
+                    userLibraries.add(library);
+                });
+
+        return userLibraries;
+    }
+
+    private static Library createUserLibrary(User user, Book book, ReadingStatus readingStatus) {
+        return Library.builder()
+                .user(user)
+                .book(book)
+                .status(readingStatus)
+                .build();
+    }
+
+    private static List<Rating> createRatings(User user, List<Book> books) {
+        return IntStream.range(0, 20)
+                .mapToObj(i -> {
+                    double rating = i % 5 + 1.0;
+                    return createRating(user, books.get(i), rating);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private static Rating createRating(User user, Book book, Double rating) {
+        return Rating.builder()
+                .user(user)
+                .book(book)
+                .rating(rating)
+                .build();
+    }
 }

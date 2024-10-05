@@ -5,6 +5,7 @@ import com.jisungin.api.book.BookController;
 import com.jisungin.api.comment.CommentController;
 import com.jisungin.api.commentlike.CommentLikeController;
 import com.jisungin.api.image.ImageController;
+import com.jisungin.api.rating.RatingController;
 import com.jisungin.api.review.ReviewController;
 import com.jisungin.api.reviewlike.ReviewLikeController;
 import com.jisungin.api.search.SearchController;
@@ -18,6 +19,7 @@ import com.jisungin.application.book.BookService;
 import com.jisungin.application.comment.CommentService;
 import com.jisungin.application.commentlike.CommentLikeService;
 import com.jisungin.application.image.ImageService;
+import com.jisungin.application.rating.RatingService;
 import com.jisungin.application.review.ReviewService;
 import com.jisungin.application.reviewlike.ReviewLikeService;
 import com.jisungin.application.search.SearchService;
@@ -47,7 +49,8 @@ import org.springframework.test.web.servlet.MockMvc;
         ReviewLikeController.class,
         ImageController.class,
         SearchController.class,
-        LibraryController.class
+        LibraryController.class,
+        RatingController.class
 },
         excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
@@ -61,6 +64,9 @@ public abstract class ControllerTestSupport {
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @MockBean
+    protected RatingService ratingService;
 
     @MockBean
     protected TalkRoomService talkRoomService;
@@ -112,6 +118,4 @@ public abstract class ControllerTestSupport {
                 .id(1L)
                 .build();
     }
-
-
 }

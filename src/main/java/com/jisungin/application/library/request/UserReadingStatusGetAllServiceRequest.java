@@ -1,4 +1,4 @@
-package com.jisungin.application.user.request;
+package com.jisungin.application.library.request;
 
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.library.ReadingStatusOrderType;
@@ -35,5 +35,4 @@ public class UserReadingStatusGetAllServiceRequest {
     public int getOffset() {
         return (max(1, page) - 1) * min(size, MAX_SIZE);
     }
-
 }
