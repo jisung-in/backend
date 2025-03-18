@@ -1,19 +1,16 @@
 package com.jisungin.api.library;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.jisungin.ControllerTestSupport;
 import com.jisungin.api.library.request.LibraryCreateRequest;
 import com.jisungin.api.library.request.LibraryEditRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class LibraryControllerTest extends ControllerTestSupport {
 
@@ -172,4 +169,19 @@ public class LibraryControllerTest extends ControllerTestSupport {
                 .andDo(print());
     }
 
+    @DisplayName("사용자의 독서 상태를 조회한다.")
+    @Test
+    void getReadingStatuses() throws Exception {
+        //given
+        //when //then
+        mockMvc.perform(get("/v1/users/libraries/statuses?page=1&size=4&order=dictionary&status=want")
+                        .contentType(APPLICATION_JSON)
+                        .session(mockHttpSession)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
 }

@@ -48,14 +48,14 @@ include::{snippets}/rating/delete/http-response.adoc[]
 include::{snippets}/rating/delete/response-fields.adoc[]
 
 [[review-findAll]]
-=== 한줄평 페이지 조회
+=== 유저 한줄평 페이지 조회
 
 ==== HTTP Request
 
-include::{snippets}/review/findAll/http-request.adoc[]
-include::{snippets}/review/findAll/query-parameters.adoc[]
+include::{snippets}/review/user-reviews/http-request.adoc[]
+include::{snippets}/review/user-reviews/query-parameters.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/review/findAll/http-response.adoc[]
-include::{snippets}/review/findAll/response-fields.adoc[]
+include::{snippets}/review/user-reviews/http-response.adoc[]
+include::{snippets}/review/user-reviews/response-fields.adoc[]

@@ -1,5 +1,6 @@
 package com.jisungin.api.review;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -131,4 +132,19 @@ class ReviewControllerTest extends ControllerTestSupport {
                 .andDo(print());
     }
 
+    @DisplayName("사용자의 모든 리뷰 내용을 조회한다.")
+    @Test
+    void getReviewContents() throws Exception {
+        //given
+        //when //then
+        mockMvc.perform(get("/v1/users/reviews?page=1&size=4&order=rating_avg_desc")
+                        .contentType(APPLICATION_JSON)
+                        .session(mockHttpSession)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print());
+    }
 }

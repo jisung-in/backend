@@ -1,8 +1,11 @@
 package com.jisungin.application.library;
 
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.library.request.LibraryCreateServiceRequest;
 import com.jisungin.application.library.request.LibraryEditServiceRequest;
 import com.jisungin.application.library.response.LibraryResponse;
+import com.jisungin.application.library.response.UserReadingStatusResponse;
+import com.jisungin.application.library.request.UserReadingStatusGetAllServiceRequest;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
@@ -12,11 +15,14 @@ import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
 import com.jisungin.exception.ErrorCode;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static com.jisungin.exception.ErrorCode.USER_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -89,4 +95,12 @@ public class LibraryService {
         libraryRepository.deleteById(library.getId());
     }
 
+    public PageResponse<UserReadingStatusResponse> getUserReadingStatuses(
+            Long userId, UserReadingStatusGetAllServiceRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+
+        return libraryRepository.findAllReadingStatusOrderBy(
+                user.getId(), request.getReadingStatus(), request.getOrderType(), request.getSize(), request.getOffset());
+    }
 }

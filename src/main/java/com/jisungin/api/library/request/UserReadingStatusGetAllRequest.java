@@ -1,6 +1,6 @@
-package com.jisungin.api.user.request;
+package com.jisungin.api.library.request;
 
-import com.jisungin.application.user.request.UserReadingStatusGetAllServiceRequest;
+import com.jisungin.application.library.request.UserReadingStatusGetAllServiceRequest;
 import com.jisungin.domain.ReadingStatus;
 import com.jisungin.domain.library.ReadingStatusOrderType;
 import lombok.Builder;
@@ -37,5 +37,4 @@ public class UserReadingStatusGetAllRequest {
                 .readingStatus(ReadingStatus.fromName(status))
                 .build();
     }
-
 }

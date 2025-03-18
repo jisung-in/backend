@@ -1,12 +1,13 @@
 package com.jisungin.api.review;
 
 import com.jisungin.api.ApiResponse;
-import com.jisungin.api.support.Auth;
+import com.jisungin.api.review.request.ReviewContentGetAllRequest;
 import com.jisungin.api.review.request.ReviewCreateRequest;
-import com.jisungin.api.support.GuestOrAuth;
+import com.jisungin.api.support.Auth;
 import com.jisungin.application.OffsetLimit;
 import com.jisungin.application.SliceResponse;
 import com.jisungin.application.review.ReviewService;
+import com.jisungin.application.review.response.ReviewContentGetAllResponse;
 import com.jisungin.application.review.response.ReviewWithRatingResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,4 +48,13 @@ public class ReviewController {
         return ApiResponse.ok();
     }
 
+    @GetMapping("/users/reviews")
+    public ApiResponse<ReviewContentGetAllResponse> getReviewContents(
+            @ModelAttribute ReviewContentGetAllRequest request,
+            @Auth Long userId
+    ) {
+        ReviewContentGetAllResponse response = reviewService.getReviewContents(userId, request.toService());
+
+        return ApiResponse.ok(response);
+    }
 }

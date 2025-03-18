@@ -1,6 +1,6 @@
-package com.jisungin.api.user.request;
+package com.jisungin.api.review.request;
 
-import com.jisungin.application.user.request.ReviewContentGetAllServiceRequest;
+import com.jisungin.application.review.request.ReviewContentGetAllServiceRequest;
 import com.jisungin.domain.review.RatingOrderType;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,5 +32,4 @@ public class ReviewContentGetAllRequest {
                 .orderType(RatingOrderType.fromName(order))
                 .build();
     }
-
 }

@@ -13,5 +13,4 @@ public abstract class ServiceTestSupport {
 
     @MockBean
     protected ClientRegistrationRepository clientRegistrationRepository;
-
 }

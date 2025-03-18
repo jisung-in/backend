@@ -1,41 +1,36 @@
 package com.jisungin.docs.library;
 
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.patch;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
-import static org.springframework.restdocs.payload.JsonFieldType.ARRAY;
-import static org.springframework.restdocs.payload.JsonFieldType.NUMBER;
-import static org.springframework.restdocs.payload.JsonFieldType.OBJECT;
-import static org.springframework.restdocs.payload.JsonFieldType.STRING;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.jisungin.api.library.LibraryController;
 import com.jisungin.api.library.request.LibraryCreateRequest;
 import com.jisungin.api.library.request.LibraryEditRequest;
+import com.jisungin.application.PageResponse;
 import com.jisungin.application.library.LibraryService;
 import com.jisungin.application.library.request.LibraryCreateServiceRequest;
 import com.jisungin.application.library.response.LibraryResponse;
+import com.jisungin.application.library.response.UserReadingStatusResponse;
+import com.jisungin.application.library.request.UserReadingStatusGetAllServiceRequest;
 import com.jisungin.docs.RestDocsSupport;
-import java.util.List;
-import java.util.stream.LongStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.restdocs.payload.JsonFieldType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.payload.JsonFieldType.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class LibraryControllerDocsTest extends RestDocsSupport {
 
@@ -170,6 +165,86 @@ public class LibraryControllerDocsTest extends RestDocsSupport {
 
     }
 
+    @DisplayName("유저 독서 상태 페이징 조회 API")
+    @Test
+    void getReadingStatuses() throws Exception {
+        List<UserReadingStatusResponse> readingStatusesResponse = createReadingStatusResponse();
+
+        PageResponse<UserReadingStatusResponse> response = PageResponse.<UserReadingStatusResponse>builder()
+                .size(10)
+                .totalCount(10)
+                .queryResponse(readingStatusesResponse)
+                .build();
+
+        given(libraryService.getUserReadingStatuses(anyLong(), any(UserReadingStatusGetAllServiceRequest.class)))
+                .willReturn(response);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v1/users/libraries/statuses")
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("order", "dictionary")
+                        .param("status", "want")
+                        .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("OK"))
+                .andDo(print())
+                .andDo(document("library/user-statuses",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        queryParameters(
+                                parameterWithName("page")
+                                        .description("페이지 번호"),
+                                parameterWithName("size")
+                                        .description("페이지 사이즈"),
+                                parameterWithName("order")
+                                        .description(
+                                                "정렬 기준 : dictionary(가나다순), rating_avg_desc(평균 별점 높은 순)"),
+                                parameterWithName("status")
+                                        .description(
+                                                "선택 기준 : want(읽고 싶은), reading(읽는 중), pause(잠시 멈춤)," +
+                                                        "stop(중단), none(상관없음)")
+                        ),
+                        responseFields(
+                                fieldWithPath("code").type(JsonFieldType.NUMBER)
+                                        .description("코드"),
+                                fieldWithPath("status").type(JsonFieldType.STRING)
+                                        .description("상태"),
+                                fieldWithPath("message").type(JsonFieldType.STRING)
+                                        .description("메시지"),
+                                fieldWithPath("data").type(JsonFieldType.OBJECT)
+                                        .description("응답 데이터"),
+                                fieldWithPath("data.queryResponse").type(JsonFieldType.ARRAY)
+                                        .description("책 목록"),
+                                fieldWithPath("data.queryResponse[].isbn").type(JsonFieldType.STRING)
+                                        .description("책 isbn"),
+                                fieldWithPath("data.queryResponse[].bookTitle").type(JsonFieldType.STRING)
+                                        .description("책 제목"),
+                                fieldWithPath("data.queryResponse[].bookImage").type(JsonFieldType.STRING)
+                                        .description("책 표지"),
+                                fieldWithPath("data.queryResponse[].ratingAvg").type(JsonFieldType.NUMBER)
+                                        .description("책 평균 별점"),
+                                fieldWithPath("data.totalCount").type(JsonFieldType.NUMBER)
+                                        .description("데이터 총 개수"),
+                                fieldWithPath("data.size").type(JsonFieldType.NUMBER)
+                                        .description("해당 페이지 데이터 개수")
+                        )
+                ));
+    }
+
+    private List<UserReadingStatusResponse> createReadingStatusResponse() {
+        return IntStream.range(0, 10)
+                .mapToObj(i -> UserReadingStatusResponse.builder()
+                        .isbn(String.valueOf(i))
+                        .bookTitle("책 제목" + i)
+                        .bookImage("책 표지" + i)
+                        .ratingAvg(i % 5.0 + 1)
+                        .build())
+                .toList();
+    }
+
     private LibraryResponse createLibraryResponse(Long id, String bookIsbn) {
         return LibraryResponse.builder()
                 .id(id)
@@ -183,5 +258,4 @@ public class LibraryControllerDocsTest extends RestDocsSupport {
                 .mapToObj(i -> createLibraryResponse(i, String.valueOf(i)))
                 .toList();
     }
-
 }

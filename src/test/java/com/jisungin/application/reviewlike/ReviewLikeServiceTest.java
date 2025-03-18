@@ -4,16 +4,15 @@ import com.jisungin.ServiceTestSupport;
 import com.jisungin.application.reviewlike.response.ReviewIds;
 import com.jisungin.domain.book.Book;
 import com.jisungin.domain.book.repository.BookRepository;
-import com.jisungin.domain.user.OauthId;
-import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.review.Review;
 import com.jisungin.domain.review.repository.ReviewRepository;
 import com.jisungin.domain.reviewlike.ReviewLike;
 import com.jisungin.domain.reviewlike.repository.ReviewLikeRepository;
+import com.jisungin.domain.user.OauthId;
+import com.jisungin.domain.user.OauthType;
 import com.jisungin.domain.user.User;
 import com.jisungin.domain.user.repository.UserRepository;
 import com.jisungin.exception.BusinessException;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,8 +20,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ReviewLikeServiceTest extends ServiceTestSupport {
 
@@ -83,6 +87,37 @@ class ReviewLikeServiceTest extends ServiceTestSupport {
         assertThat(reviewLike).hasSize(1);
         assertThat(reviewLike.get(0).getUser().getId()).isEqualTo(user.getId());
         assertThat(reviewLike.get(0).getReview().getId()).isEqualTo(review.getId());
+    }
+
+    @DisplayName("동일한 리뷰에 여러 스레드가 동시에 접근해도 1개의 좋아요만 생성된다.")
+    @Test
+    void LikeReviewWithThreads() throws Exception {
+        //given
+        User user1 = userRepository.save(createUser("1"));
+        User user2 = userRepository.save(createUser("2"));
+        Book book = bookRepository.save(createBook());
+        Review review = reviewRepository.save(createReview(user1, book));
+
+        int threadCount = 100;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount);
+
+        //when
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    reviewLikeService.likeReview(user2.getId(), review.getId());
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+        }
+
+        countDownLatch.await();
+
+        //then
+        List<ReviewLike> reviewLike = reviewLikeRepository.findAll();
+        assertThat(reviewLike.size()).isEqualTo(1);
     }
 
     @DisplayName("리뷰 좋아요가 중복되면 예외가 발생한다.")
@@ -182,5 +217,4 @@ class ReviewLikeServiceTest extends ServiceTestSupport {
                 .mapToObj(i -> createReview(user, book))
                 .toList();
     }
-
 }

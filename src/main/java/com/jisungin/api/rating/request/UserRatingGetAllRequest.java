@@ -1,6 +1,6 @@
-package com.jisungin.api.user.request;
+package com.jisungin.api.rating.request;
 
-import com.jisungin.application.user.request.UserRatingGetAllServiceRequest;
+import com.jisungin.application.rating.request.UserRatingGetAllServiceRequest;
 import com.jisungin.domain.review.RatingOrderType;
 import lombok.*;
 
@@ -33,5 +33,4 @@ public class UserRatingGetAllRequest {
                 .rating(rating)
                 .build();
     }
-
 }

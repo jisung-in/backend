@@ -1,4 +1,4 @@
-package com.jisungin.application.user.request;
+package com.jisungin.application.rating.request;
 
 import com.jisungin.domain.review.RatingOrderType;
 import lombok.Builder;
@@ -32,5 +32,4 @@ public class UserRatingGetAllServiceRequest {
     public int getOffset() {
         return (max(1, page) - 1) * min(size, MAX_SIZE);
     }
-
 }
