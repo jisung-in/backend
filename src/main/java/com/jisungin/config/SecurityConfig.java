@@ -48,6 +48,7 @@ public class SecurityConfig {
                                 .requestMatchers("/v1/oauth2/**").permitAll()
                                 .requestMatchers("/docs/**").permitAll()
                                 .requestMatchers("/v1/s3/**").permitAll()
+                                .requestMatchers("/.well-known/**").permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(exceptionHandlingConfigurer ->
                         exceptionHandlingConfigurer.authenticationEntryPoint(entryPoint))
