@@ -1,0 +1,61 @@
+[[review-create]]
+
+=== 도서와 연관된 리뷰 조회
+
+==== HTTP Request
+
+include::{snippets}/review/get-related-book/http-request.adoc[]
+include::{snippets}/review/get-related-book/path-parameters.adoc[]
+include::{snippets}/review/get-related-book/query-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/review/get-related-book/http-response.adoc[]
+include::{snippets}/review/get-related-book/response-fields.adoc[]
+
+=== 도서와 연관된 리뷰 개수 조회
+==== HTTP Request
+include::{snippets}/review/get-related-book-count/http-request.adoc[]
+include::{snippets}/review/get-related-book-count/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/review/get-related-book-count/http-response.adoc[]
+include::{snippets}/review/get-related-book-count/response-fields.adoc[]
+
+=== 한줄평 생성
+
+==== HTTP Request
+
+include::{snippets}/review/create/http-request.adoc[]
+include::{snippets}/review/create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/rating/create/http-response.adoc[]
+include::{snippets}/rating/create/response-fields.adoc[]
+
+[[review-delete]]
+=== 한줄평 삭제
+
+==== HTTP Request
+
+include::{snippets}/review/delete/http-request.adoc[]
+include::{snippets}/review/delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/rating/delete/http-response.adoc[]
+include::{snippets}/rating/delete/response-fields.adoc[]
+
+[[review-findAll]]
+=== 유저 한줄평 페이지 조회
+
+==== HTTP Request
+
+include::{snippets}/review/user-reviews/http-request.adoc[]
+include::{snippets}/review/user-reviews/query-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/review/user-reviews/http-response.adoc[]
+include::{snippets}/review/user-reviews/response-fields.adoc[]

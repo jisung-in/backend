@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  springboot:
+    container_name: spring-dev # ec2 내에서 동작하는 컨테이너명
+    image: jisungincokr/develop:latest
+    ports:
+      - 8080:8080
+    environment:
+      SPRING_PROFILES_ACTIVE: dev-env # 사용할 profile
+    networks:
+      - my_network
+
+  redis:
+    image: redis
+    container_name: redis-cache
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--port", "6379"]
+    ports:
+      - 6379:6379
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
